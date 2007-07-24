@@ -1,0 +1,517 @@
+#include "stdafx.h"
+#include "slmproject.h"
+#include "optimization.h"
+
+
+
+
+
+void exchange(double* a, double* b){
+    double tem;
+	tem = *a;
+	*a = *b;
+	*b = tem;
+}
+
+
+
+void exchange(char* a, char* b){
+    char tem;
+	tem = *a;
+	*a = *b;
+	*b = tem;
+}
+
+
+optim_ga::optim_ga(int num){
+    order = num;
+
+	realpara = new double[order];
+	
+    phasedata = new unsigned char[SLMSIZE*SLMSIZE];
+    memset(phasedata, 0, sizeof(unsigned char)*SLMSIZE*SLMSIZE);
+
+	char msgbuf[1024];
+
+
+    for(int i=0; i < ParallelNum; i++){
+	    paracomax[i] = (rand() % 255) - 127;
+	    paracomay[i] = (rand() % 255) - 127;
+	    parastigx[i] = (rand() % 255) - 127;
+	    parastigy[i] = (rand() % 255) - 127;
+	    paraspher[i] = (rand() % 255) - 127;
+        
+	sprintf(msgbuf, "**********init value: paracomax[%d] is %d, paracomay[%d] is %d, parastigx[%d] is %d, parastigy[%d] is %d,  paraspher[%d] is %d****************", i, paracomax[i], i, paracomay[i], i, parastigx[i], i,parastigy[i],i,paraspher[i]);
+	OutputDebugString(msgbuf);
+
+		
+	}
+
+
+
+	//slm control initialization
+	slm = new SlmCom;
+	slm->InitSlm();
+
+	nfCount = 0;
+
+	curpoint = 0;
+	initflag = 0;
+}
+
+optim_ga::~optim_ga(){
+	if(realpara != NULL)
+        delete realpara;
+	if(phasedata != NULL)
+	    delete phasedata;
+    if(slm != NULL)
+		delete slm;
+}
+
+
+void optim_ga::exchpara(int i, int j){
+        exchange(&paracomax[i], &paracomax[j]);
+        exchange(&paracomay[i], &paracomay[j]);
+        exchange(&parastigx[i], &parastigx[j]);
+        exchange(&parastigy[i], &parastigy[j]);
+        exchange(&paraspher[i], &paraspher[j]);
+}
+
+
+
+void optim_ga::setpower(bool bPowerstatus){
+	if(bPowerstatus == true){
+
+		OutputDebugString("********open power*******");
+
+	    slm->OpenSlm();
+	}
+	else{
+		OutputDebugString("********close power*******");
+
+	    //slm->CloseSlm();
+	}
+    return;
+}
+
+
+int optim_ga::optimization(double aver){
+    
+	char msgbuf[1024];
+
+	sprintf(msgbuf, "***************just go in optimization function, current point is %d, aver is %f ****************", curpoint, aver);
+	OutputDebugString(msgbuf);
+
+
+    //the first value is invalid
+	if(initflag == 0){
+        curpoint = 1;
+	    slmcon();
+	    initflag = 1;
+		return 1;
+	}
+    
+	if(curpoint == 0){
+	    slmcon();
+	    curpoint = 1;
+		return 1;
+	}
+
+	aver_inten[curpoint-1] = aver;
+	
+	if(curpoint > ParallelNum-1){
+		if(0 == stopfun()){
+			//meet the stop condition
+		    return 0;
+		}
+		else{
+		    curpoint = 0;
+
+			controlfun();
+			slmcon();
+			//pause several second and scan again.
+        	return 1;
+		}
+	}
+	else{
+	    curpoint ++;
+	    slmcon();
+		//continue scan.
+	    return 1;
+	}
+}
+
+
+//return int: the return value refers the 
+void optim_ga::controlfun(){
+    //find the three best intensity
+    char msgbuf[1024];
+	
+	find3best();
+
+	sprintf(msgbuf, "***********aver_inten[0] is %f, aver_inten[1] is %f, aver_inten[2] is %f, aver_inten[3] is %f,aver_inten[4] is %f,aver_inten[5] is %f,aver_inten[6] is %f, aver_inten[7] is %f ****************", aver_inten[0], aver_inten[1], aver_inten[2],aver_inten[3],aver_inten[4],aver_inten[5],aver_inten[6],aver_inten[7]); 
+	
+	OutputDebugString(msgbuf);
+
+
+	sprintf(msgbuf, "***********best_inten[0] is %f, best_inten[1] is %f, best_inten[2] is %f****************", best_inten[0], best_inten[1], best_inten[2]);
+
+	OutputDebugString(msgbuf);
+
+
+
+
+	if(best_inten[0] <= finalbestinten){
+	    nfCount ++;
+	}
+	else{
+	    finalbestinten = best_inten[0];
+	}
+	crossOverM();
+}
+
+//crossover and mutation operation
+void optim_ga::crossOverM(){
+    char msgbuf[1024];
+
+
+	for(int i = 0; i < CrosNum; i++){
+	    bestparacomax[i] = paracomax[i];
+	    bestparacomay[i] = paracomay[i];
+	    bestparastigx[i] = parastigx[i];
+	    bestparastigy[i] = parastigy[i];
+	    bestparaspher[i] = paraspher[i];
+	}
+	sprintf(msgbuf, "\n***********bestparaspher[0] is %d, bestparaspher[1] is %d, bestparaspher[2] is %d***************\n", bestparaspher[0], bestparaspher[1], bestparaspher[2]); 
+	OutputDebugString(msgbuf);
+	//mutation of the 2 best parameters
+   	paracomax[0] = bestparacomax[0];
+    paracomax[1] = (bestparacomax[0]&0xFC)|(~(bestparacomax[0]&0x03));
+	//crossove of the 3 best parameters
+    paracomax[2] = (bestparacomax[0]&0xF0)|(bestparacomax[1]&0x0F);
+	paracomax[3] = (bestparacomax[1]&0xF0)|(bestparacomax[0]&0x0F);
+    paracomax[4] = (bestparacomax[0]&0xF0)|(bestparacomax[2]&0x0F);
+	paracomax[5] = (bestparacomax[2]&0xF0)|(bestparacomax[0]&0x0F);
+
+	paracomax[6] = (bestparacomax[1]&0xF0)|(bestparacomax[2]&0x0F);
+	paracomax[7] = (bestparacomax[2]&0xF0)|(bestparacomax[1]&0x0F);
+
+	for(i = 0; i < 8; i++){
+	    sprintf(msgbuf, "\n***********paracomax[%d] is %d***************\n", i, paracomax[i]); 
+		OutputDebugString(msgbuf);
+	}
+
+
+	//mutation of the 2 best parameters
+	paracomay[0] = bestparacomay[0];
+    paracomay[1] = (bestparacomay[0]&0xFC)|(~(bestparacomay[0]&0x03));
+	//crossove of the 3 best parameters
+    paracomay[2] = (bestparacomay[0]&0xF0)|(bestparacomay[1]&0x0F);
+	paracomay[3] = (bestparacomay[1]&0xF0)|(bestparacomay[0]&0x0F);
+    paracomay[4] = (bestparacomay[0]&0xF0)|(bestparacomay[2]&0x0F);
+	paracomay[5] = (bestparacomay[2]&0xF0)|(bestparacomay[0]&0x0F);
+
+	paracomay[6] = -bestparacomay[0];
+	paracomay[7] = (bestparacomay[1]&0xFC)|(~(bestparacomay[1]&0x03));
+
+	//mutation of the 2 best parameters
+	parastigx[0] = bestparastigx[0];
+    parastigx[1] = (bestparastigx[0]&0xFC)|(~(bestparastigx[0]&0x03));
+	//crossove of the 3 best parameters
+    parastigx[2] = (bestparastigx[0]&0xF0)|(bestparastigx[1]&0x0F);
+	parastigx[3] = (bestparastigx[1]&0xF0)|(bestparastigx[0]&0x0F);
+    parastigx[4] = (bestparastigx[0]&0xF0)|(bestparastigx[2]&0x0F);
+	parastigx[5] = (bestparastigx[2]&0xF0)|(bestparastigx[0]&0x0F);
+
+	parastigx[6] = -bestparastigx[0];
+	parastigx[7] = (bestparastigx[1]&0xFC)|(~(bestparastigx[1]&0x03));
+
+	//mutation of the 2 best parameters
+	parastigy[0] = bestparastigy[0];
+    parastigy[1] = (bestparastigy[0]&0xFC)|(~(bestparastigy[0]&0x03));
+	//crossove of the 3 best parameters
+    parastigy[2] = (bestparastigy[0]&0xF0)|(bestparastigy[1]&0x0F);
+	parastigy[3] = (bestparastigy[1]&0xF0)|(bestparastigy[0]&0x0F);
+    parastigy[4] = (bestparastigy[0]&0xF0)|(bestparastigy[2]&0x0F);
+	parastigy[5] = (bestparastigy[2]&0xF0)|(bestparastigy[0]&0x0F);
+
+	parastigy[6] = -bestparastigy[0];
+	parastigy[7] = (bestparastigy[1]&0xFC)|(~(bestparastigy[1]&0x03));
+	
+	//mutation of the 2 best parameters
+
+	paraspher[0] = bestparaspher[0];
+    paraspher[1] = (bestparaspher[0]&0xFC)|(~(bestparaspher[0]&0x03));
+	//crossove of the 3 best parameters
+    paraspher[2] = (bestparaspher[0]&0xF8)|(bestparaspher[1]&0x07);
+	paraspher[3] = (bestparaspher[1]&0xF8)|(bestparaspher[0]&0x07);
+    paraspher[4] = (bestparaspher[0]&0xF8)|(bestparaspher[2]&0x07);
+	paraspher[5] = (bestparaspher[2]&0xF8)|(bestparaspher[0]&0x07);
+
+	/*
+	paraspher[6] = (bestparaspher[1]&0xF8)|(bestparaspher[2]&0x07);
+	paraspher[7] = (bestparaspher[2]&0xF8)|(bestparaspher[1]&0x07);
+    */
+	paraspher[6] = -bestparaspher[0];
+	paraspher[7] = (bestparaspher[1]&0xFC)|(~(bestparaspher[1]&0x03));
+
+	for(i = 0; i < 8; i++){
+	    sprintf(msgbuf, "\n***********paraspher[%d] is %d***************\n", i, paraspher[i]); 
+		OutputDebugString(msgbuf);
+	}
+
+}
+
+
+
+
+void optim_ga::find3best(){
+
+	for(int j = 0; j < 3; j++){
+	    for(int i = j+1; i < ParallelNum; i++){
+            if(aver_inten[i] > aver_inten[j]){
+				exchange(&aver_inten[i], &aver_inten[j]);
+                exchpara(i, j);
+			}
+		}
+		best_inten[j] = aver_inten[j];
+	}
+}
+
+
+
+void optim_ga::slmcon(){
+	selectpara();
+	generate_buf();
+    send_buf();
+}
+
+
+void optim_ga::selectpara(){
+	paracomax[ArrayNum-1] = paracomax[curpoint];
+	paracomay[ArrayNum-1] = paracomay[curpoint];
+	parastigx[ArrayNum-1] = parastigx[curpoint];
+	parastigy[ArrayNum-1] = parastigy[curpoint];
+	paraspher[ArrayNum-1] = paraspher[curpoint];
+}
+
+
+//return 0: stop
+//return 2: scan and close the shutter for 3 seconds and scan again.
+
+int optim_ga::stopfun(){
+    char msgbuf[128];
+	
+	sprintf(msgbuf, "*********nfCount is %d",nfCount); 
+	
+	OutputDebugString(msgbuf);
+
+
+	if(nfCount > MAXNUMNOTB){
+
+        initflag = 0;
+	    return 0;
+	}
+    return 1;
+}
+
+
+
+
+
+
+
+void optim_ga::DtoI(double * Dbuf, int length)
+{
+	unsigned char temp;
+	int i;
+#ifdef DEBUG_OUTPUT
+    int tp, tp2;
+    FILE *pfold;
+	pfold = fopen("c:/slmcontrol/dumpout/VC_output_beforeD2I.txt","wt");
+    for (tp = 0; tp < 512; tp ++)
+	{
+		fprintf(pfold, "\n");
+		for (tp2 = 0; tp2 < 512; tp2++)
+		fprintf(pfold, "%f, ", Dbuf[tp*512 + tp2]);
+	}
+	fclose(pfold);
+#endif
+
+	        
+    for (i = 0; i < SLMSIZE*SLMSIZE; i++)
+    {
+        Dbuf[i] = round256(Dbuf[i]*256);
+        if(Dbuf[i] < 0)
+        {
+            Dbuf[i] = Dbuf[i] + 256;
+        }
+    } 
+
+	for (i = 0; i< length; i ++)
+	{
+		temp = unsigned char(*(Dbuf+i));
+		if ((*(Dbuf+i) - temp) < 0.5)
+            *(phasedata+i) = temp;
+		else
+            *(phasedata+i) = temp + 1;
+	}
+}
+
+
+void optim_ga::send_buf(){
+
+	bool framechange = 0;
+
+#ifdef DEBUG_OUTPUT
+    int tp, tp2;
+    FILE *pfold;
+	pfold = fopen("c:/slmcontrol/dumpout/VC_output_aftergen.txt","wt");
+    for (tp = 0; tp < 512; tp ++)
+	{
+		fprintf(pfold, "\n");
+		for (tp2 = 0; tp2 < 512; tp2++)
+		fprintf(pfold, "%d, ", phasedata[tp*512 + tp2]);
+	}
+	fclose(pfold);
+#endif
+
+	slm->receiveData(phasedata);
+	slm->SendtoDlm(framechange);
+	return;
+}
+
+
+
+
+
+
+
+void optim_ga::generate_buf(){
+    //
+        double x, y, Radius;
+        double divX, divY, XSquPlusYSqu, divXSqu, divYSqu, XPYSquSqu;
+        double term1, term2, term3, term4, term5, term6, term7, term8, term9;
+        double Piston, XTilt, YTilt, Power, AstigOne, AstigTwo, ComaX, ComaY;
+        double PrimarySpherical;
+		double total;
+
+
+		char msgbuf[1024];
+		
+		//int defocusbins, stigxbins, stigybins, comaxbins, comaybins, speribins;
+        
+        int ActSize, start, end;
+		double *zern = new double[SLMSIZE*SLMSIZE];
+        memset(zern, 0, sizeof(double)*SLMSIZE*SLMSIZE);
+
+        getpara();
+
+        Piston = realpara[0]; XTilt = realpara[1]; YTilt = realpara[2]; Power = realpara[3];
+        AstigOne = realpara[4]; AstigTwo = realpara[5]; ComaX = realpara[6]; ComaY = realpara[7];
+        PrimarySpherical = realpara[8]; 
+
+
+        sprintf(msgbuf, "*************Piston %f, XTilt is %f, YTilt is %f, Power is %f, SLMSIZE is %d\n************", Piston, XTilt, YTilt, Power, SLMSIZE);	
+
+        OutputDebugString(msgbuf);		
+
+        sprintf(msgbuf, "*************AstigOne %f, AstigTwo is %f, ComaX is %f, ComaY is %f, PrimarySpherical is %f\n************", AstigOne, AstigTwo, ComaX, ComaY, PrimarySpherical);	
+
+        OutputDebugString(msgbuf);		
+
+
+
+        ActSize = SLMSIZE;
+        
+        Radius = ActSize*300/512;
+        
+        start = (SLMSIZE - ActSize)/2;
+        end = start + ActSize;
+        
+	    y = ActSize/2;
+        
+    	for(int row = start; row < end; row++){
+		    //reset x
+	        x = -(ActSize/2);
+            
+	        for(int col = start; col < end; col++){
+		    //build some terms that are repeated through the equations
+		        divX = x/Radius;
+		        divY = y/Radius;
+		        XSquPlusYSqu = divX*divX + divY*divY;
+		        XPYSquSqu = XSquPlusYSqu*XSquPlusYSqu;
+		        divXSqu = divX*divX;
+		        divYSqu = divY*divY;
+		        //figure out what each term in the equation is
+		        term1 = (Piston/2);
+		        term2 = (XTilt/2)*divX;
+		        term3 = (YTilt/2)*divY;
+		        term4 = (Power/2)*(2*XSquPlusYSqu - 1);
+		        term5 = (AstigOne/2)*(divXSqu - divY*divY);
+		        term6 = (AstigTwo/2)*(2*divX*divY);
+		        term7 = (ComaX/2)*(3*divX*XSquPlusYSqu - 2*divX);
+	        	term8 = (ComaY/2)*(3*divY*XSquPlusYSqu - 2*divY);
+	        	term9 = (PrimarySpherical/2)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
+
+                total = term1 + term2 + term3 + term4 + term5 + term6 + term7 + term8 + term9;
+
+	    	    zern[row*SLMSIZE+col] = (total);
+			    total = 0;
+                x++;
+            }
+            y--;
+        }
+        
+        DtoI(zern, SLMSIZE*SLMSIZE);
+        delete zern;
+		return;
+    }
+
+
+
+
+	double optim_ga::round256(double dat){
+		if (dat > 0) {
+		    while(dat >= 256){
+                dat = dat - 256;
+			}
+		}
+		else{
+			while(dat <= -256){
+			    dat = dat + 256;
+			}
+		}
+        return dat;
+	}
+
+
+    void optim_ga::getpara(){
+        realpara[0] = 0;
+		realpara[4] = parameterExchange(parastigx[ArrayNum-1]);
+		realpara[5] = parameterExchange(parastigy[ArrayNum-1]);
+		realpara[6] = parameterExchange(paracomax[ArrayNum-1]);
+		realpara[7] = parameterExchange(paracomay[ArrayNum-1]);
+
+        realpara[1] = INIT_SHIFTX;
+        realpara[2] = INIT_SHIFTY;
+
+        realpara[8] = parameterExchange(paraspher[ArrayNum-1]);
+
+		realpara[3] = INIT_FOCUS + focus_fix_func(realpara[8], realpara[4], realpara[5]);
+	}
+
+
+    double optim_ga::parameterExchange(char para){
+	    return (para)*SCALEXCH;
+	}
+
+
+	double optim_ga::tilt_fix_func(double coma){
+        return 2*coma;
+	}
+
+
+    double optim_ga::focus_fix_func(double spher, double astigx, double astigy){
+        return (3*spher + sqrt(astigx*astigx + astigy*astigy)/2);
+	}

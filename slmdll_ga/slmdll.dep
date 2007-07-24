@@ -1,0 +1,18 @@
+# Microsoft Developer Studio Generated Dependency File, included by slmdll.mak
+
+.\Int_wiscan.cpp : \
+	".\bnsboard\bnsboard.h"\
+	".\bnsboard\bnshardware.h"\
+	".\Int_wiscan.h"\
+	".\optimization.h"\
+	".\slmcontrol.h"\
+	
+
+.\slmdll.rc : \
+	".\res\slmdll.rc2"\
+	
+
+.\StdAfx.cpp : \
+	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	".\StdAfx.h"\
+	

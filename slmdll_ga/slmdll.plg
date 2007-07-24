@@ -1,0 +1,64 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: slmdll - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x409 /fo"Debug/slmdll.res" /d "_DEBUG" /d "_AFXDLL" "C:\slmcontrol\slmdll_ga\slmdll.rc"" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP2.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_AFXEXT" /Fp"Debug/slmdll.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\slmcontrol\slmdll_ga\Int_wiscan.cpp"
+"C:\slmcontrol\slmdll_ga\optimization.cpp"
+"C:\slmcontrol\slmdll_ga\slmcontrol.cpp"
+"C:\slmcontrol\slmdll_ga\slmdll.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP2.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP3.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_AFXEXT" /Fp"Debug/slmdll.pch" /Yc"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\slmcontrol\slmdll_ga\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP3.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP4.tmp" with contents
+[
+Kernel32.lib BNSBoard\Debug\BNSBoard.lib /nologo /subsystem:windows /dll /incremental:yes /pdb:"Debug/slmdll.pdb" /debug /machine:I386 /def:".\slmdll.def" /out:"Debug/slmdll.dll" /implib:"Debug/slmdll.lib" /pdbtype:sept 
+.\Debug\Int_wiscan.obj
+.\Debug\optimization.obj
+.\Debug\slmcontrol.obj
+.\Debug\slmdll.obj
+.\Debug\StdAfx.obj
+.\Debug\slmdll.res
+]
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP4.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+Int_wiscan.cpp
+optimization.cpp
+slmcontrol.cpp
+C:\slmcontrol\slmdll_ga\slmcontrol.cpp(55) : warning C4800: 'int' : forcing value to bool 'true' or 'false' (performance warning)
+slmdll.cpp
+Generating Code...
+Linking...
+   Creating library Debug/slmdll.lib and object Debug/slmdll.exp
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP8.bat" with contents
+[
+@echo off
+slmdll.bat
+]
+Creating command line "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP8.bat"
+
+        1 file(s) copied.
+
+
+
+<h3>Results</h3>
+slmdll.dll - 0 error(s), 1 warning(s)
+</pre>
+</body>
+</html>
