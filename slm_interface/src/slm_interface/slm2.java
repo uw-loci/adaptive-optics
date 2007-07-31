@@ -9,6 +9,8 @@
 
 package slm_interface;
 
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.lang.Math;
 import javax.imageio.*;
 import javax.swing.JOptionPane;
@@ -17,11 +19,12 @@ import java.io.*;
  *
  * @author  min
  */
-public class slm2 extends javax.swing.JFrame {
+public class slm2 extends javax.swing.JFrame implements WindowListener {
     
     /** Creates new form slm2 */
     public slm2() {
         initComponents();
+        addWindowListener(this);
         jFileChooser1.setVisible(false);
         
         numCoef = 30;
@@ -41,7 +44,20 @@ public class slm2 extends javax.swing.JFrame {
             dlut[i] = i;
         }
     }
+
+    public void windowActivated(WindowEvent e) { }
+    public void windowClosed(WindowEvent e) { }
     
+    public void windowClosing(WindowEvent e) {
+        // power off system
+        com.slmcontrol.slmAPI.slmjava(samples[0], (char)65);
+    }
+    
+    public void windowDeactivated(WindowEvent e) { }
+    public void windowDeiconified(WindowEvent e) { }
+    public void windowIconified(WindowEvent e) { }
+    public void windowOpened(WindowEvent e) { }
+ 
     /** This method is called from within the constructor to
      * initialize the form
      * WARNING: Do NOT modify this code. The content of this method is
