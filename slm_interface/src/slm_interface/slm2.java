@@ -1,7 +1,10 @@
 /*
  * slm2.java
- *
+ * author: min ren
  * Created on December 20, 2005, 3:31 PM
+ * this file accepts the zernike polynomials parameter, lut file or picture pattern
+ * generate the data sent to SLM.
+ *
  *
  *change record,
  *1) line635 + ---> -
@@ -16,8 +19,6 @@ import javax.imageio.*;
 import javax.swing.JOptionPane;
 import java.io.*;
 /**
- *
- * @author  min
  */
 public class slm2 extends javax.swing.JFrame implements WindowListener {
     
@@ -27,6 +28,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         addWindowListener(this);
         jFileChooser1.setVisible(false);
         
+        //set the max number of zernike polynomails to 30. 
         numCoef = 30;
         srt = new SurfaceTest();
         try{
@@ -48,6 +50,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
     public void windowActivated(WindowEvent e) { }
     public void windowClosed(WindowEvent e) { }
     
+    //called by window closing, set the power off command to slm
     public void windowClosing(WindowEvent e) {
         // power off system
         com.slmcontrol.slmAPI.slmjava(samples[0], (char)65);
@@ -699,27 +702,40 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
 // TODO add your handling code here:
     }//GEN-LAST:event_jBut_patten_brw1MouseClicked
 
+    //called when button, "reset the focus" is clicked.
     private void jBut_lut_resetfocusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBut_lut_resetfocusMouseClicked
 // TODO add your handling coe here:
         String oldfocus;
+        //take the value remembered before focus is changed due to spherical change
         oldfocus = String.valueOf((float)rememberfocus);
+        //set the old value to the defocus parameter
         jTFCoef4.setText(oldfocus);
     }//GEN-LAST:event_jBut_lut_resetfocusMouseClicked
 
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
 // TODO add your handling code here:
     }//GEN-LAST:event_formMouseClicked
-
+    
+    //the focus value have to be changed if shperical parameter is changed
+    //because shperical polynomials will change focus length also
+    //according to the formula, changes on focus value from spherical is 3 times of spherical parameter.
     private void recalculate_focus(){
         double sphparameter, focusold, focuschange;
         String sph, foc;
         sph = jTFCoef9.getText();
         sphparameter = Double.valueOf(sph);
+        
+        // this fomular is gotten by real test. 1. find the relation between focus parameter and real focus change read from microscopy. 
+        // 2. find the relation between spherical parameter and real focus change 
+        // 3. using three order polynomial curving fit find the relation between spherical parameter and focus parameter. 
         //focuschange = -0.00027*sphparameter*sphparameter*sphparameter + 0.006 * sphparameter*sphparameter - 2.456 * sphparameter + 0.48;
+        
+        //the relationship
         focuschange = -3*sphparameter;
         foc = jTFCoef4.getText();
         focusold = Double.valueOf(foc);
       
+        //remember the old value
         rememberfocus = focusold;
         focusold = focusold - focuschange;
         
@@ -1086,10 +1102,12 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
 // TODO add your handling code here:
     }//GEN-LAST:event_jFileChooser1MouseClicked
 
+    //function is used to save the parameter to a file so the parameters can be loaded by "open" button later
     private void jBut_saveMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBut_saveMouseClicked
 // TODO add your handling code here:
         String tf1, tf2, tf3, tf4, tf5, tf6, tf7, tf8, tf9, tf10, tf11, tf12, tf13, tf14, tf15, tf16;
         String tf17, tf18, tf19, tf20, tf21, tf22, tf23, tf24, tfout;
+        //get the parameters
         tf1 = jTFCoef1.getText();
         tf2 = jTFCoef2.getText();
         tf3 = jTFCoef3.getText();
@@ -1110,11 +1128,11 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         tfout = tf1 + ", " + tf2 + ", " + tf3 +  ", " + tf4 + ", " + tf5 + ", " + tf6 + ", " + tf7 + ", " + tf8;
         tfout = tfout+", "+tf9+", "+tf10+", "+tf11+ ", "+tf12+", "+tf13+", "+tf14+", "+tf15+", "+tf16; 
         
-//write to the file        
+        //write to the file        
         jFileChooser1.setVisible(true);
         jFileChooser1.showDialog(this, "borwse");
         ZerCoefile = jFileChooser1.getSelectedFile();
-       
+        
         try{
             FileWriter OutZerCoef;
             OutZerCoef = new FileWriter(ZerCoefile);
@@ -1190,6 +1208,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         return;
     }//GEN-LAST:event_jBut_showMouseClicked
 
+    //reset all parameters to 0
     private void jBut_resetMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBut_resetMouseClicked
 // TODO add your handling code here:
         jTFCoef1.setText("0");
@@ -1208,16 +1227,11 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jTFCoef14.setText("0");
         jTFCoef15.setText("0");
         jTFCoef16.setText("0");            
-        //jTFCoef25.setText("0");
-        //jTFCoef26.setText("0");
-        //jTFCoef27.setText("0");
-        //jTFCoef28.setText("0");
-        //jTFCoef29.setText("0");
-        //jTFCoef30.setText("0");
-        
+       
         return;
     }//GEN-LAST:event_jBut_resetMouseClicked
 
+    //open the exist file saved by "save" button that has the parameters
     private void jBut_openMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBut_openMouseClicked
 // TODO add your handling code here:
         char []tfin = new char[500];
@@ -1240,6 +1254,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         strin = strin.valueOf(tfin);
         strin_arr = strin.split(", ");
 
+        //read the file and set to the parameters
         jTFCoef1.setText(strin_arr[0]);
         jTFCoef2.setText(strin_arr[1]);
         jTFCoef3.setText(strin_arr[2]);
