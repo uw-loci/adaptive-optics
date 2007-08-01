@@ -61,8 +61,10 @@ bool SlmCom::InitSlm()
 	ImgWidth = theBoard->BoardSpec()->FrameWidth;
 	ImgHeight = theBoard->BoardSpec()->FrameHeight;
 
+      /*
 	memset(LUTBuf,0, 500*sizeof(unsigned char));
 	readlut(LUTBuf, LUTFILE);
+      */
 
 	return true;
 
@@ -112,7 +114,10 @@ void SlmCom::receiveData(unsigned char *Data)
 
 	for(int i = 0; i< ImgWidth*ImgHeight; i++)
 	{
-		ImageData[i] = LUTBuf[(Data[i])%256];
+	      /*     
+      	ImageData[i] = LUTBuf[(Data[i])%256];
+            */
+            ImageData[i] = Data[i];
 	}
 
     return;
