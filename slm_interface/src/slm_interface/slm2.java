@@ -715,18 +715,21 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
     //because shperical polynomials will change focus length also
     //according to the formula, changes on focus value from spherical is 3 times of spherical parameter.
     private void recalculate_focus(){
-        double sphparameter, focusold, focuschange;
-        String sph, foc;
+        double sphparameter, focusold, focuschange, secondsph;
+        String sph, foc, secsph;
         sph = jTFCoef9.getText();
+        secsph = jTFCoef16.getText();
         sphparameter = Double.valueOf(sph);
+        secondsph = Double.valueOf(secsph);
         
         // this fomular is gotten by real test. 1. find the relation between focus parameter and real focus change read from microscopy. 
         // 2. find the relation between spherical parameter and real focus change 
         // 3. using three order polynomial curving fit find the relation between spherical parameter and focus parameter. 
-        //focuschange = -0.00027*sphparameter*sphparameter*sphparameter + 0.006 * sphparameter*sphparameter - 2.456 * sphparameter + 0.48;
+        focuschange = -0.00027*sphparameter*sphparameter*sphparameter + 0.006 * sphparameter*sphparameter - 2.456 * sphparameter + 0.48;
+        focuschange = focuschange + 2*secondsph;
         
         //the relationship
-        focuschange = -3*sphparameter;
+        //focuschange = -3*sphparameter;
         foc = jTFCoef4.getText();
         focusold = Double.valueOf(foc);
       
