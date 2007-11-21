@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiscScanAdaptiveOptics", "WiscScanAdaptiveOptics.vcproj", "{A45F336C-036E-4C82-BC22-D430E7957A33}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{A45F336C-036E-4C82-BC22-D430E7957A33}.Debug.ActiveCfg = Debug|Win32
+		{A45F336C-036E-4C82-BC22-D430E7957A33}.Debug.Build.0 = Debug|Win32
+		{A45F336C-036E-4C82-BC22-D430E7957A33}.Release.ActiveCfg = Release|Win32
+		{A45F336C-036E-4C82-BC22-D430E7957A33}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
