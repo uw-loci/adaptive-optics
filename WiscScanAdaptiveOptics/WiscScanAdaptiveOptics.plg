@@ -6,15 +6,13 @@
 --------------------Configuration: WiscScanAdaptiveOptics - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP15E.tmp" with contents
+Creating temporary file "C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP4D4.tmp" with contents
 [
 /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "WISCSCANADAPTIVEOPTICS_EXPORTS" /D "_WINDLL" /D "_AFXDLL" /FR"Debug/" /Fp"Debug/WiscScanAdaptiveOptics.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"C:\AdaptiveOptics\WiscScanAdaptiveOptics\AdaptiveOptics.cpp"
 "C:\AdaptiveOptics\WiscScanAdaptiveOptics\GeneticOptimization.cpp"
-"C:\AdaptiveOptics\WiscScanAdaptiveOptics\WiscScanAdaptiveOptics.cpp"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP15E.tmp" 
-Creating temporary file "C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP15F.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP4D4.tmp" 
+Creating temporary file "C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP4D5.tmp" with contents
 [
 Kernel32.lib BNSBoard\Debug\BNSBoard.lib /nologo /subsystem:windows /dll /incremental:yes /pdb:"Debug/WiscScanAdaptiveOptics.pdb" /debug /machine:I386 /def:".\WiscScanAdaptiveOptics.def" /out:"Debug/WiscScanAdaptiveOptics.dll" /implib:"Debug/WiscScanAdaptiveOptics.lib" /pdbtype:sept 
 .\Debug\AdaptiveOptics.obj
@@ -24,14 +22,10 @@ Kernel32.lib BNSBoard\Debug\BNSBoard.lib /nologo /subsystem:windows /dll /increm
 .\Debug\WiscScanAdaptiveOptics.obj
 .\Debug\ZernikePolynomial.obj
 ]
-Creating command line "link.exe @C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP15F.tmp"
+Creating command line "link.exe @C:\DOCUME~1\GUNNST~1\LOCALS~1\Temp\RSP4D5.tmp"
 <h3>Output Window</h3>
 Compiling...
 GeneticOptimization.cpp
-Generating Code...
-Skipping... (no relevant changes detected)
-AdaptiveOptics.cpp
-WiscScanAdaptiveOptics.cpp
 Linking...
 Creating command line "bscmake.exe /nologo /o"Debug/WiscScanAdaptiveOptics.bsc"  .\Debug\StdAfx.sbr .\Debug\AdaptiveOptics.sbr .\Debug\GeneticOptimization.sbr .\Debug\SLMController.sbr .\Debug\WiscScanAdaptiveOptics.sbr .\Debug\ZernikePolynomial.sbr"
 Creating browse info file...

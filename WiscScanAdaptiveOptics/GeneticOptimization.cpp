@@ -21,6 +21,7 @@ void GeneticOptimization::prepareOptimization()
   evaluatedCount = 0;
   isDone = false;
   initializePopulation();
+  printf("zumo23\n");
 }
 
 /**
@@ -110,7 +111,7 @@ void GeneticOptimization::initializePopulation()
 {
   int i;
   
-  for (i = 0; i < MAX_ITERATIONS; i++) {
+  for (i = 0; i < POPULATION_SIZE; i++) {
     Population[i].resetCoefficients();
     
     // XXX/FIXME: Only work with spherical aberration to begin with.

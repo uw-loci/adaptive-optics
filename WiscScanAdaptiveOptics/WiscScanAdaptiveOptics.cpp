@@ -24,7 +24,7 @@ static AFX_EXTENSION_MODULE WiscScanAdaptiveOpticsDLL = { NULL, NULL };
 
 #include "AdaptiveOptics.h"
 
-AdaptiveOptics *AdaptiveOpticsFrontend = NULL;
+static AdaptiveOptics *AdaptiveOpticsFrontend;
 
 /**
  * Initializes the library.
@@ -34,7 +34,8 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		AdaptiveOpticsFrontend = new AdaptiveOptics;
+
+    AdaptiveOpticsFrontend = new AdaptiveOptics;
 
 		TRACE0("WISCSCANADAPTIVEOPTICS.DLL Initializing!\n");
 		
@@ -42,6 +43,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 		if (!AfxInitExtensionModule(WiscScanAdaptiveOpticsDLL, hInstance))
 			return FALSE;
 
+		
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
