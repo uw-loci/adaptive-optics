@@ -26,6 +26,9 @@ static AFX_EXTENSION_MODULE WiscScanAdaptiveOpticsDLL = { NULL, NULL };
 
 static AdaptiveOptics *AdaptiveOpticsFrontend;
 
+
+
+
 /**
  * Initializes the library.
  */
@@ -61,7 +64,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 
 /* Redundant. */
 // XXX/FIXME: Remove.
-__declspec(dllexport) void test(void)
+extern "C" __declspec(dllexport) void test(void)
 {
   return;
 }
@@ -69,7 +72,7 @@ __declspec(dllexport) void test(void)
 /*
  * Initializes the SLM (spatial light modulator).
  */
-__declspec(dllexport) bool initsml(bool bPowerStatus) 
+extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus) 
 {
   return AdaptiveOpticsFrontend->initializePhaseModulator(bPowerStatus);
 }
@@ -77,7 +80,7 @@ __declspec(dllexport) bool initsml(bool bPowerStatus)
 /*
  * Passes one round of imagery from WiscScan.
  */
-__declspec(dllexport) int int_wiscan(double *buf, int width, int height, char mode) 
+extern "C" __declspec(dllexport) int int_wiscan(double *buf, int width, int height, char mode) 
 {
   return AdaptiveOpticsFrontend->processImage(buf, width, height,mode);
 }
