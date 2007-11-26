@@ -1,5 +1,6 @@
 
 #include "ZernikePolynomial.h"
+#include "SLMController.h"
 
 #define POPULATION_SIZE   5
 #define MAX_ITERATIONS    20
@@ -25,11 +26,17 @@ class GeneticOptimization {
     bool isFinished();
 
   private:
+    // The SLM Controller.
+    SLMController *SLMInstance;
+
     // The population.
     ZernikePolynomial Population[POPULATION_SIZE];
 
     // The fitness of the population.
     double Fitness[POPULATION_SIZE];
+
+    // Indicates whether or not the first iteration is done.
+    bool firstIterationDone;
 
     // The number of population members evaluated.
     int evaluatedCount;

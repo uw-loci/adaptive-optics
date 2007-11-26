@@ -1,11 +1,15 @@
 
-/*
+/**
  * Represents a Zernike polynomial, with the following coefficients:
  * astigmatism, coma, spherical abberation, trefoil, secondary coma,
  * secondary spherical abberation.
+ * XXX/FIXME: Update coefficient list.
  */
+
 class ZernikePolynomial {
   private:
+    double piston;
+    double power;
     double astigmatismX;
     double astigmatismY;
     double comaX;
@@ -16,6 +20,8 @@ class ZernikePolynomial {
     double secondaryComaX;
     double secondaryComaY;
     double secondarySphericalAberration;
+    double secondaryAstigmatismX;
+    double secondaryAstigmatismY;
     double tiltX;
     double tiltY;
 
@@ -26,7 +32,13 @@ class ZernikePolynomial {
     // Reset Zernike coefficients.
     void resetCoefficients();
 
+    // Generate image buffer for the SLM.
+    void generateImageBufferForSLM(unsigned char *phaseData);
+
     // Getters and setters.
+    double getPiston();
+    void setPiston(double piston);
+
     double getAstigmatismX();
     void setAstigmatismX(double astigmatismX);
 
@@ -57,10 +69,21 @@ class ZernikePolynomial {
     double getSecondarySphericalAberration();
     void setSecondarySphericalAberration(double secondarySphericalAberration);
 
+    double getSecondaryAstigmatismX();
+    void setSecondaryAstigmatismX(double secondaryAstigmatismX);
+
+    double getSecondaryAstigmatismY();
+    void setSecondaryAstigmatismY(double secondaryAstigmatismY);
+
     double getTiltX();
     void setTiltX(double tiltX);
 
     double getTiltY();
     void setTiltY(double tiltY);
+
+    double getPower();
+    void setPower(double power);
+
+
 };
 

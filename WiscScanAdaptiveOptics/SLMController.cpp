@@ -1,4 +1,6 @@
 
+
+
 #include "StdAfx.h"
 #include "SLMController.h"
 
@@ -10,7 +12,12 @@ SLMController::SLMController()
   ImgHeight = SLMSIZE;
 }
 
-bool SLMController::InitSLM()
+/**
+ * Initializes the SLM.
+ * 
+ * @return True if the initialization was successful.
+ */
+bool SLMController::initSLM()
 {
   CString BoardName = "512A_SLM";
   unsigned short LC_Type = 1;
@@ -59,16 +66,22 @@ bool SLMController::InitSLM()
   ImgWidth = theBoard->BoardSpec()->FrameWidth;
   ImgHeight = theBoard->BoardSpec()->FrameHeight;
   
-  /*
+  // Load a LUT file.
   memset(LUTBuf,0, 500*sizeof(unsigned char));
-  readlut(LUTBuf, LUTFILE);
-  */
+  readLUT(LUTBuf, LUTFILE);
   
   return true;
 }
 
 
-void SLMController::readlut(unsigned char *LUT, CString lutfilename)
+/**
+ * Loads a LUT file (linear...) into the LUT buffer.
+ * If the file is not found, the LUT is set to linear.
+ *
+ * @param LUT The buffer into which the LUT file is loaded into.
+ * @param lutfilename The path to the LUT file to be loaded.
+ */
+void SLMController::readLUT(unsigned char *LUT, CString lutfilename)
 {
   FILE *stream;
   int i, seqnum, ReturnVal, tmpLUT;
@@ -97,13 +110,21 @@ void SLMController::readlut(unsigned char *LUT, CString lutfilename)
   // If there was an error reading in the LUT, then default to a linear LUT.
   for (i = 0; i < 256; i++)
   {
-    LUT[i]=i; // Linear.
+    LUT[i] = i; // Linear.
   }
-  //	LUT[i]=0;
-  printf("\nThere is error when open lut file, lut is set to linear.\n");	return;
+
+  printf("\nThere is error when open LUT file, LUT is set to linear.\n");	
+  return;
 }
 
 
+/**
+ * Prepares the data for transmission.
+ * Converts the data from linear using the LUT buffer.
+ * Ready to be sent by calling sendToSLM.
+ *
+ * @param Data The data that is to be converted. 
+ */
 void SLMController::receiveData(unsigned char *Data)
 {
   
@@ -111,23 +132,26 @@ void SLMController::receiveData(unsigned char *Data)
   
   for(int i = 0; i< ImgWidth*ImgHeight; i++)
   {
-    /*     
     ImageData[i] = LUTBuf[(Data[i])%256];
-    */
-    ImageData[i] = Data[i];
+//    ImageData[i] = Data[i];
   }
   
   return;
 }
 
-bool SLMController::SendtoDlm(bool FrameNumchange)
+/**
+ * Sends the current phase data to the SLM.
+ *
+ * @param FrameNumchange If true switches the frame number.
+ * @return True on success, False otherwise.
+ */
+bool SLMController::sendToSLM(bool FrameNumchange)
 {
   if (!theBoard->WriteFrameBuffer(FrameNum, ImageData))
   {
     free(ImageData);
     return false;
-  }
-  
+  } 
   
 #ifdef DEBUG_OUTPUT
   int tp, tp2;
@@ -145,15 +169,19 @@ bool SLMController::SendtoDlm(bool FrameNumchange)
   
   if (FrameNumchange == true)
   {
-    FrameNum ++;
+    FrameNum++;
   }
+
   free(ImageData);
   theBoard->SelectImage(FrameNum);
   
   return true;
 }
 
-void SLMController::CloseSLM()
+/**
+ * Close down and uninitialize the SLM.
+ */
+void SLMController::closeSLM()
 {
   bPowerOn =  false;
   theBoard->SetPower(bPowerOn);
@@ -162,24 +190,37 @@ void SLMController::CloseSLM()
   return;
 }
 
-void SLMController::OpenSLM()
+/**
+ * Initialize the SLM.
+ */
+void SLMController::openSLM()
 {
   if (theBoard == NULL)
   {
-    InitSLM();
+    initSLM();
   }
   return;
 }
 
-
-void SLMController::GetFrameNum(int *frameNum)
+/**
+ * Returns the currently used frame number.
+ *
+ * @param frameNum The frame number is returned through this parameter.
+ */
+void SLMController::getFrameNumber(int *frameNum)
 {
   *frameNum = this->FrameNum;
   return;
 }
 
 
-void SLMController::GetWH(int *Wid, int *Height)
+/**
+ * Returns the image width and height.
+ *
+ * @param Wid The width is returned through this variable.
+ * @param Height The height is returned through this variable.
+ */
+void SLMController::getWidthHeight(int *Wid, int *Height)
 {
   *Wid = ImgWidth;
   *Height = ImgHeight;

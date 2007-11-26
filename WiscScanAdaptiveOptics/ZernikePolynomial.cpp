@@ -1,6 +1,7 @@
 
 #include "StdAfx.h"
 #include "ZernikePolynomial.h"
+#include "SLMProject.h"
 
 // Constructor.
 ZernikePolynomial::ZernikePolynomial()
@@ -14,6 +15,10 @@ ZernikePolynomial::ZernikePolynomial()
  */
 void ZernikePolynomial::resetCoefficients()
 {
+  setPiston(0.0);
+  setSecondaryAstigmatismX(0.0);
+  setSecondaryAstigmatismY(0.0);
+  setPower(0.0);
   setAstigmatismX(0.0);
   setAstigmatismY(0.0);
   setComaX(0.0);
@@ -28,7 +33,176 @@ void ZernikePolynomial::resetCoefficients()
   setTiltY(40.0);
 }
 
+/**
+ * Round off to ensure dat is in range -256 to 256.
+ * (replacable with modulus opration?)
+ */
+double round256(double dat)
+{
+  if (dat > 0) {
+    while (dat >= 256){
+      dat = dat - 256;
+    }
+  }
+  else {
+    while (dat <= -256) {
+      dat = dat + 256;
+    }
+  }
+
+  return dat;
+}
+
+
+/**
+ * ???
+ */
+void DtoI(double *Dbuf, int length, unsigned char *phaseData)
+{
+  unsigned char temp;
+  int i;
+
+#ifdef DEBUG_OUTPUT
+  int tp, tp2;
+  FILE *pfold;
+  pfold = fopen("c:/slmcontrol/dumpout/VC_output_beforeD2I.txt","wt");
+  for (tp = 0; tp < 512; tp++) {
+    fprintf(pfold, "\n");
+    for (tp2 = 0; tp2 < 512; tp2++)
+      fprintf(pfold, "%f, ", Dbuf[tp*512 + tp2]);
+  }
+  fclose(pfold);
+#endif
+
+  for (i = 0; i < SLMSIZE * SLMSIZE; i++) {
+    Dbuf[i] = round256(Dbuf[i] * 256);
+    if (Dbuf[i] < 0) {
+      Dbuf[i] = Dbuf[i] + 256;
+    }
+  } 
+  
+  for (i = 0; i < length; i ++) {
+    temp = unsigned char(*(Dbuf+i));
+    if ((*(Dbuf+i) - temp) < 0.5)
+      *(phaseData+i) = temp;
+    else
+      *(phaseData+i) = temp + 1;
+  }
+}
+
+
+/**
+ * Generate the buffer from the parameters.
+ *
+ * @param phaseData The output phase data image buffer.
+ */
+void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
+{
+  double x, y, radius;
+  double divX, divY, XSquPlusYSqu, divXSqu, divYSqu, XPYSquSqu;
+  double terms[16];
+  double total;
+  
+  
+//  char msgbuf[1024];
+  
+  //int defocusbins, stigxbins, stigybins, comaxbins, comaybins, speribins;
+  
+  int ActSize, start, end;
+  double *zern = new double[SLMSIZE*SLMSIZE];
+  memset(zern, 0, sizeof(double)*SLMSIZE*SLMSIZE);
+  
+  
+  ActSize = SLMSIZE;
+  radius = ActSize*300/512;
+  
+  start = (SLMSIZE - ActSize)/2;
+  end = start + ActSize;
+  
+  y = ActSize/2;
+  
+  for (int row = start; row < end; row++) {
+    //reset x
+    x = -(ActSize/2);
+    
+    for (int col = start; col < end; col++) {
+      // Build some terms that are repeated through the equations.
+      divX = x/radius;
+      divY = y/radius;
+      XSquPlusYSqu = divX*divX + divY*divY;
+      XPYSquSqu = XSquPlusYSqu*XSquPlusYSqu;
+      divXSqu = divX*divX;
+      divYSqu = divY*divY;
+
+      //figure out what each term in the equation is
+      terms[0] = (getPiston()/2);                                 // Constant term / Piston
+      terms[1] = (getTiltX()/2)*divX;                        // Tilt X
+      terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
+      terms[3] = (getPower()/2)*(2*XSquPlusYSqu - 1);             // Defocus?
+//      terms[4] = (AstigOne/2)*(divXSqu - divY*divY);         // 
+//      terms[5] = (AstigTwo/2)*(2*divX*divY);
+
+      // XXX/FIXME/VERIFY: AstigOne=AstigmatismX, and AstigTwo for Y?
+      terms[4] = (getAstigmatismX()/2)*(divXSqu - divY*divY);
+      terms[5] = (getAstigmatismY()/2)*(2*divX*divY);
+      terms[6] = (getComaX()/2)*(3*divX*XSquPlusYSqu - 2*divX);
+      terms[7] = (getComaY()/2)*(3*divY*XSquPlusYSqu - 2*divY);
+      terms[8] = (getSphericalAberration()/2)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
+      terms[9] = (getTrefoilX()/2)*(divXSqu*divX - 3*divX*divYSqu);
+      terms[10] = (getTrefoilY()/2)*(3*divXSqu*divY - divYSqu*divY);
+      terms[11] = (getSecondaryAstigmatismX()/2)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
+      terms[12] = (getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
+      terms[13] = (getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
+      terms[14] = (getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
+      terms[15] = (getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+  
+      // Add the terms together.
+      total = 0;
+      for (int i = 0; i < 16; i++) {
+        total += terms[i];
+      }
+            
+      zern[row*SLMSIZE+col] = total;
+      total = 0;
+      x++;
+    }
+
+    y--;
+  }
+  
+  memset(phaseData, 0, sizeof(unsigned char)*SLMSIZE*SLMSIZE);
+  DtoI(zern, SLMSIZE*SLMSIZE, phaseData);
+  delete zern;
+
+  return;
+}
+
+
+
+
+
 // Getters and setters.
+
+double ZernikePolynomial::getPiston()
+{
+  return piston;
+}
+
+void ZernikePolynomial::setPiston(double piston)
+{
+  this->piston = piston;
+}
+
+double ZernikePolynomial::getPower()
+{
+  return power;
+}
+
+void ZernikePolynomial::setPower(double power)
+{
+  this->power = power;
+}
+
 double ZernikePolynomial::getAstigmatismX()
 {
   return astigmatismX;
@@ -127,6 +301,26 @@ double ZernikePolynomial::getSecondarySphericalAberration()
 void ZernikePolynomial::setSecondarySphericalAberration(double secondarySphericalAberration)
 {
   this->secondarySphericalAberration = secondarySphericalAberration;
+}
+
+double ZernikePolynomial::getSecondaryAstigmatismX()
+{
+  return secondaryAstigmatismX;
+}
+
+void ZernikePolynomial::setSecondaryAstigmatismX(double secondaryAstigmatismX)
+{
+  this->secondaryAstigmatismX = secondaryAstigmatismX;
+}
+
+double ZernikePolynomial::getSecondaryAstigmatismY()
+{
+  return secondaryAstigmatismY;
+}
+
+void ZernikePolynomial::setSecondaryAstigmatismY(double secondaryAstigmatismY)
+{
+  this->secondaryAstigmatismY = secondaryAstigmatismY;
 }
 
 double ZernikePolynomial::getTiltX()

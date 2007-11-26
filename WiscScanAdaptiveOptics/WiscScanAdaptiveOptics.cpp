@@ -1,7 +1,8 @@
-// WiscScanAdaptiveOptics.cpp: 
-// Defines the initialization routines for the DLL.
-// Also defines the main interface routines called by WiscScan.
-//
+/**
+ * WiscScanAdaptiveOptics.cpp: 
+ * Defines the initialization routines for the DLL.
+ * Also defines the main interface routines called by WiscScan.
+ */
 
 #include "StdAfx.h"
 #include <afxdllx.h>
@@ -27,8 +28,6 @@ static AFX_EXTENSION_MODULE WiscScanAdaptiveOpticsDLL = { NULL, NULL };
 static AdaptiveOptics *AdaptiveOpticsFrontend;
 
 
-
-
 /**
  * Initializes the library.
  */
@@ -43,8 +42,9 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 		TRACE0("WISCSCANADAPTIVEOPTICS.DLL Initializing!\n");
 		
 		// Extension DLL one-time initialization
-		if (!AfxInitExtensionModule(WiscScanAdaptiveOpticsDLL, hInstance))
+    if (!AfxInitExtensionModule(WiscScanAdaptiveOpticsDLL, hInstance)) {
 			return FALSE;
+    }
 
 		
 	}
@@ -54,8 +54,9 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 		// Terminate the library before destructors are called
 		AfxTermExtensionModule(WiscScanAdaptiveOpticsDLL);
 		
-		if (AdaptiveOpticsFrontend) 
+    if (AdaptiveOpticsFrontend) {
 			delete AdaptiveOpticsFrontend;
+    }
 
 	}
 
@@ -69,7 +70,7 @@ extern "C" __declspec(dllexport) void test(void)
   return;
 }
 
-/*
+/**
  * Initializes the SLM (spatial light modulator).
  */
 extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus) 
@@ -77,12 +78,12 @@ extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus)
   return AdaptiveOpticsFrontend->initializePhaseModulator(bPowerStatus);
 }
 
-/*
+/**
  * Passes one round of imagery from WiscScan.
  */
 extern "C" __declspec(dllexport) int int_wiscan(double *buf, int width, int height, char mode) 
 {
-  return AdaptiveOpticsFrontend->processImage(buf, width, height,mode);
+  return AdaptiveOpticsFrontend->processImage(buf, width, height, mode);
 }
 
 

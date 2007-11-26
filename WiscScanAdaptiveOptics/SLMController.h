@@ -1,5 +1,10 @@
-#include "slmproject.h"
+/**
+ * SLMController.
+ * This class represents the Boulder-Nonlinear Spatial Light Modulator (SLM), and handles
+ * control of it and all communications with it.
+ */
 
+#include "slmproject.h"
 #include "BNSBoard\BNSHardware.h"
 #include "BNSBoard\BNSBoard.h"
 
@@ -13,14 +18,15 @@ class SLMController
     unsigned short FrameNum;
     CBNSBoard *theBoard;
     bool bPowerOn;
+
   public:
     SLMController();
-    bool InitSLM();
+    bool initSLM();
     void receiveData(unsigned char *Data);
-    bool SendtoDlm(bool FrameNumchange);
-    void CloseSLM();
-    void OpenSLM();
-    void GetFrameNum(int *frnum);
-    void GetWH(int *Wid, int *Height);
-    void readlut(unsigned char *LUTBuf, CString lutfilename);
+    bool sendToSLM(bool FrameNumchange);
+    void closeSLM();
+    void openSLM();
+    void getFrameNumber(int *frnum);
+    void getWidthHeight(int *Wid, int *Height);
+    void readLUT(unsigned char *LUTBuf, CString lutfilename);
 };

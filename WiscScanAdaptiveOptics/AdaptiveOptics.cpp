@@ -2,7 +2,7 @@
 #include "StdAfx.h"
 #include "AdaptiveOptics.h"
 
-/*
+/**
  * Constructor.
  */
 AdaptiveOptics::AdaptiveOptics()
@@ -11,6 +11,12 @@ AdaptiveOptics::AdaptiveOptics()
 } 
 
 
+/**
+ * Initializes the phase modulator.
+ *
+ * @param bPowerStatus True if the SLM power is to be turned on.
+ * @return True if successful.
+ */
 bool AdaptiveOptics::initializePhaseModulator(bool bPowerStatus)
 {
   //send the power status to optimization module
@@ -27,7 +33,7 @@ bool AdaptiveOptics::initializePhaseModulator(bool bPowerStatus)
  * @param buf The image buffer.
  * @param width The width of the image.
  * @param height The height of the image.
- * @param mode The mode.
+ * @param mode The mode. XXX/FIXME: remove?
  * @return An integer whose value has the following meanings:
  *    0: Stop the scan or stop the communication. 
  *    1: Continue scan. 
@@ -39,10 +45,11 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   static double sum = 0;
   char msgbuf[1024];
   double averageIntensity;
+  /*
   static int flag = 0;
   static int count = 0;
  
-  if (flag == 0) {
+  if (flag == 0) { // GH: skips the rest every other time? why?
     flag = 1;
     OutputDebugString("**********flag = 0 chang to 1 now, directly return ************");
     return 1;
@@ -55,6 +62,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   OutputDebugString(msgbuf);		
 
   OutputDebugString("**********flag = 1 chang to 0 now, optimization ************");
+  */
 
   /*
    * Calculate the average intensity.
@@ -74,7 +82,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
 
   sprintf(msgbuf, "*************the average intensity is %f, width is %d, height is %d, mode is %d\n*************",
       averageIntensity, width, height, mode);
-  OutputDebugString(msgbuf);		
+  OutputDebugString(msgbuf);
 	
   // Send the data to optimization module.
   optimizer->iterateOnce(averageIntensity);

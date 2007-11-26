@@ -1,14 +1,28 @@
+/**
+ * The Genetic Optimization class.
+ * Uses a genetic algorithm to optimize the image output from the microscope.
+ * The functionality is driven by WiscScanAdaptiveOptics, through the iterateOnce() method.
+ */
+
 #include "StdAfx.h"
 #include "GeneticOptimization.h"
+#include "Logger.h"
+
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 
-/*
+/**
  * Constructor.
  */
 GeneticOptimization::GeneticOptimization()
 {
+  // Prepare the optimization.
   prepareOptimization();
+
+  // Setup the SLM.
+  SLMInstance = new SLMController;
+  SLMInstance->initSLM();
 }
 
 /**
@@ -19,9 +33,9 @@ void GeneticOptimization::prepareOptimization()
 {
   iterationCount = 0;
   evaluatedCount = 0;
+  firstIterationDone = false;
   isDone = false;
   initializePopulation();
-  printf("zumo23\n");
 }
 
 /**
@@ -44,15 +58,42 @@ int GeneticOptimization::findBestMemberIndex()
 
 /**
  * Run one iteration.
+ *
+ * @param intensity The intensity of the last image that was captured.
  */
 void GeneticOptimization::iterateOnce(double intensity)
 {
+  std::ostringstream logSS;
+  logSS << "Iteration count is: " << evaluatedCount;
+  LOGME( logSS.str() )
+
+  if (!firstIterationDone) {
+    // The very first iteration.  Setup the SLM and return.
+    firstIterationDone = true;
+
+    // Prepare the next image on the SLM. 
+    unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
+    
+    LOGME( "First iteration is now done" )
+    Population[evaluatedCount].generateImageBufferForSLM(phaseData);
+    SLMInstance->receiveData(phaseData);
+    SLMInstance->sendToSLM(true);
+    delete phaseData;
+
+    Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+    return; // Return immediately.
+  }
+
   Fitness[evaluatedCount] = intensity;
   evaluatedCount++;
   
   if (evaluatedCount == POPULATION_SIZE) {
     // Evaluation of population is done.
+    LOGME( "The last evaluation for this iteration is done." )    
     int bestMemberIndex = findBestMemberIndex();
+    logSS.clear(); 
+    logSS << "The best member index is: " << bestMemberIndex;
+    LOGME( logSS.str() )
     crossoverPopulation(bestMemberIndex);
     mutatePopulation();
     
@@ -60,6 +101,16 @@ void GeneticOptimization::iterateOnce(double intensity)
     if (isStopConditionSatisfied() || iterationCount == MAX_ITERATIONS) {
       isDone = true;
     }
+  } else {
+    // Prepare the next image on the SLM. 
+    unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
+    
+    Population[evaluatedCount].generateImageBufferForSLM(phaseData);
+    SLMInstance->receiveData(phaseData);
+    SLMInstance->sendToSLM(true);
+    delete phaseData;
+
+    Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
   }
 }
 
@@ -106,7 +157,9 @@ return 1.0; // XXX/FIXME.
 }
 */
 
-// Initializes the population (arrays of Zernike coefficients).
+/**
+ * Initializes the population (arrays of Zernike coefficients).
+ */
 void GeneticOptimization::initializePopulation()
 {
   int i;
@@ -146,7 +199,11 @@ double memberIntensity;
 //  return 0; // XXX/FIXME
 //}
 
-// Crossover involves mating the current population with the best member of the population.
+/**
+ * Crossover involves mating the current population with the best member of the population.
+ *
+ * @param bestMemberIndex The index of the best member, in the population vector.
+ */
 void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
 {
   ZernikePolynomial *bestMember = &Population[bestMemberIndex];
@@ -170,7 +227,9 @@ void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
   }
 }
 
-// Mutation is done after crossover, involves random perturbations of new population.
+/**
+ * Mutation is done after crossover, involves random perturbations of new population.
+ */
 void GeneticOptimization::mutatePopulation()
 {
   ZernikePolynomial *aMember;
@@ -191,7 +250,11 @@ void GeneticOptimization::mutatePopulation()
   }
 }
 
-// Checks whether convergence has been reached, or not.
+/**
+ * Checks whether convergence has been reached, or not.
+ *
+ * @return True if the condition is satisfied.
+ */
 bool GeneticOptimization::isStopConditionSatisfied()
 {
   double mean = 0, max;
@@ -201,16 +264,18 @@ bool GeneticOptimization::isStopConditionSatisfied()
   for (i = 0; i < POPULATION_SIZE; i++) {
     mean += Fitness[i];
     
-    if (i == 0 || Fitness[i] > max) 
+    if (i == 0 || Fitness[i] > max) {
       max = Fitness[i];
+    }
   }
   
   mean /= POPULATION_SIZE;
   
   // Calculate standard deviation of fitness.
   double variance = 0, standardDeviation = 0;
-  for (i = 0; i < POPULATION_SIZE; i++)
+  for (i = 0; i < POPULATION_SIZE; i++) {
     variance += (Fitness[i] - mean)*(Fitness[i] - mean);
+  }
   variance /= POPULATION_SIZE - 1;
   
   standardDeviation = sqrt(variance);
