@@ -11,12 +11,16 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <sstream>
 
 /**
  * Constructor.
  */
 GeneticOptimization::GeneticOptimization()
 {
+  // Prepare the random number generator.
+  srand(time(0));
+
   // Prepare the optimization.
   prepareOptimization();
 
@@ -47,13 +51,19 @@ int GeneticOptimization::findBestMemberIndex()
 {
   int bestIndex;
   double bestValue;
+  LOGME("Looking for best member: ");
   for (int i = 0; i < POPULATION_SIZE; i++) {
+	std::ostringstream logSS;
+	logSS << "- i: " << i << " avg. intensity: " << Fitness[i];
+	LOGME( logSS.str() )
+
     if (i == 0 || Fitness[i] > bestValue) {
       bestValue = Fitness[i];
       bestIndex = i;
     }
   }
-  return i;
+
+  return bestIndex;
 }
 
 /**
@@ -64,23 +74,29 @@ int GeneticOptimization::findBestMemberIndex()
 void GeneticOptimization::iterateOnce(double intensity)
 {
   std::ostringstream logSS;
-  logSS << "Iteration count is: " << evaluatedCount;
+  logSS << "Iteration count is: " << evaluatedCount << " intensity now: " << intensity;
   LOGME( logSS.str() )
 
   if (!firstIterationDone) {
     // The very first iteration.  Setup the SLM and return.
     firstIterationDone = true;
+	evaluatedCount = 0;
 
     // Prepare the next image on the SLM. 
     unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
     
-    LOGME( "First iteration is now done" )
+    LOGME( "First iteration is now approximately done " )
+	LOGME( "- Generating data for SLM " )
     Population[evaluatedCount].generateImageBufferForSLM(phaseData);
+	LOGME( "- preparing data to be sent " )
     SLMInstance->receiveData(phaseData);
+	LOGME( "- preparing sending... " )
     SLMInstance->sendToSLM(true);
+	LOGME( "- done " )
     delete phaseData;
 
     Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+	LOGME( "- SLM ready for action! " )
     return; // Return immediately.
   }
 
@@ -89,18 +105,26 @@ void GeneticOptimization::iterateOnce(double intensity)
   
   if (evaluatedCount == POPULATION_SIZE) {
     // Evaluation of population is done.
-    LOGME( "The last evaluation for this iteration is done." )    
+    LOGME( "The last evaluation for this iteration is done." );
+	LOGME( "The old population:" );
+	// Output info on the population for debugging.
+	debugPopulation();
     int bestMemberIndex = findBestMemberIndex();
-    logSS.clear(); 
+    logSS.str(""); 
     logSS << "The best member index is: " << bestMemberIndex;
     LOGME( logSS.str() )
     crossoverPopulation(bestMemberIndex);
-    mutatePopulation();
+    mutatePopulation(bestMemberIndex);
+
     
     iterationCount++;
+	evaluatedCount = 0;
     if (isStopConditionSatisfied() || iterationCount == MAX_ITERATIONS) {
       isDone = true;
     }
+
+	LOGME( "-------------------------------------------------------" )
+
   } else {
     // Prepare the next image on the SLM. 
     unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
@@ -164,7 +188,11 @@ void GeneticOptimization::initializePopulation()
 {
   int i;
   
-  for (i = 0; i < POPULATION_SIZE; i++) {
+  // First member should be reset (0) - for debug?
+  Population[0].resetCoefficients();
+
+  // Rest should be random on appropriate intervals.
+  for (i = 1; i < POPULATION_SIZE; i++) {
     Population[i].resetCoefficients();
     
     // XXX/FIXME: Only work with spherical aberration to begin with.
@@ -172,13 +200,16 @@ void GeneticOptimization::initializePopulation()
     Population[i].setAstigmatismY(0);
     Population[i].setComaX(0);
     Population[i].setComaY(0);*/
-    Population[i].setSphericalAberration(0);
+    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
+    Population[i].setSphericalAberration(mutationValue);
     /*Population[i].setTrefoilX(0);
     Population[i].setTrefoilY(0);
     Population[i].setSecondaryComaX(0);
     Population[i].setSecondaryComaY(0);
     Population[i].setSecondarySphericalAberration(0);*/
   }
+  
+  
 }
 
 // Returns the index of the most fit member of the population.
@@ -229,13 +260,19 @@ void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
 
 /**
  * Mutation is done after crossover, involves random perturbations of new population.
+ *
+ * @param bestIndex The index of the best member of the best polynomial coefficient set.
  */
-void GeneticOptimization::mutatePopulation()
+void GeneticOptimization::mutatePopulation(int bestIndex)
 {
   ZernikePolynomial *aMember;
   
   for (int i = 0; i < POPULATION_SIZE; i++)
   {
+	if (i == bestIndex) {
+      continue; // Do not mutilate the previous best member.
+	}
+
     aMember = &Population[i];
     /*    aMember->setAstigmatismX((aMember->getAstigmatismX() + bestMember->getAstigmatismX())/2);
     aMember->setAstigmatismY((aMember->getAstigmatismY() + bestMember->getAstigmatismY())/2);
@@ -245,7 +282,7 @@ void GeneticOptimization::mutatePopulation()
     aMember->setComaX((aMember->getComaX() + bestMember->getComaX())/2);
     aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
-    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;
+    double mutationValue = (rand() % 1024)/1024.0/10.0 * Population[bestIndex].getSphericalAberration();
     aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
   }
 }
@@ -279,9 +316,27 @@ bool GeneticOptimization::isStopConditionSatisfied()
   variance /= POPULATION_SIZE - 1;
   
   standardDeviation = sqrt(variance);
+
+  std::ostringstream logSS;
+  logSS << "var: " << variance << " " << "stddev: " << standardDeviation;
+  LOGME( logSS.str() )
+  logSS.str("");
+  logSS << "stdDev/max: " << (standardDeviation/max);
+  LOGME( logSS.str() )
   
   // Check condition.
   return standardDeviation/max < 0.05;
 }
 
 
+
+void GeneticOptimization::debugPopulation()
+{
+  for (int i = 0; i < POPULATION_SIZE; i++) {
+    std::ostringstream logSS;
+	logSS.str("");
+    logSS << "Population member: " << i;
+	LOGME( logSS.str() );
+	Population[i].dumpString();
+  }
+}

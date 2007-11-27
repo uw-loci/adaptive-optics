@@ -3,7 +3,7 @@
 #include "SLMController.h"
 
 #define POPULATION_SIZE   5
-#define MAX_ITERATIONS    20
+#define MAX_ITERATIONS    10
 
 #define MAX_SPHERICAL_ABERRATION_MUTATION 1.0
 
@@ -63,10 +63,12 @@ class GeneticOptimization {
     void crossoverPopulation(int bestMemberIndex);
 
     // Mutation is done after crossover, involves random perturbations of new population.
-    void mutatePopulation();
+    void mutatePopulation(int bestIndex);
 
     // Checks whether convergence has been reached, or not.
     bool isStopConditionSatisfied();
+
+	void debugPopulation();
 
     // Fixes tilt for a given coma.
     // double tilt_fix_func(double coma);

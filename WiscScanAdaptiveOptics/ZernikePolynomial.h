@@ -35,6 +35,9 @@ class ZernikePolynomial {
     // Generate image buffer for the SLM.
     void generateImageBufferForSLM(unsigned char *phaseData);
 
+	// Generate a string with information on the object.
+	void dumpString();
+
     // Getters and setters.
     double getPiston();
     void setPiston(double piston);

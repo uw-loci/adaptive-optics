@@ -7,12 +7,8 @@
 #define LOG_FILE    "AdaptiveOptics.log"
 
 
-
-#include <iostream>
-#include <sstream>
-
-using namespace std;
-
+#include <string>
+using std::string;
 
 #define LOGME(str1) Logger::Instance()->log( __FILE__, __LINE__, str1 );
 

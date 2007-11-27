@@ -3,6 +3,9 @@
 #include "ZernikePolynomial.h"
 #include "SLMProject.h"
 
+#include "Logger.h"
+#include <sstream>
+
 // Constructor.
 ZernikePolynomial::ZernikePolynomial()
 {
@@ -29,8 +32,10 @@ void ZernikePolynomial::resetCoefficients()
   setSecondaryComaX(0.0);
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
-  setTiltX(40.0);
-  setTiltY(40.0);
+  //setTiltX(40.0);
+  //setTiltY(40.0);
+  setTiltX(0.0);
+  setTiltY(0.0);
 }
 
 /**
@@ -175,6 +180,74 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   delete zern;
 
   return;
+}
+
+
+void ZernikePolynomial::dumpString()
+{
+  std::ostringstream logSS;
+  // Piston.
+  logSS << "Piston: " <<  getPiston();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Power
+  logSS << "Power: " << getPower();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Astigmatism X
+  logSS << "AstigX: " << getAstigmatismX();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Astigmatism Y
+  logSS << "AstigY: " << getAstigmatismY();
+  LOGME( logSS.str() );
+  // Coma X
+  logSS << "ComaX: " << getComaX();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Coma Y
+  logSS << "ComaY: " << getComaY();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Spherical ab.
+  logSS << "SphericalAb: " << getSphericalAberration();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Trefoil X
+  logSS << "TrefoilX: " << getTrefoilX();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // Trefoil Y
+  logSS << "TrefoilY: " << getTrefoilY();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // 2nd coma x
+  logSS << "2nd ComaX: " << getSecondaryComaX();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // 2nd coma y
+  logSS << "2nd ComaY: " << getSecondaryComaY();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // 2nd spherical ab.
+  logSS << "2nd SpherAb: " << getSecondarySphericalAberration();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // 2nd astigm. x
+  logSS << "2nd AstigX: " << getSecondaryAstigmatismX();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // 2nd astigm. y
+  logSS << "2nd AstigY: " << getSecondaryAstigmatismY();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // tilt x
+  logSS << "Tilt X: " << getTiltX();
+  LOGME( logSS.str() );
+  logSS.str("");
+  // tilt y
+  logSS << "Tilt Y: " << getTiltY();
+  LOGME( logSS.str() );
 }
 
 

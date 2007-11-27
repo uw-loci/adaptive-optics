@@ -20,4 +20,4 @@
 
 #undef DEBUG_SIGN
 
-#define DEBUG_OUTPUT
+#undef DEBUG_OUTPUT

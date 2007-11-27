@@ -45,7 +45,6 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   static double sum = 0;
   char msgbuf[1024];
   double averageIntensity;
-  /*
   static int flag = 0;
   static int count = 0;
  
@@ -59,10 +58,8 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
 
   count ++;
   sprintf(msgbuf, "*************count is %d\n*************", count);
-  OutputDebugString(msgbuf);		
-
+  OutputDebugString(msgbuf);
   OutputDebugString("**********flag = 1 chang to 0 now, optimization ************");
-  */
 
   /*
    * Calculate the average intensity.

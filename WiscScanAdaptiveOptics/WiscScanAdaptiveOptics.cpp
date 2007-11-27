@@ -5,14 +5,11 @@
  */
 
 #include "StdAfx.h"
+
+
 #include <afxdllx.h>
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-#define new DEBUG_NEW
+//#define new DEBUG_NEW
 
 // The following symbol used to force inclusion of this module for _USRDLL
 #ifdef _X86_
@@ -24,8 +21,11 @@ extern "C" { int __afxForceUSRDLL; }
 static AFX_EXTENSION_MODULE WiscScanAdaptiveOpticsDLL = { NULL, NULL };
 
 #include "AdaptiveOptics.h"
-
 static AdaptiveOptics *AdaptiveOpticsFrontend;
+
+#include "Logger.h"
+
+
 
 
 /**
@@ -39,12 +39,13 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 
     AdaptiveOpticsFrontend = new AdaptiveOptics;
 
-		TRACE0("WISCSCANADAPTIVEOPTICS.DLL Initializing!\n");
+	TRACE0("WISCSCANADAPTIVEOPTICS.DLL Initializing!\n");
 		
 		// Extension DLL one-time initialization
     if (!AfxInitExtensionModule(WiscScanAdaptiveOpticsDLL, hInstance)) {
 			return FALSE;
     }
+	LOGME("Adaptive Optics Starting up!");
 
 		
 	}
@@ -75,6 +76,7 @@ extern "C" __declspec(dllexport) void test(void)
  */
 extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus) 
 {
+  LOGME("initsml called");
   return AdaptiveOpticsFrontend->initializePhaseModulator(bPowerStatus);
 }
 
@@ -83,6 +85,7 @@ extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus)
  */
 extern "C" __declspec(dllexport) int int_wiscan(double *buf, int width, int height, char mode) 
 {
+  LOGME("int_wiscan called");
   return AdaptiveOpticsFrontend->processImage(buf, width, height, mode);
 }
 
