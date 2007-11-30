@@ -39,5 +39,5 @@ void Logger::log( string fileName, int lineNumber, string buffer )
 
   file.open(LOG_FILE, ios::out|ios::app);
   file <<  fileName << ":" << lineNumber << " " << buffer << endl;
-	file.close();
+  file.close();
 }

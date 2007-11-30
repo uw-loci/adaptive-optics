@@ -1,6 +1,14 @@
 
 #include "StdAfx.h"
 #include "AdaptiveOptics.h"
+#include "Logger.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * Constructor.
@@ -26,6 +34,25 @@ bool AdaptiveOptics::initializePhaseModulator(bool bPowerStatus)
   return true;
 }
 
+
+void dumpSumBuffer(int count, double *buf, int width, int height)
+{
+  ofstream file;
+  char fileName[512];
+  std::ostringstream fileNameSS;
+
+  sprintf(fileName, "c:/gunnsteinn/debug/%d.dat", count);
+  file.open( fileName );
+  
+  file << "% Width: " << width << " Height: " << height << endl;
+  for (int i = 0; i < height; i++) {
+    for ( int j = 0; j < width; j++) {
+      file << buf[j + i * width] << endl; 
+    }
+  }
+
+  file.close();
+}
 
 /**
  * Processes one round of imagery from WiscScan.
@@ -64,14 +91,23 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   /*
    * Calculate the average intensity.
    */
+  sum = 0;
   for (int i = 0; i < height; i++) {
     for ( int j = 0; j < width; j++) {
       sum = sum + buf[j + i * width]; 
     }
   }
 
+  // Dump the image data to file.
+  dumpSumBuffer(count, buf, width, height);
+
   averageIntensity = sum / (width*height*3);
-  sum = 0;
+
+  std::ostringstream logSS;
+  logSS << "sum: " << sum << " avg. int: " << averageIntensity << " width: " << width << " height: " << height;
+  LOGME( logSS.str() )
+  logSS.str("");
+
 
   OutputDebugString("**********CallBack_Wiscan************");
   OutputDebugString("*********************");
