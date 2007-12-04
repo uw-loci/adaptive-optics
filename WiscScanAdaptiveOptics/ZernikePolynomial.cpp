@@ -32,10 +32,10 @@ void ZernikePolynomial::resetCoefficients()
   setSecondaryComaX(0.0);
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
-  //setTiltX(40.0);
-  //setTiltY(40.0);
-  setTiltX(0.0);
-  setTiltY(0.0);
+  setTiltX(45.0);
+  setTiltY(40.0);
+  //setTiltX(0.0);
+  //setTiltY(0.0);
 }
 
 /**
