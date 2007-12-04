@@ -93,7 +93,7 @@ void SLMController::readLUT(unsigned char *LUT, CString lutfilename)
     // Read in all 256 values.
     for (i = 0; i < 256; i++)
     {
-      ReturnVal=fscanf(stream, "%d %d", &seqnum, &tmpLUT); 
+      ReturnVal=fscanf(stream, "%d %d", &seqnum, &tmpLUT);
       if (ReturnVal!=2 || seqnum!=i || tmpLUT<0 || tmpLUT>255)
       {
         fclose(stream);
@@ -147,6 +147,19 @@ void SLMController::receiveData(unsigned char *Data)
  */
 bool SLMController::sendToSLM(bool FrameNumchange)
 {
+  if (FrameNumchange == true)
+  {
+    /*
+     * Information from Boulder-nonlinear:
+     * Never write to the framebuffer that is currently selected
+     * XXX/FIXME: right?
+     */
+    FrameNum++;
+    if (FrameNum > 200) {
+      FrameNum = 0;
+    }
+  }
+
   if (!theBoard->WriteFrameBuffer(FrameNum, ImageData))
   {
     free(ImageData);
@@ -165,16 +178,10 @@ bool SLMController::sendToSLM(bool FrameNumchange)
   }
   fclose(pfold);
 #endif
-  
-  
-  if (FrameNumchange == true)
-  {
-    FrameNum++;
-  }
 
   free(ImageData);
   theBoard->SelectImage(FrameNum);
-  
+
   return true;
 }
 

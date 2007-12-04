@@ -80,13 +80,13 @@ void GeneticOptimization::iterateOnce(double intensity)
   if (!firstIterationDone) {
     // The very first iteration.  Setup the SLM and return.
     firstIterationDone = true;
-	evaluatedCount = 0;
+    evaluatedCount = 0;
 
     // Prepare the next image on the SLM. 
     unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
     
     LOGME( "First iteration is now approximately done " )
-	LOGME( "- Generating data for SLM " )
+    LOGME( "- Generating data for SLM " )
     Population[evaluatedCount].generateImageBufferForSLM(phaseData);
 	LOGME( "- preparing data to be sent " )
     SLMInstance->receiveData(phaseData);
