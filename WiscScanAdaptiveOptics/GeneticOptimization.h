@@ -5,7 +5,7 @@
 #define POPULATION_SIZE   5
 #define MAX_ITERATIONS    10
 
-#define MAX_SPHERICAL_ABERRATION_MUTATION 1.0
+#define MAX_SPHERICAL_ABERRATION_MUTATION 20.0
 
 class GeneticOptimization {
   public:

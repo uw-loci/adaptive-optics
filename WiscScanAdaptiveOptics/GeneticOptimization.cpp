@@ -77,6 +77,38 @@ void GeneticOptimization::iterateOnce(double intensity)
   logSS << "Iteration count is: " << evaluatedCount << " intensity now: " << intensity;
   LOGME( logSS.str() )
 
+
+if (!firstIterationDone) {
+  evaluatedCount = 0;
+  firstIterationDone = true;
+  Population[evaluatedCount].setSphericalAberration(-1);
+} else {
+  Population[evaluatedCount].setSphericalAberration(Population[evaluatedCount].getSphericalAberration() + 0.01);
+}
+
+if (Population[evaluatedCount].getSphericalAberration() > 1)
+{
+ isDone = true;
+}
+
+logSS.str("");
+logSS << "Setting Spherical Aberration to: " << Population[evaluatedCount].getSphericalAberration();
+LOGME( logSS.str() );
+
+// Prepare the next image on the SLM. 
+unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
+    
+Population[evaluatedCount].generateImageBufferForSLM(phaseData);
+SLMInstance->receiveData(phaseData);
+SLMInstance->sendToSLM(true);
+delete phaseData;
+
+Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+
+
+
+return;
+
   if (!firstIterationDone) {
     // The very first iteration.  Setup the SLM and return.
     firstIterationDone = true;
@@ -84,7 +116,6 @@ void GeneticOptimization::iterateOnce(double intensity)
 
     // Prepare the next image on the SLM. 
     unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
-    
     LOGME( "First iteration is now approximately done " )
     LOGME( "- Generating data for SLM " )
     Population[evaluatedCount].generateImageBufferForSLM(phaseData);
@@ -115,7 +146,6 @@ void GeneticOptimization::iterateOnce(double intensity)
     LOGME( logSS.str() )
     crossoverPopulation(bestMemberIndex);
     mutatePopulation(bestMemberIndex);
-
     
     iterationCount++;
 	evaluatedCount = 0;
@@ -125,7 +155,9 @@ void GeneticOptimization::iterateOnce(double intensity)
 
 	LOGME( "-------------------------------------------------------" )
 
-  } else {
+  }
+
+  if (!isDone) {
     // Prepare the next image on the SLM. 
     unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
     
@@ -200,8 +232,9 @@ void GeneticOptimization::initializePopulation()
     Population[i].setAstigmatismY(0);
     Population[i].setComaX(0);
     Population[i].setComaY(0);*/
-    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
-    Population[i].setSphericalAberration(mutationValue);
+//    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
+//    Population[i].setSphericalAberration(mutationValue);
+    Population[i].setSphericalAberration(50); 
     /*Population[i].setTrefoilX(0);
     Population[i].setTrefoilY(0);
     Population[i].setSecondaryComaX(0);
