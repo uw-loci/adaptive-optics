@@ -78,26 +78,29 @@ void GeneticOptimization::iterateOnce(double intensity)
   LOGME( logSS.str() )
 
 
-if (!firstIterationDone) {
-  evaluatedCount = 0;
-  firstIterationDone = true;
-  Population[evaluatedCount].setSphericalAberration(-1);
-} else {
-  Population[evaluatedCount].setSphericalAberration(Population[evaluatedCount].getSphericalAberration() + 0.01);
-}
-
-if (Population[evaluatedCount].getSphericalAberration() > 1)
-{
- isDone = true;
-}
+  if (!firstIterationDone) {
+    evaluatedCount = 0;
+    firstIterationDone = true;
+    //Population[evaluatedCount].setSphericalAberration(-1);
+	//Population[evaluatedCount].setSecondarySphericalAberration(-1);
+	Population[evaluatedCount].setComaX(-1);
+  } else {
+    //Population[evaluatedCount].setSecondarySphericalAberration(Population[evaluatedCount].getSecondarySphericalAberration() + 0.5);
+	Population[evaluatedCount].setComaX(Population[evaluatedCount].getComaX() + 0.2);
+  }
+  
+  if (Population[evaluatedCount].getComaX() > 1)
+  {
+    isDone = true;
+  }
 
 logSS.str("");
-logSS << "Setting Spherical Aberration to: " << Population[evaluatedCount].getSphericalAberration();
+logSS << "Setting ComaX to: " << Population[evaluatedCount].getComaX();
+
 LOGME( logSS.str() );
 
 // Prepare the next image on the SLM. 
 unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
-    
 Population[evaluatedCount].generateImageBufferForSLM(phaseData);
 SLMInstance->receiveData(phaseData);
 SLMInstance->sendToSLM(true);
@@ -235,6 +238,7 @@ void GeneticOptimization::initializePopulation()
 //    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
 //    Population[i].setSphericalAberration(mutationValue);
     Population[i].setSphericalAberration(50); 
+	//Population[i].setSecondarySphericalAberration(0);
     /*Population[i].setTrefoilX(0);
     Population[i].setTrefoilY(0);
     Population[i].setSecondaryComaX(0);
