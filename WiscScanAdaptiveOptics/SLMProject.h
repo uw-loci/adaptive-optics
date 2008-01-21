@@ -12,7 +12,8 @@
 #define ZRN_MAX_LINE	300
 
 #define pi 3.1415
-#define LUTFILE "slm7041.LUT"
+//#define LUTFILE "slm7041.LUT"
+#define LUTFILE "C:\\LUT_FILES\\slm7041.LUT"
 //#define LUTFILE "linear.lut"
 
 

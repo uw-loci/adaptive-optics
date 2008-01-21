@@ -103,10 +103,10 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
 
   averageIntensity = sum / (width*height*3);
 
-  std::ostringstream logSS;
-  logSS << "sum: " << sum << " avg. int: " << averageIntensity << " width: " << width << " height: " << height;
-  LOGME( logSS.str() )
-  logSS.str("");
+  //std::ostringstream logSS;
+  //logSS << "sum: " << sum << " avg. int: " << averageIntensity << " width: " << width << " height: " << height;
+  //LOGME( logSS.str() )
+  //logSS.str("");
 
 
   OutputDebugString("**********CallBack_Wiscan************");

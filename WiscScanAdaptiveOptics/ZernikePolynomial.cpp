@@ -33,7 +33,7 @@ void ZernikePolynomial::resetCoefficients()
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
   setTiltX(55.0);
-  setTiltY(55.0);
+  setTiltY(45.0);
   //setTiltX(0.0);
   //setTiltY(0.0);
 }
@@ -107,6 +107,7 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   double divX, divY, XSquPlusYSqu, divXSqu, divYSqu, XPYSquSqu;
   double terms[16];
   double total;
+  //std::ostringstream logSS;
   
   
 //  char msgbuf[1024];
@@ -164,6 +165,10 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
       // Add the terms together.
       total = 0;
       for (int i = 0; i < 16; i++) {
+		//logSS << "terms[" << i << "]: " <<  terms[i];
+		//LOGME( logSS.str() );
+		//logSS.str("");
+
         total += terms[i];
       }
             
@@ -187,60 +192,61 @@ void ZernikePolynomial::dumpString()
 {
   std::ostringstream logSS;
   // Piston.
-//  logSS << "Piston: " <<  getPiston();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "Piston: " <<  getPiston();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Power
-//  logSS << "Power: " << getPower();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "Power: " << getPower();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Astigmatism X
-//  logSS << "AstigX: " << getAstigmatismX();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "AstigX: " << getAstigmatismX();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Astigmatism Y
-//  logSS << "AstigY: " << getAstigmatismY();
-//  LOGME( logSS.str() );
+  logSS << "AstigY: " << getAstigmatismY();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Coma X
-//  logSS << "ComaX: " << getComaX();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "ComaX: " << getComaX();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Coma Y
-//  logSS << "ComaY: " << getComaY();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "ComaY: " << getComaY();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Spherical ab.
   logSS << "SphericalAb: " << getSphericalAberration();
   LOGME( logSS.str() );
   logSS.str("");
   // Trefoil X
-//  logSS << "TrefoilX: " << getTrefoilX();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "TrefoilX: " << getTrefoilX();
+  LOGME( logSS.str() );
+  logSS.str("");
   // Trefoil Y
-//  logSS << "TrefoilY: " << getTrefoilY();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "TrefoilY: " << getTrefoilY();
+  LOGME( logSS.str() );
+  logSS.str("");
   // 2nd coma x
-//  logSS << "2nd ComaX: " << getSecondaryComaX();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "2nd ComaX: " << getSecondaryComaX();
+  LOGME( logSS.str() );
+  logSS.str("");
   // 2nd coma y
-//  logSS << "2nd ComaY: " << getSecondaryComaY();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "2nd ComaY: " << getSecondaryComaY();
+  LOGME( logSS.str() );
+  logSS.str("");
   // 2nd spherical ab.
-//  logSS << "2nd SpherAb: " << getSecondarySphericalAberration();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "2nd SpherAb: " << getSecondarySphericalAberration();
+  LOGME( logSS.str() );
+  logSS.str("");
   // 2nd astigm. x
-//  logSS << "2nd AstigX: " << getSecondaryAstigmatismX();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "2nd AstigX: " << getSecondaryAstigmatismX();
+  LOGME( logSS.str() );
+  logSS.str("");
   // 2nd astigm. y
-//  logSS << "2nd AstigY: " << getSecondaryAstigmatismY();
-//  LOGME( logSS.str() );
-//  logSS.str("");
+  logSS << "2nd AstigY: " << getSecondaryAstigmatismY();
+  LOGME( logSS.str() );
+  logSS.str("");
   // tilt x
   logSS << "Tilt X: " << getTiltX();
   LOGME( logSS.str() );
@@ -252,6 +258,11 @@ void ZernikePolynomial::dumpString()
 
 
 
+double ZernikePolynomial::focusCorrection()
+{
+	return (3*getSphericalAberration() 
+		+ sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2);
+}
 
 
 // Getters and setters.

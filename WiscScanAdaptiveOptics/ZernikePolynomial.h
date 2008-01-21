@@ -84,6 +84,8 @@ class ZernikePolynomial {
     double getTiltY();
     void setTiltY(double tiltY);
 
+	double focusCorrection();
+
     double getPower();
     void setPower(double power);
 

@@ -74,43 +74,75 @@ int GeneticOptimization::findBestMemberIndex()
 void GeneticOptimization::iterateOnce(double intensity)
 {
   std::ostringstream logSS;
-  logSS << "Iteration count is: " << evaluatedCount << " intensity now: " << intensity;
+  logSS << "Iteration count is: " << evaluatedCount 
+//      << " Tref. Y: " << Population[evaluatedCount].getTrefoilY()
+//        << " 2nd. Ast. X: " << Population[evaluatedCount].getSecondaryAstigmatismX()
+		<< " intensity now: " << intensity;
   LOGME( logSS.str() )
 
+#if 0
 
   if (!firstIterationDone) {
     evaluatedCount = 0;
     firstIterationDone = true;
     //Population[evaluatedCount].setSphericalAberration(-1);
 	//Population[evaluatedCount].setSecondarySphericalAberration(-1);
-	Population[evaluatedCount].setComaX(-1);
+	//Population[evaluatedCount].setComaX(-2);
+	//Population[evaluatedCount].setComaY(-2);
+	//Population[evaluatedCount].setPiston(-10);
+	//Population[evaluatedCount].setPower(-2);
+	//Population[evaluatedCount].setAstigmatismX(-4);
+	//Population[evaluatedCount].setAstigmatismY(-3);
+	//Population[evaluatedCount].setTrefoilX(-3);
+	//Population[evaluatedCount].setTrefoilY(-3);
+	//Population[evaluatedCount].setSecondaryAstigmatismX(-2)
   } else {
-    //Population[evaluatedCount].setSecondarySphericalAberration(Population[evaluatedCount].getSecondarySphericalAberration() + 0.5);
-	Population[evaluatedCount].setComaX(Population[evaluatedCount].getComaX() + 0.2);
+	//Population[evaluatedCount].setSphericalAberration(Population[evaluatedCount].getSphericalAberration() + 0.05);
+    //Population[evaluatedCount].setSecondarySphericalAberration(Population[evaluatedCount].getSecondarySphericalAberration() + 0.10);
+	//Population[evaluatedCount].setComaX(Population[evaluatedCount].getComaX() + 0.10);
+	//Population[evaluatedCount].setComaY(Population[evaluatedCount].getComaY() + 0.10);
+	//Population[evaluatedCount].setPiston(Population[evaluatedCount].getPiston() + 0.5);
+	//Population[evaluatedCount].setPower(Population[evaluatedCount].getPower() + 0.10);
+	//Population[evaluatedCount].setAstigmatismX(Population[evaluatedCount].getAstigmatismX() + 0.10);
+	//Population[evaluatedCount].setAstigmatismY(Population[evaluatedCount].getAstigmatismY() + 0.10);
+	//Population[evaluatedCount].setTrefoilX(Population[evaluatedCount].getTrefoilX() + 0.10);
+	//Population[evaluatedCount].setTrefoilY(Population[evaluatedCount].getTrefoilY() + 0.10);
+	//Population[evaluatedCount].setSecondaryAstigmatismX(Population[evaluatedCount].getSecondaryAstigmatismX() + 0.10);
   }
   
-  if (Population[evaluatedCount].getComaX() > 1)
-  {
-    isDone = true;
-  }
+  //if (Population[evaluatedCount].getSecondaryAstigmatismX() > 2)
+  //{
+//    isDone = true;
+//  }
 
-logSS.str("");
-logSS << "Setting ComaX to: " << Population[evaluatedCount].getComaX();
+//logSS.str("");
+//logSS << "Setting Spherical aberration to: " << Population[evaluatedCount].getSphericalAberration();
+//logSS << "Setting 2nd Spherical aberration to: " << Population[evaluatedCount].getSecondarySphericalAberration();
+//logSS << "Setting ComaX to: " << Population[evaluatedCount].getComaX();
+//logSS << "Setting ComaY to: " << Population[evaluatedCount].getComaY();
+//logSS << "Setting Piston to: " << Population[evaluatedCount].getPiston();
+//logSS << "Setting Power to: " << Population[evaluatedCount].getPower();
+//logSS << "Setting Ast. X to: " << Population[evaluatedCount].getAstigmatismX();
+//logSS << "Setting Ast. Y to: " << Population[evaluatedCount].getAstigmatismY();
+//logSS << "Setting Tref. X to: " << Population[evaluatedCount].getTrefoilX();
 
-LOGME( logSS.str() );
+
+//LOGME( logSS.str() );
+//Population[evaluatedCount].dumpString();
 
 // Prepare the next image on the SLM. 
-unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
-Population[evaluatedCount].generateImageBufferForSLM(phaseData);
-SLMInstance->receiveData(phaseData);
-SLMInstance->sendToSLM(true);
-delete phaseData;
+//unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
+//Population[evaluatedCount].generateImageBufferForSLM(phaseData);
+//SLMInstance->receiveData(phaseData);
+//SLMInstance->sendToSLM(true);
+//delete phaseData;
 
-Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+//Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
 
 
 
-return;
+//return;
+#endif
 
   if (!firstIterationDone) {
     // The very first iteration.  Setup the SLM and return.
@@ -227,7 +259,7 @@ void GeneticOptimization::initializePopulation()
   Population[0].resetCoefficients();
 
   // Rest should be random on appropriate intervals.
-  for (i = 1; i < POPULATION_SIZE; i++) {
+  for (i = 0; i < POPULATION_SIZE-1; i++) {
     Population[i].resetCoefficients();
     
     // XXX/FIXME: Only work with spherical aberration to begin with.
@@ -237,7 +269,13 @@ void GeneticOptimization::initializePopulation()
     Population[i].setComaY(0);*/
 //    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
 //    Population[i].setSphericalAberration(mutationValue);
-    Population[i].setSphericalAberration(50); 
+	double sVal = (rand() % 1024)/1024.0 * 3;
+    Population[i].setSphericalAberration(1+sVal);
+	sVal = (rand() % 1024)/1024.0 * 3;
+	Population[i].setSecondarySphericalAberration(1+sVal);
+	Population[i].setPower(Population[i].focusCorrection());
+
+
 	//Population[i].setSecondarySphericalAberration(0);
     /*Population[i].setTrefoilX(0);
     Population[i].setTrefoilY(0);
@@ -292,6 +330,8 @@ void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
     aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
     aMember->setSphericalAberration((aMember->getSphericalAberration() + bestMember->getSphericalAberration())/2);
+	aMember->setSecondarySphericalAberration((aMember->getSecondarySphericalAberration() + bestMember->getSecondarySphericalAberration())/2);
+	aMember->setPower(aMember->focusCorrection());
   }
 }
 
@@ -315,12 +355,14 @@ void GeneticOptimization::mutatePopulation(int bestIndex)
     aMember->setAstigmatismY((aMember->getAstigmatismY() + bestMember->getAstigmatismY())/2);
     aMember->setDefocus((aMember->getDefocus() + bestMember->getDefocus())/2);
     aMember->setTrefoilX((aMember->getTrefoilX() + bestMember->getTrefoilX())/2);
-    aMember->setTrefoilY((aMember->getTrefoilY() + bestMember->getTrefoilY())/2);
-    aMember->setComaX((aMember->getComaX() + bestMember->getComaX())/2);
-    aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
+    aMember->setTrefoilY((aMember->getTrefoilY() + bestMember->getTrefoilY())/2);*/
+    /*aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
-    double mutationValue = (rand() % 1024)/1024.0/10.0 * Population[bestIndex].getSphericalAberration();
+	double mutationValue = (rand() % 1024)/1024.0/10.0 * Population[bestIndex].getSecondarySphericalAberration();
+    aMember->setSecondarySphericalAberration(aMember->getSecondarySphericalAberration() + mutationValue);
+    mutationValue = (rand() % 1024)/1024.0/10.0 * Population[bestIndex].getSphericalAberration();
     aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
+	aMember->setPower(aMember->focusCorrection());
   }
 }
 
@@ -362,7 +404,7 @@ bool GeneticOptimization::isStopConditionSatisfied()
   LOGME( logSS.str() )
   
   // Check condition.
-  return standardDeviation/max < 0.05;
+  return standardDeviation/max < 0.01;
 }
 
 

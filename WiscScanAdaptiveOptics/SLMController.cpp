@@ -3,6 +3,9 @@
 
 #include "StdAfx.h"
 #include "SLMController.h"
+#include "Logger.h"
+#include <sstream>
+
 
 
 SLMController::SLMController()
@@ -85,6 +88,7 @@ void SLMController::readLUT(unsigned char *LUT, CString lutfilename)
 {
   FILE *stream;
   int i, seqnum, ReturnVal, tmpLUT;
+  std::ostringstream logSS;
   
   // The LUT file.
   stream = fopen(lutfilename,"r");
@@ -106,6 +110,11 @@ void SLMController::readLUT(unsigned char *LUT, CString lutfilename)
     fclose(stream);
     return;
   }
+
+  logSS << "LUT FILE NOT FOUND!";
+  LOGME( logSS.str() );
+  logSS.str("");
+
   
   // If there was an error reading in the LUT, then default to a linear LUT.
   for (i = 0; i < 256; i++)

@@ -2,7 +2,7 @@
 #include "ZernikePolynomial.h"
 #include "SLMController.h"
 
-#define POPULATION_SIZE   5
+#define POPULATION_SIZE   4
 #define MAX_ITERATIONS    10
 
 #define MAX_SPHERICAL_ABERRATION_MUTATION 20.0

@@ -85,7 +85,7 @@ extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus)
  */
 extern "C" __declspec(dllexport) int int_wiscan(double *buf, int width, int height, char mode) 
 {
-  LOGME("int_wiscan called");
+//  LOGME("int_wiscan called");
   return AdaptiveOpticsFrontend->processImage(buf, width, height, mode);
 }
 
