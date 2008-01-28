@@ -2,7 +2,7 @@
 #include "ZernikePolynomial.h"
 #include "SLMController.h"
 
-#define POPULATION_SIZE   4
+#define POPULATION_SIZE   15
 #define MAX_ITERATIONS    10
 
 #define MAX_SPHERICAL_ABERRATION_MUTATION 20.0
@@ -35,6 +35,9 @@ class GeneticOptimization {
     // The fitness of the population.
     double Fitness[POPULATION_SIZE];
 
+	// The best fitnesses of the population.
+	double bestFitness[MAX_ITERATIONS];
+
     // Indicates whether or not the first iteration is done.
     bool firstIterationDone;
 
@@ -54,16 +57,16 @@ class GeneticOptimization {
     //int evaluatePopulation();
 
     // Finds best member of the population.
-    int findBestMemberIndex();
+    int *findBestMemberIndices();
 
     // evalate fitness of a single member.
     // double evaluateMemberFitness(int memberIndex);
 
     // Crossover involves mating the current population with the best member of the population.
-    void crossoverPopulation(int bestMemberIndex);
+    void crossoverPopulation(int *bestMemberIndices);
 
     // Mutation is done after crossover, involves random perturbations of new population.
-    void mutatePopulation(int bestIndex);
+    void mutatePopulation(int *bestIndices);
 
     // Checks whether convergence has been reached, or not.
     bool isStopConditionSatisfied();

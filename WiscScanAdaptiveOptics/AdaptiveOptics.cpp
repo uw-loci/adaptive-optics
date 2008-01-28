@@ -76,11 +76,12 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   static int count = 0;
  
   if (flag == 0) { // GH: skips the rest every other time? why?
-    flag = 1;
+	/* IF NOT USED: WE ONLY GET 1/2 OF THE IMAGE!
+	 */
+    flag = 1;  // Now: skip only 1st time (stability?)
     OutputDebugString("**********flag = 0 chang to 1 now, directly return ************");
     return 1;
   }
-    
   flag = 0;
 
   count ++;
@@ -99,7 +100,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   }
 
   // Dump the image data to file.
-  dumpSumBuffer(count, buf, width, height);
+  /*dumpSumBuffer(count, buf, width, height);*/
 
   averageIntensity = sum / (width*height*3);
 
@@ -120,9 +121,10 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   // Send the data to optimization module.
   optimizer->iterateOnce(averageIntensity);
 
-  if (optimizer->isFinished())
+  if (optimizer->isFinished()) {
     return 0; // Stop scanning.
-  else
+  } else {
     return 1; // Continue scanning.
+  }
 }
 

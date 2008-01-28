@@ -27,6 +27,7 @@ GeneticOptimization::GeneticOptimization()
   // Setup the SLM.
   SLMInstance = new SLMController;
   SLMInstance->initSLM();
+  Sleep(500); // Give it a bit to get started.
 }
 
 /**
@@ -47,24 +48,32 @@ void GeneticOptimization::prepareOptimization()
  *
  * @return The index of the best member.
  */
-int GeneticOptimization::findBestMemberIndex()
+int *GeneticOptimization::findBestMemberIndices()
 {
-  int bestIndex;
-  double bestValue;
-  LOGME("Looking for best member: ");
-  for (int i = 0; i < POPULATION_SIZE; i++) {
-	std::ostringstream logSS;
-	logSS << "- i: " << i << " avg. intensity: " << Fitness[i];
-	LOGME( logSS.str() )
+  int *bestIndices = new int[POPULATION_SIZE];
 
-    if (i == 0 || Fitness[i] > bestValue) {
-      bestValue = Fitness[i];
-      bestIndex = i;
-    }
+  for (int i = 0; i < POPULATION_SIZE; i++) {
+    bestIndices[i] = i;
   }
 
-  return bestIndex;
+  //LOGME("Looking for best member: ");
+  bool isDone = false;
+  while (!isDone) {
+	isDone = true;
+    for (int i = 0; i < POPULATION_SIZE-1; i++) {
+	  if (Fitness[bestIndices[i+1]] > Fitness[bestIndices[i]]) {
+		int tmp = bestIndices[i];
+		bestIndices[i] = bestIndices[i+1];
+		bestIndices[i+1] = tmp;
+		isDone = false;
+	  }  
+	}
+  }
+
+  return bestIndices;
 }
+
+
 
 /**
  * Run one iteration.
@@ -161,7 +170,8 @@ void GeneticOptimization::iterateOnce(double intensity)
 	LOGME( "- done " )
     delete phaseData;
 
-    Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+    //Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+	Sleep(150); // Seems to take a bit longer occasionally.
 	LOGME( "- SLM ready for action! " )
     return; // Return immediately.
   }
@@ -175,12 +185,15 @@ void GeneticOptimization::iterateOnce(double intensity)
 	LOGME( "The old population:" );
 	// Output info on the population for debugging.
 	debugPopulation();
-    int bestMemberIndex = findBestMemberIndex();
+    int *bestMemberIndices = findBestMemberIndices();
+	bestFitness[iterationCount] = Fitness[bestMemberIndices[0]];
+
     logSS.str(""); 
-    logSS << "The best member index is: " << bestMemberIndex;
+    logSS << "The best member index is: " << bestMemberIndices[0] << ", 2nd: " << bestMemberIndices[1];
     LOGME( logSS.str() )
-    crossoverPopulation(bestMemberIndex);
-    mutatePopulation(bestMemberIndex);
+    crossoverPopulation(bestMemberIndices);
+    mutatePopulation(bestMemberIndices);
+	
     
     iterationCount++;
 	evaluatedCount = 0;
@@ -212,6 +225,9 @@ void GeneticOptimization::iterateOnce(double intensity)
  */
 bool GeneticOptimization::isFinished()
 {
+  if (isDone) {
+    SLMInstance->closeSLM();
+  }
   return isDone;
 }
 
@@ -259,7 +275,8 @@ void GeneticOptimization::initializePopulation()
   Population[0].resetCoefficients();
 
   // Rest should be random on appropriate intervals.
-  for (i = 0; i < POPULATION_SIZE-1; i++) {
+  // XXX/NOTE: the first polynomial is the zero one.
+  for (i = 1; i < POPULATION_SIZE; i++) {
     Population[i].resetCoefficients();
     
     // XXX/FIXME: Only work with spherical aberration to begin with.
@@ -269,10 +286,12 @@ void GeneticOptimization::initializePopulation()
     Population[i].setComaY(0);*/
 //    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
 //    Population[i].setSphericalAberration(mutationValue);
-	double sVal = (rand() % 1024)/1024.0 * 3;
-    Population[i].setSphericalAberration(1+sVal);
-	sVal = (rand() % 1024)/1024.0 * 3;
-	Population[i].setSecondarySphericalAberration(1+sVal);
+	double sVal = ((rand() % 1024)/512.0 - 1) * 3;
+    Population[i].setSphericalAberration(sVal);
+	sVal = ((rand() % 1024)/512.0 - 1) * 3;
+	Population[i].setSecondarySphericalAberration(sVal);
+	sVal = ((rand() % 1024)/512.0 - 1) * 2;
+	Population[i].setComaX(sVal);
 	Population[i].setPower(Population[i].focusCorrection());
 
 
@@ -310,14 +329,24 @@ double memberIntensity;
  *
  * @param bestMemberIndex The index of the best member, in the population vector.
  */
-void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
+void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
 {
-  ZernikePolynomial *bestMember = &Population[bestMemberIndex];
+  ZernikePolynomial *bestMember = &Population[bestMemberIndices[0]];
+  ZernikePolynomial *secondBestMember = &Population[bestMemberIndices[1]];
   ZernikePolynomial *aMember;
   
   for (int i = 0; i < POPULATION_SIZE; i++)
   {
+	/*if (i == bestMemberIndices[0]) {
+      continue; // Do not mutate the previous best member.
+	}*/
+	if (i == bestMemberIndices[0] || i == bestMemberIndices[1]) {
+      continue; // Do not mutate the two previously best members.
+	}
+
+
     aMember = &Population[i];
+
     
     // New population has coefficients which are the average of the current population's
     // polynomials and the best (most fit) one's.
@@ -329,8 +358,18 @@ void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
     aMember->setComaX((aMember->getComaX() + bestMember->getComaX())/2);
     aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
-    aMember->setSphericalAberration((aMember->getSphericalAberration() + bestMember->getSphericalAberration())/2);
-	aMember->setSecondarySphericalAberration((aMember->getSecondarySphericalAberration() + bestMember->getSecondarySphericalAberration())/2);
+    aMember->setSphericalAberration((
+		aMember->getSphericalAberration() 
+		+ 2*bestMember->getSphericalAberration()
+		+ secondBestMember->getSphericalAberration())/4);
+	aMember->setSecondarySphericalAberration((
+		aMember->getSecondarySphericalAberration() 
+		+ 2*bestMember->getSecondarySphericalAberration()
+		+ secondBestMember->getSecondarySphericalAberration())/4);
+	aMember->setComaX((
+		aMember->getComaX() 
+		+ 2*bestMember->getComaX()
+		+ secondBestMember->getComaX())/4);
 	aMember->setPower(aMember->focusCorrection());
   }
 }
@@ -340,14 +379,14 @@ void GeneticOptimization::crossoverPopulation(int bestMemberIndex)
  *
  * @param bestIndex The index of the best member of the best polynomial coefficient set.
  */
-void GeneticOptimization::mutatePopulation(int bestIndex)
+void GeneticOptimization::mutatePopulation(int *bestIndices)
 {
   ZernikePolynomial *aMember;
   
   for (int i = 0; i < POPULATION_SIZE; i++)
   {
-	if (i == bestIndex) {
-      continue; // Do not mutilate the previous best member.
+	if (i == bestIndices[0] || i == bestIndices[1]) {
+      continue; // Do not mutate the two previous best members.
 	}
 
     aMember = &Population[i];
@@ -358,10 +397,13 @@ void GeneticOptimization::mutatePopulation(int bestIndex)
     aMember->setTrefoilY((aMember->getTrefoilY() + bestMember->getTrefoilY())/2);*/
     /*aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
-	double mutationValue = (rand() % 1024)/1024.0/10.0 * Population[bestIndex].getSecondarySphericalAberration();
+	double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSecondarySphericalAberration();
     aMember->setSecondarySphericalAberration(aMember->getSecondarySphericalAberration() + mutationValue);
-    mutationValue = (rand() % 1024)/1024.0/10.0 * Population[bestIndex].getSphericalAberration();
+    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSphericalAberration();
     aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
+	mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaX();
+	aMember->setComaX(aMember->getComaX() + mutationValue);
+
 	aMember->setPower(aMember->focusCorrection());
   }
 }
@@ -373,11 +415,29 @@ void GeneticOptimization::mutatePopulation(int bestIndex)
  */
 bool GeneticOptimization::isStopConditionSatisfied()
 {
-  double mean = 0, max;
-  int i;
+  /*double mean = 0, max;
+  int i;*/
+
+  if (iterationCount < 4) {
+    return false;
+  }
+
+  double pIncrease = (bestFitness[iterationCount - 1] / bestFitness[iterationCount - 3]) - 1.0;
+  std::ostringstream logSS;
+  logSS << "pIncrease: " << pIncrease;
+  LOGME( logSS.str() )
+  logSS.str("");
+
+  if (pIncrease < 0.20) {
+	  return true;
+  } else {
+	  return false;
+  }
+
+
   
   // Calculate fitness mean.
-  for (i = 0; i < POPULATION_SIZE; i++) {
+  /*for (i = 0; i < POPULATION_SIZE; i++) {
     mean += Fitness[i];
     
     if (i == 0 || Fitness[i] > max) {
@@ -404,7 +464,7 @@ bool GeneticOptimization::isStopConditionSatisfied()
   LOGME( logSS.str() )
   
   // Check condition.
-  return standardDeviation/max < 0.01;
+  return standardDeviation/max < 0.01;*/
 }
 
 

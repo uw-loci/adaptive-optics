@@ -260,8 +260,9 @@ void ZernikePolynomial::dumpString()
 
 double ZernikePolynomial::focusCorrection()
 {
-	return (3*getSphericalAberration() 
-		+ sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2);
+	return 0;
+	/*return (3*getSphericalAberration() 
+		+ sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2.0);*/
 }
 
 
