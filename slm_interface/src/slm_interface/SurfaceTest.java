@@ -52,11 +52,15 @@ public class SurfaceTest {
     ref = new DataReferenceImpl("ref");
     ff = new FlatField(type, set);
     ref.setData(ff);
+    display.getGraphicsModeControl().setScaleEnable(true);
+    display.getGraphicsModeControl().setTextureEnable(false);
+    display.setAlwaysAutoScale(true);
     display.addMap(new ScalarMap(x, Display.XAxis));
     display.addMap(new ScalarMap(y, Display.YAxis));
     display.addMap(new ScalarMap(v, Display.ZAxis));
     display.addMap(new ScalarMap(v, Display.RGB));
     display.addReference(ref);
+       
     
     // add display to panel
     Panel.add(display.getComponent());
@@ -86,6 +90,7 @@ public class SurfaceTest {
     
     display.getGraphicsModeControl().setScaleEnable(true);
     display.getGraphicsModeControl().setTextureEnable(false);
+    display.setAlwaysAutoScale(true);
 
     display.addMap(xmap);
     display.addMap(ymap);
@@ -98,6 +103,7 @@ public class SurfaceTest {
     
     // add display to panel
     Panel.add(display.getComponent());
+    
 //    Panel.validate();
 //    Panel.repaint();
   }
@@ -106,13 +112,16 @@ public class SurfaceTest {
   public static void showpic(double[][] samps) throws Exception {
     ff.setSamples(samps, false);
     ref.setData(ff);
-
+    DisplayImplJ3D display = new DisplayImplJ3D("display");
+    display.reAutoScale();
   }
   
   public static void showpic1(double[][] samps) throws Exception {
 //show the next pic    
     ff1.setSamples(samps, false);
     ref1.setData(ff1);
+    DisplayImplJ3D display = new DisplayImplJ3D("display1");
+    display.reAutoScale();
   }  
  
 }
