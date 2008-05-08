@@ -120,7 +120,10 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   
   
   ActSize = SLMSIZE;
-  radius = ActSize*300/512;
+  /* GH: FIX.  5/07/2008.  Should be 256, not 300.
+   * radius = ActSize*300/512;
+   */
+  radius = ActSize*256/512;
   
   start = (SLMSIZE - ActSize)/2;
   end = start + ActSize;
@@ -128,7 +131,7 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   y = ActSize/2;
   
   for (int row = start; row < end; row++) {
-    //reset x
+    // Reset x.
     x = -(ActSize/2);
     
     for (int col = start; col < end; col++) {
@@ -140,7 +143,7 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
       divXSqu = divX*divX;
       divYSqu = divY*divY;
 
-      //figure out what each term in the equation is
+      // Figure out what each term in the equation is.
       terms[0] = (getPiston()/2);                                 // Constant term / Piston
       terms[1] = (getTiltX()/2)*divX;                        // Tilt X
       terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
