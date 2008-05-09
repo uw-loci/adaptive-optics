@@ -32,8 +32,8 @@ void ZernikePolynomial::resetCoefficients()
   setSecondaryComaX(0.0);
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
-  setTiltX(55.0);
-  setTiltY(45.0);
+  setTiltX(50.0);
+  setTiltY(50.0);
   //setTiltX(0.0);
   //setTiltY(0.0);
 }
@@ -54,7 +54,7 @@ double round256(double dat)
       dat = dat + 256;
     }
   }
-
+  
   return dat;
 }
 
@@ -66,7 +66,7 @@ void DtoI(double *Dbuf, int length, unsigned char *phaseData)
 {
   unsigned char temp;
   int i;
-
+  
 #ifdef DEBUG_OUTPUT
   int tp, tp2;
   FILE *pfold;
@@ -78,7 +78,7 @@ void DtoI(double *Dbuf, int length, unsigned char *phaseData)
   }
   fclose(pfold);
 #endif
-
+  
   for (i = 0; i < SLMSIZE * SLMSIZE; i++) {
     Dbuf[i] = round256(Dbuf[i] * 256);
     if (Dbuf[i] < 0) {
@@ -110,7 +110,7 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   //std::ostringstream logSS;
   
   
-//  char msgbuf[1024];
+  //  char msgbuf[1024];
   
   //int defocusbins, stigxbins, stigybins, comaxbins, comaybins, speribins;
   
@@ -121,8 +121,8 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   
   ActSize = SLMSIZE;
   /* GH: FIX.  5/07/2008.  Should be 256, not 300.
-   * radius = ActSize*300/512;
-   */
+  * radius = ActSize*300/512;
+  */
   radius = ActSize*256/512;
   
   start = (SLMSIZE - ActSize)/2;
@@ -142,51 +142,48 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
       XPYSquSqu = XSquPlusYSqu*XSquPlusYSqu;
       divXSqu = divX*divX;
       divYSqu = divY*divY;
-
-      // Figure out what each term in the equation is.
-      terms[0] = (getPiston()/2);                                 // Constant term / Piston
-      terms[1] = (getTiltX()/2)*divX;                        // Tilt X
-      terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
-      terms[3] = (getPower()/2)*(2*XSquPlusYSqu - 1);             // Defocus?
-//      terms[4] = (AstigOne/2)*(divXSqu - divY*divY);         // 
-//      terms[5] = (AstigTwo/2)*(2*divX*divY);
-
-      // XXX/FIXME/VERIFY: AstigOne=AstigmatismX, and AstigTwo for Y?
-      terms[4] = (getAstigmatismX()/2)*(divXSqu - divY*divY);
-      terms[5] = (getAstigmatismY()/2)*(2*divX*divY);
-      terms[6] = (getComaX()/2)*(3*divX*XSquPlusYSqu - 2*divX);
-      terms[7] = (getComaY()/2)*(3*divY*XSquPlusYSqu - 2*divY);
-      terms[8] = (getSphericalAberration()/2)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
-      terms[9] = (getTrefoilX()/2)*(divXSqu*divX - 3*divX*divYSqu);
-      terms[10] = (getTrefoilY()/2)*(3*divXSqu*divY - divYSqu*divY);
-      terms[11] = (getSecondaryAstigmatismX()/2)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
-      terms[12] = (getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
-      terms[13] = (getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
-      terms[14] = (getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
-      terms[15] = (getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
-  
-      // Add the terms together.
-      total = 0;
-      for (int i = 0; i < 16; i++) {
-		//logSS << "terms[" << i << "]: " <<  terms[i];
-		//LOGME( logSS.str() );
-		//logSS.str("");
-
-        total += terms[i];
+      
+      if ((divXSqu + divYSqu) <= 1) {     
+        terms[0] = (getPiston()/2);                            // Constant term / Piston
+        terms[1] = (getTiltX()/2)*divX;                        // Tilt X
+        terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
+        terms[3] = (getPower()/2)*(2*XSquPlusYSqu - 1);        // Defocus?
+        
+        // XXX/FIXME/VERIFY: AstigOne=AstigmatismX, and AstigTwo for Y?
+        terms[4] = (getAstigmatismX()/2)*(divXSqu - divY*divY);
+        terms[5] = (getAstigmatismY()/2)*(2*divX*divY);
+        terms[6] = (getComaX()/2)*(3*divX*XSquPlusYSqu - 2*divX);
+        terms[7] = (getComaY()/2)*(3*divY*XSquPlusYSqu - 2*divY);
+        terms[8] = (getSphericalAberration()/2)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
+        terms[9] = (getTrefoilX()/2)*(divXSqu*divX - 3*divX*divYSqu);
+        terms[10] = (getTrefoilY()/2)*(3*divXSqu*divY - divYSqu*divY);
+        terms[11] = (getSecondaryAstigmatismX()/2)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
+        terms[12] = (getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
+        terms[13] = (getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
+        terms[14] = (getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
+        terms[15] = (getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+        
+        // Add the terms together.
+        total = 0;
+        for (int i = 0; i < 16; i++) {
+          total += terms[i];
+        }
+      } else {
+        total = 0;
       }
-            
+      
       zern[row*SLMSIZE+col] = total;
       total = 0;
       x++;
     }
-
+    
     y--;
   }
   
   memset(phaseData, 0, sizeof(unsigned char)*SLMSIZE*SLMSIZE);
   DtoI(zern, SLMSIZE*SLMSIZE, phaseData);
   delete zern;
-
+  
   return;
 }
 
@@ -263,8 +260,8 @@ void ZernikePolynomial::dumpString()
 
 double ZernikePolynomial::focusCorrection()
 {
-	return 0;
-	/*return (3*getSphericalAberration() 
+  return 0;
+  /*return (3*getSphericalAberration() 
 		+ sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2.0);*/
 }
 
