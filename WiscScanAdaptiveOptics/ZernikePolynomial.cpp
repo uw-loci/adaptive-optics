@@ -262,7 +262,7 @@ double ZernikePolynomial::focusCorrection()
 {
   return 0;
   /*return (3*getSphericalAberration() 
-		+ sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2.0);*/
+    + sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2.0);*/
 }
 
 

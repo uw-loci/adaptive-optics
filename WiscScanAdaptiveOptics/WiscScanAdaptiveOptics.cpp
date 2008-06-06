@@ -34,34 +34,29 @@ static AdaptiveOptics *AdaptiveOpticsFrontend;
 extern "C"
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {
-	if (dwReason == DLL_PROCESS_ATTACH)
-	{
-
+  if (dwReason == DLL_PROCESS_ATTACH)
+  {
     AdaptiveOpticsFrontend = new AdaptiveOptics;
-
-	TRACE0("WISCSCANADAPTIVEOPTICS.DLL Initializing!\n");
-		
-		// Extension DLL one-time initialization
+    TRACE0("WISCSCANADAPTIVEOPTICS.DLL Initializing!\n");
+    
+    // Extension DLL one-time initialization
     if (!AfxInitExtensionModule(WiscScanAdaptiveOpticsDLL, hInstance)) {
-			return FALSE;
+      return FALSE;
     }
-	LOGME("Adaptive Optics Starting up!");
-
-		
-	}
-	else if (dwReason == DLL_PROCESS_DETACH)
-	{
-		TRACE0("WISCSCANADAPTIVEOPTICS.DLL Terminating!\n");
-		// Terminate the library before destructors are called
-		AfxTermExtensionModule(WiscScanAdaptiveOpticsDLL);
-		
+    LOGME("Adaptive Optics Starting up!");
+  }
+  else if (dwReason == DLL_PROCESS_DETACH)
+  {
+    TRACE0("WISCSCANADAPTIVEOPTICS.DLL Terminating!\n");
+    // Terminate the library before destructors are called
+    AfxTermExtensionModule(WiscScanAdaptiveOpticsDLL);
+    
     if (AdaptiveOpticsFrontend) {
-			delete AdaptiveOpticsFrontend;
+      delete AdaptiveOpticsFrontend;
     }
+  }
 
-	}
-
-	return TRUE;
+  return TRUE;
 }
 
 /* Redundant. */

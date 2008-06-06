@@ -59,15 +59,15 @@ int *GeneticOptimization::findBestMemberIndices()
   //LOGME("Looking for best member: ");
   bool isDone = false;
   while (!isDone) {
-	isDone = true;
+    isDone = true;
     for (int i = 0; i < POPULATION_SIZE-1; i++) {
-	  if (Fitness[bestIndices[i+1]] > Fitness[bestIndices[i]]) {
-		int tmp = bestIndices[i];
-		bestIndices[i] = bestIndices[i+1];
-		bestIndices[i+1] = tmp;
-		isDone = false;
-	  }  
-	}
+      if (Fitness[bestIndices[i+1]] > Fitness[bestIndices[i]]) {
+        int tmp = bestIndices[i];
+        bestIndices[i] = bestIndices[i+1];
+        bestIndices[i+1] = tmp;
+        isDone = false;
+      }  
+    }
   }
 
   return bestIndices;
@@ -85,8 +85,8 @@ void GeneticOptimization::iterateOnce(double intensity)
   std::ostringstream logSS;
   logSS << "Iteration count is: " << evaluatedCount 
 //      << " Tref. Y: " << Population[evaluatedCount].getTrefoilY()
-//        << " 2nd. Ast. X: " << Population[evaluatedCount].getSecondaryAstigmatismX()
-		<< " intensity now: " << intensity;
+//      << " 2nd. Ast. X: " << Population[evaluatedCount].getSecondaryAstigmatismX()
+        << " intensity now: " << intensity;
   LOGME( logSS.str() )
 
 #if 0
@@ -95,28 +95,28 @@ void GeneticOptimization::iterateOnce(double intensity)
     evaluatedCount = 0;
     firstIterationDone = true;
     //Population[evaluatedCount].setSphericalAberration(-1);
-	//Population[evaluatedCount].setSecondarySphericalAberration(-1);
-	//Population[evaluatedCount].setComaX(-2);
-	//Population[evaluatedCount].setComaY(-2);
-	//Population[evaluatedCount].setPiston(-10);
-	//Population[evaluatedCount].setPower(-2);
-	//Population[evaluatedCount].setAstigmatismX(-4);
-	//Population[evaluatedCount].setAstigmatismY(-3);
-	//Population[evaluatedCount].setTrefoilX(-3);
-	//Population[evaluatedCount].setTrefoilY(-3);
-	//Population[evaluatedCount].setSecondaryAstigmatismX(-2)
+    //Population[evaluatedCount].setSecondarySphericalAberration(-1);
+    //Population[evaluatedCount].setComaX(-2);
+    //Population[evaluatedCount].setComaY(-2);
+    //Population[evaluatedCount].setPiston(-10);
+    //Population[evaluatedCount].setPower(-2);
+    //Population[evaluatedCount].setAstigmatismX(-4);
+    //Population[evaluatedCount].setAstigmatismY(-3);
+    //Population[evaluatedCount].setTrefoilX(-3);
+    //Population[evaluatedCount].setTrefoilY(-3);
+    //Population[evaluatedCount].setSecondaryAstigmatismX(-2)
   } else {
-	//Population[evaluatedCount].setSphericalAberration(Population[evaluatedCount].getSphericalAberration() + 0.05);
+    //Population[evaluatedCount].setSphericalAberration(Population[evaluatedCount].getSphericalAberration() + 0.05);
     //Population[evaluatedCount].setSecondarySphericalAberration(Population[evaluatedCount].getSecondarySphericalAberration() + 0.10);
-	//Population[evaluatedCount].setComaX(Population[evaluatedCount].getComaX() + 0.10);
-	//Population[evaluatedCount].setComaY(Population[evaluatedCount].getComaY() + 0.10);
-	//Population[evaluatedCount].setPiston(Population[evaluatedCount].getPiston() + 0.5);
-	//Population[evaluatedCount].setPower(Population[evaluatedCount].getPower() + 0.10);
-	//Population[evaluatedCount].setAstigmatismX(Population[evaluatedCount].getAstigmatismX() + 0.10);
-	//Population[evaluatedCount].setAstigmatismY(Population[evaluatedCount].getAstigmatismY() + 0.10);
-	//Population[evaluatedCount].setTrefoilX(Population[evaluatedCount].getTrefoilX() + 0.10);
-	//Population[evaluatedCount].setTrefoilY(Population[evaluatedCount].getTrefoilY() + 0.10);
-	//Population[evaluatedCount].setSecondaryAstigmatismX(Population[evaluatedCount].getSecondaryAstigmatismX() + 0.10);
+    //Population[evaluatedCount].setComaX(Population[evaluatedCount].getComaX() + 0.10);
+    //Population[evaluatedCount].setComaY(Population[evaluatedCount].getComaY() + 0.10);
+    //Population[evaluatedCount].setPiston(Population[evaluatedCount].getPiston() + 0.5);
+    //Population[evaluatedCount].setPower(Population[evaluatedCount].getPower() + 0.10);
+    //Population[evaluatedCount].setAstigmatismX(Population[evaluatedCount].getAstigmatismX() + 0.10);
+    //Population[evaluatedCount].setAstigmatismY(Population[evaluatedCount].getAstigmatismY() + 0.10);
+    //Population[evaluatedCount].setTrefoilX(Population[evaluatedCount].getTrefoilX() + 0.10);
+    //Population[evaluatedCount].setTrefoilY(Population[evaluatedCount].getTrefoilY() + 0.10);
+    //Population[evaluatedCount].setSecondaryAstigmatismX(Population[evaluatedCount].getSecondaryAstigmatismX() + 0.10);
   }
   
   //if (Population[evaluatedCount].getSecondaryAstigmatismX() > 2)
@@ -163,16 +163,16 @@ void GeneticOptimization::iterateOnce(double intensity)
     LOGME( "First iteration is now approximately done " )
     LOGME( "- Generating data for SLM " )
     Population[evaluatedCount].generateImageBufferForSLM(phaseData);
-	LOGME( "- preparing data to be sent " )
+    LOGME( "- preparing data to be sent " )
     SLMInstance->receiveData(phaseData);
-	LOGME( "- preparing sending... " )
+    LOGME( "- preparing sending... " )
     SLMInstance->sendToSLM(true);
-	LOGME( "- done " )
+    LOGME( "- done " )
     delete phaseData;
 
     //Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
-	Sleep(150); // Seems to take a bit longer occasionally.
-	LOGME( "- SLM ready for action! " )
+    Sleep(150); // Seems to take a bit longer occasionally.
+    LOGME( "- SLM ready for action! " )
     return; // Return immediately.
   }
 
@@ -182,27 +182,25 @@ void GeneticOptimization::iterateOnce(double intensity)
   if (evaluatedCount == POPULATION_SIZE) {
     // Evaluation of population is done.
     LOGME( "The last evaluation for this iteration is done." );
-	LOGME( "The old population:" );
-	// Output info on the population for debugging.
-	debugPopulation();
+    LOGME( "The old population:" );
+    // Output info on the population for debugging.
+    debugPopulation();
     int *bestMemberIndices = findBestMemberIndices();
-	bestFitness[iterationCount] = Fitness[bestMemberIndices[0]];
+    bestFitness[iterationCount] = Fitness[bestMemberIndices[0]];
 
     logSS.str(""); 
     logSS << "The best member index is: " << bestMemberIndices[0] << ", 2nd: " << bestMemberIndices[1];
     LOGME( logSS.str() )
     crossoverPopulation(bestMemberIndices);
     mutatePopulation(bestMemberIndices);
-	
     
     iterationCount++;
-	evaluatedCount = 0;
+    evaluatedCount = 0;
     if (isStopConditionSatisfied() || iterationCount == MAX_ITERATIONS) {
       isDone = true;
     }
 
-	LOGME( "-------------------------------------------------------" )
-
+    LOGME( "-------------------------------------------------------" )
   }
 
   if (!isDone) {
@@ -286,16 +284,16 @@ void GeneticOptimization::initializePopulation()
     Population[i].setComaY(0);*/
 //    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
 //    Population[i].setSphericalAberration(mutationValue);
-	double sVal = ((rand() % 1024)/512.0 - 1) * 3;
+    double sVal = ((rand() % 1024)/512.0 - 1) * 3;
     Population[i].setSphericalAberration(sVal);
-	sVal = ((rand() % 1024)/512.0 - 1) * 3;
-	Population[i].setSecondarySphericalAberration(sVal);
-	sVal = ((rand() % 1024)/512.0 - 1) * 2;
-	Population[i].setComaX(sVal);
-	Population[i].setPower(Population[i].focusCorrection());
+    sVal = ((rand() % 1024)/512.0 - 1) * 3;
+    Population[i].setSecondarySphericalAberration(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * 2;
+    Population[i].setComaX(sVal);
+    Population[i].setPower(Population[i].focusCorrection());
 
 
-	//Population[i].setSecondarySphericalAberration(0);
+    //Population[i].setSecondarySphericalAberration(0);
     /*Population[i].setTrefoilX(0);
     Population[i].setTrefoilY(0);
     Population[i].setSecondaryComaX(0);
@@ -337,13 +335,12 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
   
   for (int i = 0; i < POPULATION_SIZE; i++)
   {
-	/*if (i == bestMemberIndices[0]) {
+    /*if (i == bestMemberIndices[0]) {
       continue; // Do not mutate the previous best member.
-	}*/
-	if (i == bestMemberIndices[0] || i == bestMemberIndices[1]) {
+    }*/
+    if (i == bestMemberIndices[0] || i == bestMemberIndices[1]) {
       continue; // Do not mutate the two previously best members.
-	}
-
+    }
 
     aMember = &Population[i];
 
@@ -359,18 +356,18 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
     aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
     aMember->setSphericalAberration((
-		aMember->getSphericalAberration() 
-		+ 2*bestMember->getSphericalAberration()
-		+ secondBestMember->getSphericalAberration())/4);
-	aMember->setSecondarySphericalAberration((
-		aMember->getSecondarySphericalAberration() 
-		+ 2*bestMember->getSecondarySphericalAberration()
-		+ secondBestMember->getSecondarySphericalAberration())/4);
-	aMember->setComaX((
-		aMember->getComaX() 
-		+ 2*bestMember->getComaX()
-		+ secondBestMember->getComaX())/4);
-	aMember->setPower(aMember->focusCorrection());
+      aMember->getSphericalAberration() 
+      + 2*bestMember->getSphericalAberration()
+      + secondBestMember->getSphericalAberration())/4);
+    aMember->setSecondarySphericalAberration((
+      aMember->getSecondarySphericalAberration() 
+      + 2*bestMember->getSecondarySphericalAberration()
+      + secondBestMember->getSecondarySphericalAberration())/4);
+    aMember->setComaX((
+      aMember->getComaX() 
+      + 2*bestMember->getComaX()
+      + secondBestMember->getComaX())/4);
+    aMember->setPower(aMember->focusCorrection());
   }
 }
 
@@ -385,9 +382,9 @@ void GeneticOptimization::mutatePopulation(int *bestIndices)
   
   for (int i = 0; i < POPULATION_SIZE; i++)
   {
-	if (i == bestIndices[0] || i == bestIndices[1]) {
+    if (i == bestIndices[0] || i == bestIndices[1]) {
       continue; // Do not mutate the two previous best members.
-	}
+    }
 
     aMember = &Population[i];
     /*    aMember->setAstigmatismX((aMember->getAstigmatismX() + bestMember->getAstigmatismX())/2);
@@ -397,14 +394,14 @@ void GeneticOptimization::mutatePopulation(int *bestIndices)
     aMember->setTrefoilY((aMember->getTrefoilY() + bestMember->getTrefoilY())/2);*/
     /*aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
-	double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSecondarySphericalAberration();
+    double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSecondarySphericalAberration();
     aMember->setSecondarySphericalAberration(aMember->getSecondarySphericalAberration() + mutationValue);
     mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSphericalAberration();
     aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
-	mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaX();
-	aMember->setComaX(aMember->getComaX() + mutationValue);
+    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaX();
+    aMember->setComaX(aMember->getComaX() + mutationValue);
 
-	aMember->setPower(aMember->focusCorrection());
+    aMember->setPower(aMember->focusCorrection());
   }
 }
 
@@ -429,9 +426,9 @@ bool GeneticOptimization::isStopConditionSatisfied()
   logSS.str("");
 
   if (pIncrease < 0.20) {
-	  return true;
+    return true;
   } else {
-	  return false;
+    return false;
   }
 
 
@@ -473,9 +470,9 @@ void GeneticOptimization::debugPopulation()
 {
   for (int i = 0; i < POPULATION_SIZE; i++) {
     std::ostringstream logSS;
-	logSS.str("");
+    logSS.str("");
     logSS << "Population member: " << i;
-	LOGME( logSS.str() );
-	Population[i].dumpString();
+    LOGME( logSS.str() );
+    Population[i].dumpString();
   }
 }
