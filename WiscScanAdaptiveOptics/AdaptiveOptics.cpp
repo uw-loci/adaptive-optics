@@ -92,10 +92,13 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   /*
    * Calculate the average intensity.
    */
+  const double THRESHOLD = 2.0;
   sum = 0;
   for (int i = 0; i < height; i++) {
-    for ( int j = 0; j < width; j++) {
-      sum = sum + buf[j + i * width]; 
+    for (int j = 0; j < width; j++) {
+      if (buf[j + i*width] >= THRESHOLD) {
+        sum = sum + buf[j + i * width];
+      }
     }
   }
 
