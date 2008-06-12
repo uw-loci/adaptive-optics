@@ -82,7 +82,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
     OutputDebugString("**********flag = 0 chang to 1 now, directly return ************");
     return 1;
   }
-  flag = 0;
+//  flag = 0;
 
   count ++;
   sprintf(msgbuf, "*************count is %d\n*************", count);

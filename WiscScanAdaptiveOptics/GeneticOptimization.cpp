@@ -76,6 +76,57 @@ int *GeneticOptimization::findBestMemberIndices()
 
 
 /**
+ * Writes the optimization information to a Matlab compatible data file.
+ *
+ * @param bestMemberIndex The index of the best (most fit) member of the generation.
+ */
+void GeneticOptimization::writeOptimizationMatlabData(int bestMemberIndex)
+{
+  fstream file;
+
+#define MATLAB_DATA_FILE    "C:/gunnsteinn/debug/Optimization.dat"
+
+  if (iterationCount == 0) {
+    file.open(MATLAB_DATA_FILE, ios::out);
+    file << "%Generation|Fitness|TX|TY|Power|AX|AY|CX|CY|SA|2SA" << endl; 
+
+    // Include the original fitness (without any correction) as the 0th generation.
+    // To be true, the first member must have all-zero Zernike coefficients
+    // (in the first generation).
+
+    file << (0) << "\t" << Fitness[0] << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << "0" << "\t"
+        << endl;
+
+  } else {
+    file.open(MATLAB_DATA_FILE, ios::out|ios::app);
+  }
+
+  file << (iterationCount+1) << "\t" << Fitness[bestMemberIndex] << "\t"
+      << Population[bestMemberIndex].getTiltX() << "\t"
+      << Population[bestMemberIndex].getTiltY() << "\t"
+      << Population[bestMemberIndex].getPower() << "\t"
+      << Population[bestMemberIndex].getAstigmatismX() << "\t"
+      << Population[bestMemberIndex].getAstigmatismY() << "\t"
+      << Population[bestMemberIndex].getComaX() << "\t"
+      << Population[bestMemberIndex].getComaY() << "\t"
+      << Population[bestMemberIndex].getSphericalAberration() << "\t"
+      << Population[bestMemberIndex].getSecondarySphericalAberration() << "\t"
+      << endl;
+
+  file.close();
+}
+
+
+/**
  * Run one iteration.
  *
  * @param intensity The intensity of the last image that was captured.
@@ -190,9 +241,21 @@ void GeneticOptimization::iterateOnce(double intensity)
 
     logSS.str(""); 
     logSS << "The best member index is: " << bestMemberIndices[0] << ", 2nd: " << bestMemberIndices[1];
-    LOGME( logSS.str() )
+    LOGME( logSS.str() );
+
+    logSS.str(""); 
+    logSS << "The best fitness is: " << bestFitness[iterationCount];
+    LOGME( logSS.str() );
+
+    writeOptimizationMatlabData(bestMemberIndices[0]);
+    
     crossoverPopulation(bestMemberIndices);
     mutatePopulation(bestMemberIndices);
+
+    logSS.str("");
+    logSS << "Generation number: " << iterationCount;
+    LOGME( logSS.str() );
+
     
     iterationCount++;
     evaluatedCount = 0;
@@ -290,6 +353,8 @@ void GeneticOptimization::initializePopulation()
     Population[i].setSecondarySphericalAberration(sVal);
     sVal = ((rand() % 1024)/512.0 - 1) * 2;
     Population[i].setComaX(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * 2;
+    Population[i].setComaY(sVal);
     Population[i].setPower(Population[i].focusCorrection());
 
 
@@ -367,6 +432,10 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
       aMember->getComaX() 
       + 2*bestMember->getComaX()
       + secondBestMember->getComaX())/4);
+    aMember->setComaY((
+      aMember->getComaY() 
+      + 2*bestMember->getComaY()
+      + secondBestMember->getComaY())/4);
     aMember->setPower(aMember->focusCorrection());
   }
 }
@@ -400,6 +469,8 @@ void GeneticOptimization::mutatePopulation(int *bestIndices)
     aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
     mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaX();
     aMember->setComaX(aMember->getComaX() + mutationValue);
+    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaY();
+    aMember->setComaY(aMember->getComaY() + mutationValue);
 
     aMember->setPower(aMember->focusCorrection());
   }
@@ -425,7 +496,9 @@ bool GeneticOptimization::isStopConditionSatisfied()
   LOGME( logSS.str() )
   logSS.str("");
 
-  if (pIncrease < 0.20) {
+  //if (pIncrease < 0.20) {
+  return false; // XXX/FIXME: Remove
+  if (pIncrease < 0.01) {
     return true;
   } else {
     return false;

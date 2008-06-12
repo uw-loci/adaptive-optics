@@ -3,7 +3,7 @@
 #include "SLMController.h"
 
 #define POPULATION_SIZE   15
-#define MAX_ITERATIONS    10
+#define MAX_ITERATIONS    60
 
 #define MAX_SPHERICAL_ABERRATION_MUTATION 20.0
 
@@ -35,8 +35,8 @@ class GeneticOptimization {
     // The fitness of the population.
     double Fitness[POPULATION_SIZE];
 
-	// The best fitnesses of the population.
-	double bestFitness[MAX_ITERATIONS];
+    // The best fitnesses of the population.
+    double bestFitness[MAX_ITERATIONS];
 
     // Indicates whether or not the first iteration is done.
     bool firstIterationDone;
@@ -59,6 +59,9 @@ class GeneticOptimization {
     // Finds best member of the population.
     int *findBestMemberIndices();
 
+    // Writes the optimization information to a Matlab compatible data file.
+    void writeOptimizationMatlabData(int bestMemberIndex);
+
     // evalate fitness of a single member.
     // double evaluateMemberFitness(int memberIndex);
 
@@ -71,7 +74,7 @@ class GeneticOptimization {
     // Checks whether convergence has been reached, or not.
     bool isStopConditionSatisfied();
 
-	void debugPopulation();
+	  void debugPopulation();
 
     // Fixes tilt for a given coma.
     // double tilt_fix_func(double coma);
