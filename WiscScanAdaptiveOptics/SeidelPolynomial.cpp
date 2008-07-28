@@ -32,8 +32,8 @@ void SeidelPolynomial::resetCoefficients()
   setSecondaryComaX(0.0);
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
-  setTiltX(50.0);
-  setTiltY(50.0);
+  setTiltX(20.0);
+  setTiltY(20.0);
   //setTiltX(0.0);
   //setTiltY(0.0);
 }
@@ -149,8 +149,8 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
       
       if ((divXSqu + divYSqu) <= 1) {     
         terms[0] = (getPiston());                            // Constant term / Piston
-        terms[1] = (getTiltX())*divX;                        // Tilt X
-        terms[2] = (getTiltY())*divY;                        // Tilt Y
+        terms[1] = (getTiltX()/2)*divX;                        // Tilt X
+        terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
         terms[3] = (getPower())*(XSquPlusYSqu);        // Defocus?
         
         // XXX/FIXME/VERIFY: AstigOne=AstigmatismX, and AstigTwo for Y?

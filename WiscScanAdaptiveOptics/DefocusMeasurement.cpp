@@ -46,10 +46,16 @@ bool DefocusMeasurement::isFinished()
 }
 
 
+/**
+ * Generates a filename representing the current status of the
+ * measurement.
+ *
+ * @return The file name.
+ */
 char *DefocusMeasurement::generateFileName()
 {
   char fname[256] = "";
-  sprintf(fname, "imagAs%.2fAd%.2f.dat", As, Ad);
+  sprintf(fname, "imgAs%.2fAd%.2f.dat", As, Ad);
 
   return strdup(fname);
 }
@@ -71,6 +77,11 @@ void DefocusMeasurement::iterateOnce(double intensity)
     unsigned char *phaseData = new unsigned char [SLMSIZE*SLMSIZE];
     LOGME( "First iteration is now approximately done " )
     LOGME( "- Generating data for SLM " )
+    SeidelSet.resetCoefficients();
+    SeidelSet.setPower(Ad);
+    SeidelSet.setSphericalAberration(As);
+    SeidelSet.setTiltX(20);
+    SeidelSet.setTiltY(20);
     SeidelSet.generateImageBufferForSLM(phaseData);
     LOGME( "- preparing data to be sent " )
     SLMInstance->receiveData(phaseData);
@@ -84,7 +95,7 @@ void DefocusMeasurement::iterateOnce(double intensity)
     return; // Return immediately.
   }
 
-  if ((-As-Ad) > 0.5) {
+  if ((-As-Ad) >= 0.5) {
     As+=0.1;
     Ad=-As+0.5;
     if (As > 20) {
