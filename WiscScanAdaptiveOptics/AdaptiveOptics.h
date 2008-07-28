@@ -10,6 +10,7 @@ class AdaptiveOptics
 {
   private:
     GeneticOptimization *optimizer;
+    DefocusMeasurement *measurand;
 
   public:
     AdaptiveOptics();  

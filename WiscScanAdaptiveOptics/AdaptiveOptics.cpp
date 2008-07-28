@@ -15,7 +15,8 @@
  */
 AdaptiveOptics::AdaptiveOptics()
 {
-  optimizer = new GeneticOptimization();
+  //optimizer = new GeneticOptimization();
+  measurand = new DefocusMeasurement();
 } 
 
 
@@ -104,7 +105,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   }
 
   // Dump the image data to file.
-  /*dumpSumBuffer(count, buf, width, height);*/
+  dumpSumBuffer(count, buf, width, height);
 
   averageIntensity = sum / (width*height*3);
 
@@ -123,9 +124,11 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   OutputDebugString(msgbuf);
 
   // Send the data to optimization module.
-  optimizer->iterateOnce(averageIntensity);
+  //optimizer->iterateOnce(averageIntensity);
+  measurand->iterateOnce(averageIntensity);
 
-  if (optimizer->isFinished()) {
+  //if (optimizer->isFinished()) {
+  if (measurand->isFinished()) {
     return 0; // Stop scanning.
   } else {
     return 1; // Continue scanning.
