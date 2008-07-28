@@ -77,6 +77,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
  
   if (flag == 0) { // GH: skips the rest every other time? why?
     /* IF NOT USED: WE ONLY GET 1/2 OF THE IMAGE!
+     * (or does it only appear so on the screen?)
      */
     flag = 1;  // Now: skip only 1st time (stability?)
     OutputDebugString("**********flag = 0 chang to 1 now, directly return ************");

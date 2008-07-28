@@ -1,22 +1,22 @@
 
 #include "StdAfx.h"
-#include "ZernikePolynomial.h"
+#include "SeidelPolynomial.h"
 #include "SLMProject.h"
 
 #include "Logger.h"
 #include <sstream>
 
 // Constructor.
-ZernikePolynomial::ZernikePolynomial()
+SeidelPolynomial::SeidelPolynomial()
 {
   resetCoefficients();
 }
 
 
 /**
- * Resets the Zernike coefficients to default values.
+ * Resets the SeidelPolynomial coefficients to default values.
  */
-void ZernikePolynomial::resetCoefficients()
+void SeidelPolynomial::resetCoefficients()
 {
   setPiston(0.0);
   setSecondaryAstigmatismX(0.0);
@@ -105,7 +105,7 @@ void DtoI(double *Dbuf, int length, unsigned char *phaseData)
  *
  * @param phaseData The output phase data image buffer.
  */
-void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
+void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
 {
   double x, y, radius;
   double divX, divY, XSquPlusYSqu, divXSqu, divYSqu, XPYSquSqu;
@@ -148,24 +148,24 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
       divYSqu = divY*divY;
       
       if ((divXSqu + divYSqu) <= 1) {     
-        terms[0] = (getPiston()/2);                            // Constant term / Piston
-        terms[1] = (getTiltX()/2)*divX;                        // Tilt X
-        terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
-        terms[3] = (getPower()/2)*(2*XSquPlusYSqu - 1);        // Defocus?
+        terms[0] = (getPiston());                            // Constant term / Piston
+        terms[1] = (getTiltX())*divX;                        // Tilt X
+        terms[2] = (getTiltY())*divY;                        // Tilt Y
+        terms[3] = (getPower()*(XSquPlusYSqu);        // Defocus?
         
         // XXX/FIXME/VERIFY: AstigOne=AstigmatismX, and AstigTwo for Y?
-        terms[4] = (getAstigmatismX()/2)*(divXSqu - divY*divY);
-        terms[5] = (getAstigmatismY()/2)*(2*divX*divY);
-        terms[6] = (getComaX()/2)*(3*divX*XSquPlusYSqu - 2*divX);
-        terms[7] = (getComaY()/2)*(3*divY*XSquPlusYSqu - 2*divY);
-        terms[8] = (getSphericalAberration()/2)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
-        terms[9] = (getTrefoilX()/2)*(divXSqu*divX - 3*divX*divYSqu);
-        terms[10] = (getTrefoilY()/2)*(3*divXSqu*divY - divYSqu*divY);
-        terms[11] = (getSecondaryAstigmatismX()/2)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
-        terms[12] = (getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
-        terms[13] = (getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
-        terms[14] = (getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
-        terms[15] = (getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+        terms[4] = 0; //(getAstigmatismX()/2)*(divXSqu - divY*divY);
+        terms[5] = 0; //(getAstigmatismY()/2)*(2*divX*divY);
+        terms[6] = 0; //(getComaX()/2)*(3*divX*XSquPlusYSqu - 2*divX);
+        terms[7] = 0; //(getComaY()/2)*(3*divY*XSquPlusYSqu - 2*divY);
+        terms[8] = (getSphericalAberration())*(XPYSquSqu);
+        terms[9] = 0; //(getTrefoilX()/2)*(divXSqu*divX - 3*divX*divYSqu);
+        terms[10] = 0;// (getTrefoilY()/2)*(3*divXSqu*divY - divYSqu*divY);
+        terms[11] = 0; //(getSecondaryAstigmatismX()/2)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
+        terms[12] = 0; //(getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
+        terms[13] = 0; //(getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
+        terms[14] = 0; //(getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
+        terms[15] = 0; //(getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
         
         // Add the terms together.
         total = 0;
@@ -192,7 +192,7 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
 }
 
 
-void ZernikePolynomial::dumpString()
+void SeidelPolynomial::dumpString()
 {
   std::ostringstream logSS;
   // Piston.
@@ -262,172 +262,165 @@ void ZernikePolynomial::dumpString()
 
 
 
-double ZernikePolynomial::focusCorrection()
-{
-  return 0;
-  /*return (3*getSphericalAberration() 
-    + sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2.0);*/
-}
-
 
 // Getters and setters.
 
-double ZernikePolynomial::getPiston()
+double SeidelPolynomial::getPiston()
 {
   return piston;
 }
 
-void ZernikePolynomial::setPiston(double piston)
+void SeidelPolynomial::setPiston(double piston)
 {
   this->piston = piston;
 }
 
-double ZernikePolynomial::getPower()
+double SeidelPolynomial::getPower()
 {
   return power;
 }
 
-void ZernikePolynomial::setPower(double power)
+void SeidelPolynomial::setPower(double power)
 {
   this->power = power;
 }
 
-double ZernikePolynomial::getAstigmatismX()
+double SeidelPolynomial::getAstigmatismX()
 {
   return astigmatismX;
 }
 
-void ZernikePolynomial::setAstigmatismX(double astigmatismX)
+void SeidelPolynomial::setAstigmatismX(double astigmatismX)
 {
   this->astigmatismX = astigmatismX;
 }
 
-double ZernikePolynomial::getAstigmatismY()
+double SeidelPolynomial::getAstigmatismY()
 {
   return astigmatismY;
 }
 
-void ZernikePolynomial::setAstigmatismY(double astigmatismY)
+void SeidelPolynomial::setAstigmatismY(double astigmatismY)
 {
   this->astigmatismY = astigmatismY;
 }
 
-double ZernikePolynomial::getComaX()
+double SeidelPolynomial::getComaX()
 {
   return comaX;
 }
 
-void ZernikePolynomial::setComaX(double comaX)
+void SeidelPolynomial::setComaX(double comaX)
 {
   this->comaX = comaX;
 }
 
-double ZernikePolynomial::getComaY()
+double SeidelPolynomial::getComaY()
 {
   return comaY;
 }
 
-void ZernikePolynomial::setComaY(double comaY)
+void SeidelPolynomial::setComaY(double comaY)
 {
   this->comaY = comaY;
 }
 
-double ZernikePolynomial::getSphericalAberration()
+double SeidelPolynomial::getSphericalAberration()
 {
   return sphericalAberration;
 }
 
-void ZernikePolynomial::setSphericalAberration(double sphericalAberration)
+void SeidelPolynomial::setSphericalAberration(double sphericalAberration)
 {
   this->sphericalAberration = sphericalAberration;
 }
 
-double ZernikePolynomial::getTrefoilX()
+double SeidelPolynomial::getTrefoilX()
 {
   return trefoilX;
 }
 
-void ZernikePolynomial::setTrefoilX(double trefoilX)
+void SeidelPolynomial::setTrefoilX(double trefoilX)
 {
   this->trefoilX = trefoilX;
 }
 
-double ZernikePolynomial::getTrefoilY()
+double SeidelPolynomial::getTrefoilY()
 {
   return trefoilY;
 }
 
-void ZernikePolynomial::setTrefoilY(double trefoilY)
+void SeidelPolynomial::setTrefoilY(double trefoilY)
 {
   this->trefoilY = trefoilY;
 }
 
-double ZernikePolynomial::getSecondaryComaX()
+double SeidelPolynomial::getSecondaryComaX()
 {
   return secondaryComaX;
 }
 
-void ZernikePolynomial::setSecondaryComaX(double secondaryComaX)
+void SeidelPolynomial::setSecondaryComaX(double secondaryComaX)
 {
   this->secondaryComaX = secondaryComaX;
 }
 
-double ZernikePolynomial::getSecondaryComaY()
+double SeidelPolynomial::getSecondaryComaY()
 {
   return secondaryComaY;
 }
 
-void ZernikePolynomial::setSecondaryComaY(double secondaryComaY)
+void SeidelPolynomial::setSecondaryComaY(double secondaryComaY)
 {
   this->secondaryComaY = secondaryComaY;
 }
 
-double ZernikePolynomial::getSecondarySphericalAberration()
+double SeidelPolynomial::getSecondarySphericalAberration()
 {
   return secondarySphericalAberration;
 }
 
-void ZernikePolynomial::setSecondarySphericalAberration(double secondarySphericalAberration)
+void SeidelPolynomial::setSecondarySphericalAberration(double secondarySphericalAberration)
 {
   this->secondarySphericalAberration = secondarySphericalAberration;
 }
 
-double ZernikePolynomial::getSecondaryAstigmatismX()
+double SeidelPolynomial::getSecondaryAstigmatismX()
 {
   return secondaryAstigmatismX;
 }
 
-void ZernikePolynomial::setSecondaryAstigmatismX(double secondaryAstigmatismX)
+void SeidelPolynomial::setSecondaryAstigmatismX(double secondaryAstigmatismX)
 {
   this->secondaryAstigmatismX = secondaryAstigmatismX;
 }
 
-double ZernikePolynomial::getSecondaryAstigmatismY()
+double SeidelPolynomial::getSecondaryAstigmatismY()
 {
   return secondaryAstigmatismY;
 }
 
-void ZernikePolynomial::setSecondaryAstigmatismY(double secondaryAstigmatismY)
+void SeidelPolynomial::setSecondaryAstigmatismY(double secondaryAstigmatismY)
 {
   this->secondaryAstigmatismY = secondaryAstigmatismY;
 }
 
-double ZernikePolynomial::getTiltX()
+double SeidelPolynomial::getTiltX()
 {
   return tiltX;
 }
 
-void ZernikePolynomial::setTiltX(double tiltX)
+void SeidelPolynomial::setTiltX(double tiltX)
 {
   this->tiltX = tiltX;
 }
 
-double ZernikePolynomial::getTiltY()
+double SeidelPolynomial::getTiltY()
 {
   return tiltY;
 }
 
-void ZernikePolynomial::setTiltY(double tiltY)
+void SeidelPolynomial::setTiltY(double tiltY)
 {
   this->tiltY = tiltY;
 }
