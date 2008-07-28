@@ -42,7 +42,7 @@ void SeidelPolynomial::resetCoefficients()
  * Round off to ensure dat is in range -256 to 256.
  * GH: (replacable with modulus opration?)
  */
-double round256(double dat)
+double round256b(double dat)
 {
   if (dat > 0) {
     while (dat >= 256){
@@ -65,7 +65,7 @@ double round256(double dat)
  * for the Spatial light modulator.
  * N.B. A double value of 1 will be 255 in the SLM (the range is 0-255).
  */
-void DtoI(double *Dbuf, int length, unsigned char *phaseData)
+void DtoIb(double *Dbuf, int length, unsigned char *phaseData)
 {
   unsigned char temp;
   int i;
@@ -83,7 +83,7 @@ void DtoI(double *Dbuf, int length, unsigned char *phaseData)
 #endif
   
   for (i = 0; i < SLMSIZE * SLMSIZE; i++) {
-    Dbuf[i] = round256(Dbuf[i] * 256);
+    Dbuf[i] = round256b(Dbuf[i] * 256);
     if (Dbuf[i] < 0) {
       Dbuf[i] = Dbuf[i] + 256;
     }
@@ -151,7 +151,7 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
         terms[0] = (getPiston());                            // Constant term / Piston
         terms[1] = (getTiltX())*divX;                        // Tilt X
         terms[2] = (getTiltY())*divY;                        // Tilt Y
-        terms[3] = (getPower()*(XSquPlusYSqu);        // Defocus?
+        terms[3] = (getPower())*(XSquPlusYSqu);        // Defocus?
         
         // XXX/FIXME/VERIFY: AstigOne=AstigmatismX, and AstigTwo for Y?
         terms[4] = 0; //(getAstigmatismX()/2)*(divXSqu - divY*divY);
@@ -185,7 +185,7 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   }
   
   memset(phaseData, 0, sizeof(unsigned char)*SLMSIZE*SLMSIZE);
-  DtoI(zern, SLMSIZE*SLMSIZE, phaseData);
+  DtoIb(zern, SLMSIZE*SLMSIZE, phaseData);
   delete zern;
   
   return;

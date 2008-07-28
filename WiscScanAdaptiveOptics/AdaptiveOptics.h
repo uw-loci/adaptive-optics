@@ -5,6 +5,8 @@
  */
 
 #include "GeneticOptimization.h"
+#include "DefocusMeasurement.h"
+
 
 class AdaptiveOptics
 {

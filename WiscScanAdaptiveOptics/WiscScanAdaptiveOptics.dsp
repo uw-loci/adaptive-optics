@@ -100,6 +100,14 @@ SOURCE=.\AdaptiveOptics.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DefocusMeasurement.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DefocusMeasurement.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\GeneticOptimization.cpp
 # End Source File
 # Begin Source File
@@ -113,6 +121,14 @@ SOURCE=.\Logger.cpp
 # Begin Source File
 
 SOURCE=.\Logger.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SeidelPolynomial.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SeidelPolynomial.h
 # End Source File
 # Begin Source File
 

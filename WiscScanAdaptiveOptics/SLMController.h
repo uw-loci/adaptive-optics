@@ -4,6 +4,9 @@
  * control of it and all communications with it.
  */
 
+#ifndef __SLM_CONTROLLER__
+#define __SLM_CONTROLLER__
+
 #include "slmproject.h"
 #include "BNSBoard\BNSHardware.h"
 #include "BNSBoard\BNSBoard.h"
@@ -30,3 +33,5 @@ class SLMController
     void getWidthHeight(int *Wid, int *Height);
     void readLUT(unsigned char *LUTBuf, CString lutfilename);
 };
+
+#endif

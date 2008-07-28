@@ -35,9 +35,13 @@ DefocusMeasurement::DefocusMeasurement()
 void DefocusMeasurement::prepareMeasurement()
 {
   isDone = false;
-  initializePopulation();
   As=0;
   Ad=0.5;
+}
+
+bool DefocusMeasurement::isFinished()
+{
+  return isDone;
 }
 
 
