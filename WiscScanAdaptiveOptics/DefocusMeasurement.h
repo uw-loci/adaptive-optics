@@ -14,6 +14,9 @@ class DefocusMeasurement {
     // Pass fitness and process.
     void iterateOnce(double intensity);
 
+    // Generate filename for output image.
+    char *generateFileName();
+
     // Checks if the optimization is finished.
     bool isFinished();
 

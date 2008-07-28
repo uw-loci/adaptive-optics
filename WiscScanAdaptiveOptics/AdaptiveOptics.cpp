@@ -36,13 +36,13 @@ bool AdaptiveOptics::initializePhaseModulator(bool bPowerStatus)
 }
 
 
-void dumpSumBuffer(int count, double *buf, int width, int height)
+void dumpSumBuffer(int count, char *filename, double *buf, int width, int height)
 {
   ofstream file;
   char fileName[512];
   std::ostringstream fileNameSS;
 
-  sprintf(fileName, "c:/gunnsteinn/debug/%d.dat", count);
+  sprintf(fileName, "c:/gunnsteinn/debug/f%d%s", count, filename);
   file.open( fileName );
   
   file << "% Width: " << width << " Height: " << height << endl;
@@ -105,7 +105,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   }
 
   // Dump the image data to file.
-  dumpSumBuffer(count, buf, width, height);
+  dumpSumBuffer(count, measurand->generateFileName(), buf, width, height);
 
   averageIntensity = sum / (width*height*3);
 

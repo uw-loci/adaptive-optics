@@ -10,6 +10,7 @@
 #include <time.h>
 #include <math.h>
 #include <sstream>
+#include <string>
 
 /**
  * Constructor.
@@ -44,6 +45,14 @@ bool DefocusMeasurement::isFinished()
   return isDone;
 }
 
+
+char *DefocusMeasurement::generateFileName()
+{
+  char fname[256] = "";
+  sprintf(fname, "imagAs%.2fAd%.2f.dat", As, Ad);
+
+  return strdup(fname);
+}
 
 /**
  * Run one iteration.
@@ -92,9 +101,12 @@ void DefocusMeasurement::iterateOnce(double intensity)
     SeidelSet.resetCoefficients();
     SeidelSet.setPower(Ad);
     SeidelSet.setSphericalAberration(As);
+    SeidelSet.setTiltX(20);
+    SeidelSet.setTiltY(20);
 
     logSS.str("");
-    logSS << "Sending SLM. As: " << As << " Ad: " << Ad;
+    logSS << "Sending SLM. As: " << As << " Ad: " << Ad << " using tilt " 
+         << SeidelSet.getTiltX() << "/" << SeidelSet.getTiltY();
     LOGME( logSS.str() );
     
     SeidelSet.generateImageBufferForSLM(phaseData);
