@@ -32,8 +32,8 @@ void SeidelPolynomial::resetCoefficients()
   setSecondaryComaX(0.0);
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
-  setTiltX(20.0);
-  setTiltY(20.0);
+  setTiltX(40.0);
+  setTiltY(40.0);
   //setTiltX(0.0);
   //setTiltY(0.0);
 }
@@ -127,7 +127,8 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   /* GH: FIX.  5/07/2008.  Should be 256, not 300.
   * radius = ActSize*300/512;
   */
-  radius = ActSize*256/512;
+//  radius = ActSize*256/512;
+  radius = ActSize*150/512; // temp. for analysing mirror overfilling effect.
   
   start = (SLMSIZE - ActSize)/2;
   end = start + ActSize;

@@ -20,6 +20,8 @@ DefocusMeasurement::DefocusMeasurement()
   // Prepare the random number generator.
   srand(time(0));
 
+  firstIterationDone = false;
+
   // Prepare the optimization.
   prepareMeasurement();
 
@@ -36,8 +38,8 @@ DefocusMeasurement::DefocusMeasurement()
 void DefocusMeasurement::prepareMeasurement()
 {
   isDone = false;
-  As=0;
-  Ad=0.5;
+  As=0.0;
+  Ad=1.0;
 }
 
 bool DefocusMeasurement::isFinished()
@@ -80,8 +82,8 @@ void DefocusMeasurement::iterateOnce(double intensity)
     SeidelSet.resetCoefficients();
     SeidelSet.setPower(Ad);
     SeidelSet.setSphericalAberration(As);
-    SeidelSet.setTiltX(20);
-    SeidelSet.setTiltY(20);
+    SeidelSet.setTiltX(40);
+    SeidelSet.setTiltY(40);
     SeidelSet.generateImageBufferForSLM(phaseData);
     LOGME( "- preparing data to be sent " )
     SLMInstance->receiveData(phaseData);
@@ -95,15 +97,18 @@ void DefocusMeasurement::iterateOnce(double intensity)
     return; // Return immediately.
   }
 
-  if ((-As-Ad) >= 0.5) {
-    As+=0.1;
-    Ad=-As+0.5;
-    if (As > 20) {
+  //if ((-As-Ad+2) >= 1.5) {
+  if (-Ad >= 4.0) {
+    As+=0.2;
+    Ad=1.0;
+    if (As > 8.50) {
       isDone = true;
     }
   } else {
     Ad -= 0.1;
   }
+//As=0.0;//XX
+//Ad=80.0;//XXX
 
   if (!isDone) {
     // Prepare the next image on the SLM. 
@@ -112,8 +117,8 @@ void DefocusMeasurement::iterateOnce(double intensity)
     SeidelSet.resetCoefficients();
     SeidelSet.setPower(Ad);
     SeidelSet.setSphericalAberration(As);
-    SeidelSet.setTiltX(20);
-    SeidelSet.setTiltY(20);
+    SeidelSet.setTiltX(40);
+    SeidelSet.setTiltY(40);
 
     logSS.str("");
     logSS << "Sending SLM. As: " << As << " Ad: " << Ad << " using tilt " 
@@ -126,6 +131,7 @@ void DefocusMeasurement::iterateOnce(double intensity)
     delete phaseData;
 
     Sleep(100); // Takes approx. 100 ms for SLM to "prepare".
+    Sleep(1000);
   }
 }
 

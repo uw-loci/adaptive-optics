@@ -40,9 +40,10 @@ void dumpSumBuffer(int count, char *filename, double *buf, int width, int height
 {
   ofstream file;
   char fileName[512];
+  char sysCommand[512];
   std::ostringstream fileNameSS;
 
-  sprintf(fileName, "c:/gunnsteinn/debug/f%d%s", count, filename);
+  sprintf(fileName, "c:/gunnsteinn/debug/%s", filename);
   file.open( fileName );
   
   file << "% Width: " << width << " Height: " << height << endl;
@@ -53,6 +54,12 @@ void dumpSumBuffer(int count, char *filename, double *buf, int width, int height
   }
 
   file.close();
+
+  sprintf(sysCommand, "c:\\windows\\wbin\\zip.exe c:\\gunnsteinn\\debug/%s.zip c:\\gunnsteinn\\debug\\%s", filename, filename);
+  system(sysCommand);
+
+  sprintf(sysCommand, "c:\\windows\\wbin\\rm.exe -f c:\\gunnsteinn\\debug/%s", filename);
+  system(sysCommand);
 }
 
 /**
@@ -107,7 +114,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   // Dump the image data to file.
   dumpSumBuffer(count, measurand->generateFileName(), buf, width, height);
 
-  averageIntensity = sum / (width*height*3);
+  averageIntensity = sum / (width*height);
 
   //std::ostringstream logSS;
   //logSS << "sum: " << sum << " avg. int: " << averageIntensity << " width: " << width << " height: " << height;
@@ -123,6 +130,11 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
       averageIntensity, width, height, mode);
   OutputDebugString(msgbuf);
 
+  sprintf(msgbuf, "The average intensity is %f, width is %d, height is %d, mode is %d\n*************",
+      averageIntensity, width, height, mode);
+  LOGME( msgbuf );
+
+  
   // Send the data to optimization module.
   //optimizer->iterateOnce(averageIntensity);
   measurand->iterateOnce(averageIntensity);
