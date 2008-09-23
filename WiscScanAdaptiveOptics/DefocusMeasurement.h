@@ -11,6 +11,12 @@ class DefocusMeasurement {
     // Prepares the measurement (resets).
     void prepareMeasurement();
 
+    // Close down (shut down).
+    void closeDown();
+
+    // Check if gain increase is recommended?
+    bool changeGain();
+
     // Pass fitness and process.
     void iterateOnce(double intensity);
 

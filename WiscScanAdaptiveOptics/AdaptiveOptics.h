@@ -18,5 +18,7 @@ class AdaptiveOptics
     AdaptiveOptics();  
     int processImage(double *buf, int width, int height, char mode);
     bool initializePhaseModulator(bool bPowerStatus);
+    void closeDown();
+    bool changeGain();
 };
 

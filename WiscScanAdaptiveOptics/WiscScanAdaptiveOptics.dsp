@@ -153,6 +153,10 @@ SOURCE=.\WiscScanAdaptiveOptics.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\WiscScanAdaptiveOptics.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ZernikePolynomial.cpp
 # End Source File
 # Begin Source File

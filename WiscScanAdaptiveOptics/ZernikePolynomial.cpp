@@ -127,13 +127,32 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   /* GH: FIX.  5/07/2008.  Should be 256, not 300.
   * radius = ActSize*300/512;
   */
-  radius = ActSize*256/512;
+/*XXX/NOTE:!!!!!!!!!!!!!!
+ *Normally we would use:
+ *  radius = ActSize*256/512;
+ *BUT DUE TO MIRROR OVERFILLING, WE USE:
+ */
+  radius = ActSize*100/512;
   
   start = (SLMSIZE - ActSize)/2;
   end = start + ActSize;
   
   y = ActSize/2;
-  
+
+  //START
+  double Ad=(getPower()/2)*(2) + (getSphericalAberration()/2)*(-6);
+  double As=(getSphericalAberration()/2)*(6);
+  std::ostringstream logSS;
+  logSS << "Ad is: " <<  Ad;
+  LOGME( logSS.str() );
+  logSS.str("");
+  logSS << "As is: " <<  As;
+  LOGME( logSS.str() );
+  logSS.str("");
+  logSS << "radius is: " <<  radius;
+  LOGME( logSS.str() );
+  logSS.str("");
+  //EOF
   for (int row = start; row < end; row++) {
     // Reset x.
     x = -(ActSize/2);
@@ -165,7 +184,10 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
         terms[12] = (getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
         terms[13] = (getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
         terms[14] = (getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
-        terms[15] = (getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+        //terms[15] = (getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+        terms[15] = 0;
+
+
         
         // Add the terms together.
         total = 0;
@@ -264,7 +286,47 @@ void ZernikePolynomial::dumpString()
 
 double ZernikePolynomial::focusCorrection()
 {
-  return 0;
+  double SA, D;
+
+  D=0;
+
+  //NB. this version is based on SA only. (not including S2A).
+  SA = getSphericalAberration()*3;
+  if (abs(SA) <= 2.30) {
+    D = 0;
+  } else if (abs(SA) <= 3.80) {
+    D = 1;
+  } else if (abs(SA) <= 5.40) {
+    D = 2;
+  } else if (abs(SA) <= 6.60) {
+    D = 3;
+  } else if (abs(SA) <= 7.90) {
+    D = 4;
+  } else if (abs(SA) <= 9.10) {
+    D = 5;
+  } else if (abs(SA) <= 10.40) {
+    D = 6;
+  } else if (abs(SA) <= 11.60) {
+    D = 7;
+  } else if (abs(SA) <= 12.80) {
+    D = 8;
+  } else if (abs(SA) <= 14.00) {
+    D = 9;
+  } else if (abs(SA) <= 15.20) {
+    D = 10;
+  } else if (abs(SA) <= 16.40) {
+    D = 11;
+  } else if (abs(SA) <= 17.60) {
+    D = 12;
+  } else {
+    D = 12;
+  }
+
+  if (SA < 0) {
+    D = -D;
+  }
+
+  return D;
   /*return (3*getSphericalAberration() 
     + sqrt(getAstigmatismX()*getAstigmatismX() + getAstigmatismY()*getAstigmatismY())/2.0);*/
 }

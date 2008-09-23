@@ -32,6 +32,15 @@ DefocusMeasurement::DefocusMeasurement()
 }
 
 /**
+ * Close down (shut down the SLM).
+ */
+void DefocusMeasurement::closeDown()
+{
+  SLMInstance->closeSLM();
+}
+
+
+/**
  * Prepares the measurement (resets).
  * Neccessary because in the current model: WiscScan drives the evolution.
  */
@@ -39,7 +48,7 @@ void DefocusMeasurement::prepareMeasurement()
 {
   isDone = false;
   As=0.0;
-  Ad=1.0;
+  Ad=0.50;
 }
 
 bool DefocusMeasurement::isFinished()
@@ -62,6 +71,42 @@ char *DefocusMeasurement::generateFileName()
   return strdup(fname);
 }
 
+
+double myAbs(double val)
+{
+  if (val < 0.0) {
+    return -val;
+  } else {
+    return val;
+  }
+}
+
+/**
+ * Check if gain increase should be performed.
+ *
+ * @return True if gain should be increased, false otherwise.
+ */
+bool DefocusMeasurement::changeGain()
+{
+  if (Ad < 1.0) {
+    return false;
+  }
+
+
+//  if ((myAbs(As-0.50) <= 0.05)|| (myAbs(As-0.70) <= 0.05) || (myAbs(As-1.00) <= 0.05) || (myAbs(As-1.20) <= 0.05)|| (myAbs(As-1.30) <= 0.05) || (myAbs(As-1.50) <= 0.05) || (myAbs(As-1.70) <= 0.05) || (myAbs(As-1.90) <= 0.05) || (myAbs(As-2.00) <= 0.05) || (myAbs(As-2.50) <= 0.05) || (myAbs(As-3.00) <= 0.05) || (myAbs(As-3.50) <= 0.05) || (myAbs(As-4.00) <= 0.05) || (myAbs(As-4.50) <= 0.05) || (myAbs(As-5.00) <= 0.05) ||
+//    (myAbs(As-6.00) <= 0.05) || (myAbs(As-7.00) <= 0.05) || (myAbs(As-8.00) <= 0.05)) {
+  if ((myAbs(As-0.20) <= 0.05)|| (myAbs(As-0.50) <= 0.05) || (myAbs(As-0.80) <= 0.05) || (myAbs(As-1.10) <= 0.05)|| (myAbs(As-1.30) <= 0.05) || (myAbs(As-1.50) <= 0.05) || (myAbs(As-1.70) <= 0.05) || (myAbs(As-1.90) <= 0.05) || (myAbs(As-2.00) <= 0.05)
+    || (myAbs(As-0.40) <= 0.05)|| (myAbs(As-0.70) <= 0.05) || (myAbs(As-1.20) <= 0.05) 
+    || (myAbs(As-2.20) <= 0.05) || (myAbs(As-2.50) <= 0.05) || (myAbs(As-3.00) <= 0.05) || (myAbs(As-3.50) <= 0.05) || (myAbs(As-4.00) <= 0.05) || (myAbs(As-4.50) <= 0.05) || (myAbs(As-5.00) <= 0.05) || (myAbs(As-5.50) <= 0.05)
+    || (myAbs(As-6.00) <= 0.05) || (myAbs(As-6.50) <= 0.05) || (myAbs(As-7.00) <= 0.05) || (myAbs(As-7.50) <= 0.05) || (myAbs(As-8.00) <= 0.05) || (myAbs(As-8.50) <= 0.05) || (myAbs(As-9.00) <= 0.05)) {
+    LOGME("increasing the gAin");
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
 /**
  * Run one iteration.
  *
@@ -82,6 +127,7 @@ void DefocusMeasurement::iterateOnce(double intensity)
     SeidelSet.resetCoefficients();
     SeidelSet.setPower(Ad);
     SeidelSet.setSphericalAberration(As);
+    SeidelSet.setSecondarySphericalAberration(0.0);
     SeidelSet.setTiltX(40);
     SeidelSet.setTiltY(40);
     SeidelSet.generateImageBufferForSLM(phaseData);
@@ -98,14 +144,16 @@ void DefocusMeasurement::iterateOnce(double intensity)
   }
 
   //if ((-As-Ad+2) >= 1.5) {
-  if (-Ad >= 4.0) {
+  if (-Ad > 3.0) {
     As+=0.2;
-    Ad=1.0;
-    if (As > 8.50) {
+//    As+=0.5;
+    Ad=0.4;
+    if (As > 11.50) {
       isDone = true;
     }
   } else {
-    Ad -= 0.1;
+    Ad -= 0.02;
+//    Ad -= 0.5;
   }
 //As=0.0;//XX
 //Ad=80.0;//XXX
@@ -117,6 +165,7 @@ void DefocusMeasurement::iterateOnce(double intensity)
     SeidelSet.resetCoefficients();
     SeidelSet.setPower(Ad);
     SeidelSet.setSphericalAberration(As);
+    SeidelSet.setSecondarySphericalAberration(0.0);
     SeidelSet.setTiltX(40);
     SeidelSet.setTiltY(40);
 

@@ -31,6 +31,15 @@ GeneticOptimization::GeneticOptimization()
 }
 
 /**
+ * Close down (shut down the SLM).
+ */
+void GeneticOptimization::closeDown()
+{
+  SLMInstance->closeSLM();
+}
+
+
+/**
  * Prepares the optimization (resets).
  * Neccessary because in the current model: WiscScan drives the evolution.
  */
@@ -119,7 +128,7 @@ void GeneticOptimization::writeOptimizationMatlabData(int bestMemberIndex)
       << Population[bestMemberIndex].getComaX() << "\t"
       << Population[bestMemberIndex].getComaY() << "\t"
       << Population[bestMemberIndex].getSphericalAberration() << "\t"
-      << Population[bestMemberIndex].getSecondarySphericalAberration() << "\t"
+      //<< Population[bestMemberIndex].getSecondarySphericalAberration() << "\t"
       << endl;
 
   file.close();
@@ -349,12 +358,16 @@ void GeneticOptimization::initializePopulation()
 //    Population[i].setSphericalAberration(mutationValue);
     double sVal = ((rand() % 1024)/512.0 - 1) * 3;
     Population[i].setSphericalAberration(sVal);
-    sVal = ((rand() % 1024)/512.0 - 1) * 3;
-    Population[i].setSecondarySphericalAberration(sVal);
+    //sVal = ((rand() % 1024)/512.0 - 1) * 3;
+    //Population[i].setSecondarySphericalAberration(sVal);
     sVal = ((rand() % 1024)/512.0 - 1) * 2;
     Population[i].setComaX(sVal);
     sVal = ((rand() % 1024)/512.0 - 1) * 2;
     Population[i].setComaY(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * 2;
+    Population[i].setAstigmatismX(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * 2;
+    Population[i].setAstigmatismY(sVal);
     Population[i].setPower(Population[i].focusCorrection());
 
 
@@ -424,10 +437,10 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
       aMember->getSphericalAberration() 
       + 2*bestMember->getSphericalAberration()
       + secondBestMember->getSphericalAberration())/4);
-    aMember->setSecondarySphericalAberration((
-      aMember->getSecondarySphericalAberration() 
-      + 2*bestMember->getSecondarySphericalAberration()
-      + secondBestMember->getSecondarySphericalAberration())/4);
+    //aMember->setSecondarySphericalAberration((
+    //  aMember->getSecondarySphericalAberration() 
+    //  + 2*bestMember->getSecondarySphericalAberration()
+    //  + secondBestMember->getSecondarySphericalAberration())/4);
     aMember->setComaX((
       aMember->getComaX() 
       + 2*bestMember->getComaX()
@@ -436,6 +449,14 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
       aMember->getComaY() 
       + 2*bestMember->getComaY()
       + secondBestMember->getComaY())/4);
+    aMember->setAstigmatismX((
+      aMember->getAstigmatismX() 
+      + 2*bestMember->getAstigmatismX()
+      + secondBestMember->getAstigmatismX())/4);
+    aMember->setAstigmatismY((
+      aMember->getAstigmatismY() 
+      + 2*bestMember->getAstigmatismY()
+      + secondBestMember->getAstigmatismY())/4);
     aMember->setPower(aMember->focusCorrection());
   }
 }
@@ -463,14 +484,18 @@ void GeneticOptimization::mutatePopulation(int *bestIndices)
     aMember->setTrefoilY((aMember->getTrefoilY() + bestMember->getTrefoilY())/2);*/
     /*aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
-    double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSecondarySphericalAberration();
-    aMember->setSecondarySphericalAberration(aMember->getSecondarySphericalAberration() + mutationValue);
-    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSphericalAberration();
+    //double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSecondarySphericalAberration();
+    //aMember->setSecondarySphericalAberration(aMember->getSecondarySphericalAberration() + mutationValue);
+    double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSphericalAberration();
     aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
     mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaX();
     aMember->setComaX(aMember->getComaX() + mutationValue);
     mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaY();
     aMember->setComaY(aMember->getComaY() + mutationValue);
+    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getAstigmatismX();
+    aMember->setAstigmatismX(aMember->getAstigmatismX() + mutationValue);
+    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getAstigmatismY();
+    aMember->setAstigmatismY(aMember->getAstigmatismY() + mutationValue);
 
     aMember->setPower(aMember->focusCorrection());
   }

@@ -128,7 +128,8 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
   * radius = ActSize*300/512;
   */
 //  radius = ActSize*256/512;
-  radius = ActSize*150/512; // temp. for analysing mirror overfilling effect.
+//  radius = ActSize*150/512; // temp. for analysing mirror overfilling effect.
+  radius = ActSize*100/512; // temp. for analysing mirror overfilling effect.
   
   start = (SLMSIZE - ActSize)/2;
   end = start + ActSize;
@@ -148,7 +149,7 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
       divXSqu = divX*divX;
       divYSqu = divY*divY;
       
-      if ((divXSqu + divYSqu) <= 1) {     
+      if ((divXSqu + divYSqu) <= 1.0) {     
         terms[0] = (getPiston());                            // Constant term / Piston
         terms[1] = (getTiltX()/2)*divX;                        // Tilt X
         terms[2] = (getTiltY()/2)*divY;                        // Tilt Y
@@ -166,7 +167,8 @@ void SeidelPolynomial::generateImageBufferForSLM(unsigned char *phaseData)
         terms[12] = 0; //(getSecondaryAstigmatismY()/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
         terms[13] = 0; //(getSecondaryComaX()/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
         terms[14] = 0; //(getSecondaryComaY()/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
-        terms[15] = 0; //(getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+        //terms[15] = 0; //(getSecondarySphericalAberration()/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+        terms[15] = (getSecondarySphericalAberration())*(XSquPlusYSqu*XPYSquSqu);
         
         // Add the terms together.
         total = 0;

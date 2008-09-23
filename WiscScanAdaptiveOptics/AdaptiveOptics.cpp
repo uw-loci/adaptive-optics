@@ -15,8 +15,8 @@
  */
 AdaptiveOptics::AdaptiveOptics()
 {
-  //optimizer = new GeneticOptimization();
-  measurand = new DefocusMeasurement();
+  optimizer = new GeneticOptimization();
+  //measurand = new DefocusMeasurement();
 } 
 
 
@@ -34,6 +34,17 @@ bool AdaptiveOptics::initializePhaseModulator(bool bPowerStatus)
   //optimizer->setPower(bPowerStatus);
   return true;
 }
+
+/**
+ * Closes down the SLM.
+ */
+void AdaptiveOptics::closeDown()
+{
+  LOGME("Shutting down (deinitializing the SLM)");
+  //measurand->closeDown();
+  optimizer->closeDown();
+}
+
 
 
 void dumpSumBuffer(int count, char *filename, double *buf, int width, int height)
@@ -60,6 +71,12 @@ void dumpSumBuffer(int count, char *filename, double *buf, int width, int height
 
   sprintf(sysCommand, "c:\\windows\\wbin\\rm.exe -f c:\\gunnsteinn\\debug/%s", filename);
   system(sysCommand);
+}
+
+bool AdaptiveOptics::changeGain()
+{
+  return false;
+  //return measurand->changeGain();
 }
 
 /**
@@ -112,7 +129,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
   }
 
   // Dump the image data to file.
-  dumpSumBuffer(count, measurand->generateFileName(), buf, width, height);
+  //dumpSumBuffer(count, optimizer->generateFileName(), buf, width, height);
 
   averageIntensity = sum / (width*height);
 
@@ -136,11 +153,11 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
 
   
   // Send the data to optimization module.
-  //optimizer->iterateOnce(averageIntensity);
-  measurand->iterateOnce(averageIntensity);
+  optimizer->iterateOnce(averageIntensity);
+  //measurand->iterateOnce(averageIntensity);
 
-  //if (optimizer->isFinished()) {
-  if (measurand->isFinished()) {
+  if (optimizer->isFinished()) {
+  //if (measurand->isFinished()) {
     return 0; // Stop scanning.
   } else {
     return 1; // Continue scanning.

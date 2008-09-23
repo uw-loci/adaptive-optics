@@ -75,6 +75,24 @@ extern "C" __declspec(dllexport) bool initsml(bool bPowerStatus)
   return AdaptiveOpticsFrontend->initializePhaseModulator(bPowerStatus);
 }
 
+
+/**
+ * Checks if gain should be changed.
+ */
+extern "C" __declspec(dllexport) bool changeGain(void) 
+{
+  return AdaptiveOpticsFrontend->changeGain();
+}
+
+/**
+ * Close down (deinitialize SLM).
+ */
+extern "C" __declspec(dllexport) void closeDown(void) 
+{
+  AdaptiveOpticsFrontend->closeDown();
+}
+
+
 /**
  * Passes one round of imagery from WiscScan.
  */

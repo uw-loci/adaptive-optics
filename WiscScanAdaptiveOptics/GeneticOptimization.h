@@ -18,6 +18,9 @@ class GeneticOptimization {
     // Prepares the optimization (resets).
     void prepareOptimization();
 
+    // Close down (shut down).
+    void closeDown();
+
     // Pass fitness and process.
     // iterateOnce
     void iterateOnce(double intensity);
