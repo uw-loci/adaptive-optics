@@ -280,8 +280,44 @@ void ZernikePolynomial::dumpString()
   // tilt y
   logSS << "Tilt Y: " << getTiltY();
   LOGME( logSS.str() );
+  logSS.str("");
+  // Strehl estimate
+  logSS << "Strehl estimate: " << StrehlEstimate();
+  LOGME( logSS.str() );
+  logSS.str("");
 }
 
+
+/* Estimation of the Strehl ratio (works for small aberrations). */
+/*
+ * Only takes into account (for now):
+ * - Astigmatism X
+ * - Astigmatism Y
+ * - Coma Y
+ * - Coma X
+ * - Spherical Aberration
+ */
+double ZernikePolynomial::StrehlEstimate()
+{
+	double MAY = getAstigmatismY();
+	double MAX = getAstigmatismX();
+	double MCY = getComaY();
+	double MCX = getComaY();
+	double MSA = getSphericalAberration();
+
+	double ZAY = MAY / 2.449;
+	double ZAX = MAX / 2.449;
+	double ZCY = MCY / 5.657;
+	double ZCX = MCX / 5.657;
+	double ZSA = MSA / 4.472;
+
+	// The variance is the sum of the squared coefficients (using Mahajan's notation)
+	double variance = (ZAY*ZAY)+(ZAX*ZAX)+(ZCY*ZCY)+(ZCX*ZCX)+(ZSA*ZSA);
+
+	// Empirical formula, see Mahajan's paper for instance.
+	double strehlRatio = exp(-variance);
+	return strehlRatio;
+}
 
 
 double ZernikePolynomial::focusCorrection()

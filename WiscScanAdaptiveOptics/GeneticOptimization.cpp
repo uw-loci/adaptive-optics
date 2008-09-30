@@ -356,20 +356,18 @@ void GeneticOptimization::initializePopulation()
     Population[i].setComaY(0);*/
 //    double mutationValue = (rand() % 1024)/1024.0 * MAX_SPHERICAL_ABERRATION_MUTATION;    
 //    Population[i].setSphericalAberration(mutationValue);
-    double sVal = ((rand() % 1024)/512.0 - 1) * 3;
-    Population[i].setSphericalAberration(sVal);
-    //sVal = ((rand() % 1024)/512.0 - 1) * 3;
-    //Population[i].setSecondarySphericalAberration(sVal);
-    sVal = ((rand() % 1024)/512.0 - 1) * 2;
-    Population[i].setComaX(sVal);
-    sVal = ((rand() % 1024)/512.0 - 1) * 2;
-    Population[i].setComaY(sVal);
-    sVal = ((rand() % 1024)/512.0 - 1) * 2;
-    Population[i].setAstigmatismX(sVal);
-    sVal = ((rand() % 1024)/512.0 - 1) * 2;
+    double sVal = ((rand() % 1024)/512.0 - 1) * AY_MAX;
     Population[i].setAstigmatismY(sVal);
-    Population[i].setPower(Population[i].focusCorrection());
+    sVal = ((rand() % 1024)/512.0 - 1) * AX_MAX;
+    Population[i].setAstigmatismX(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * CY_MAX;
+    Population[i].setComaY(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * CX_MAX;
+    Population[i].setComaX(sVal);
+    sVal = ((rand() % 1024)/512.0 - 1) * SA_MAX;
+    Population[i].setSphericalAberration(sVal);
 
+    Population[i].setPower(Population[i].focusCorrection());
 
     //Population[i].setSecondarySphericalAberration(0);
     /*Population[i].setTrefoilX(0);
@@ -433,6 +431,22 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
     aMember->setComaX((aMember->getComaX() + bestMember->getComaX())/2);
     aMember->setComaY((aMember->getComaY() + bestMember->getComaY())/2);*/
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
+    aMember->setAstigmatismY((
+      aMember->getAstigmatismY() 
+      + 2*bestMember->getAstigmatismY()
+      + secondBestMember->getAstigmatismY())/4);
+    aMember->setAstigmatismX(
+      (aMember->getAstigmatismX()
+	  + 2*bestMember->getAstigmatismX()
+      + secondBestMember->getAstigmatismX())/4);
+    aMember->setComaY((
+      aMember->getComaY() 
+      + 2*bestMember->getComaY()
+      + secondBestMember->getComaY())/4);
+    aMember->setComaX((
+      aMember->getComaX() 
+      + 2*bestMember->getComaX()
+      + secondBestMember->getComaX())/4);
     aMember->setSphericalAberration((
       aMember->getSphericalAberration() 
       + 2*bestMember->getSphericalAberration()
@@ -441,22 +455,7 @@ void GeneticOptimization::crossoverPopulation(int *bestMemberIndices)
     //  aMember->getSecondarySphericalAberration() 
     //  + 2*bestMember->getSecondarySphericalAberration()
     //  + secondBestMember->getSecondarySphericalAberration())/4);
-    aMember->setComaX((
-      aMember->getComaX() 
-      + 2*bestMember->getComaX()
-      + secondBestMember->getComaX())/4);
-    aMember->setComaY((
-      aMember->getComaY() 
-      + 2*bestMember->getComaY()
-      + secondBestMember->getComaY())/4);
-    aMember->setAstigmatismX((
-      aMember->getAstigmatismX() 
-      + 2*bestMember->getAstigmatismX()
-      + secondBestMember->getAstigmatismX())/4);
-    aMember->setAstigmatismY((
-      aMember->getAstigmatismY() 
-      + 2*bestMember->getAstigmatismY()
-      + secondBestMember->getAstigmatismY())/4);
+
     aMember->setPower(aMember->focusCorrection());
   }
 }
@@ -486,17 +485,52 @@ void GeneticOptimization::mutatePopulation(int *bestIndices)
     // XXX/FIXME: Start with only 1 optimization parameter (spherical aberration).
     //double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSecondarySphericalAberration();
     //aMember->setSecondarySphericalAberration(aMember->getSecondarySphericalAberration() + mutationValue);
-    double mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getSphericalAberration();
-    aMember->setSphericalAberration(aMember->getSphericalAberration() + mutationValue);
-    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaX();
-    aMember->setComaX(aMember->getComaX() + mutationValue);
-    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getComaY();
-    aMember->setComaY(aMember->getComaY() + mutationValue);
-    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getAstigmatismX();
-    aMember->setAstigmatismX(aMember->getAstigmatismX() + mutationValue);
-    mutationValue = ((rand() % 1024)/512.0 - 1)/4.0 * Population[bestIndices[0]].getAstigmatismY();
-    aMember->setAstigmatismY(aMember->getAstigmatismY() + mutationValue);
+	/* AY */
+	double mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * AY_MAX;  // (<= +-0.2)
+	double newVal = aMember->getAstigmatismY() + mutationValue;
+	while (abs(newVal) > AY_MAX) { // Make sure that we do not go out of bounds.
+		mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * AY_MAX;  // (<= +-0.2)
+        newVal = aMember->getAstigmatismY() + mutationValue;
+	}
+    aMember->setAstigmatismY(newVal);
 
+	/* AX */
+	mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * AX_MAX;  // (<= +-0.2)
+	newVal = aMember->getAstigmatismX() + mutationValue;
+	while (abs(newVal) > AX_MAX) { // Make sure that we do not go out of bounds.
+		mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * AX_MAX;  // (<= +-0.2)
+        newVal = aMember->getAstigmatismX() + mutationValue;
+	}
+    aMember->setAstigmatismX(newVal);
+
+	/* CY */
+	mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * CY_MAX;  // (<= +-0.2)
+	newVal = aMember->getComaY() + mutationValue;
+	while (abs(newVal) > CY_MAX) { // Make sure that we do not go out of bounds.
+		mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * CY_MAX;  // (<= +-0.2)
+        newVal = aMember->getComaY() + mutationValue;
+	}
+    aMember->setComaY(newVal);
+
+	/* CX */
+	mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * CX_MAX;  // (<= +-0.2)
+	newVal = aMember->getComaX() + mutationValue;
+	while (abs(newVal) > CX_MAX) { // Make sure that we do not go out of bounds.
+		mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * CX_MAX;  // (<= +-0.2)
+        newVal = aMember->getComaX() + mutationValue;
+	}
+    aMember->setComaX(newVal);
+
+	/* SA. */
+    mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * SA_MAX;  // (<= +-0.15)
+	newVal = aMember->getSphericalAberration() + mutationValue;
+	while (abs(newVal) > SA_MAX) {
+		mutationValue = ((rand() % 1024)/512.0 - 1)/5.0 * SA_MAX;  // (<= +-0.15)
+        newVal = aMember->getSphericalAberration() + mutationValue;
+	}
+    aMember->setSphericalAberration(newVal);
+
+	/* Defocus. */
     aMember->setPower(aMember->focusCorrection());
   }
 }

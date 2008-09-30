@@ -5,7 +5,13 @@
 #define POPULATION_SIZE   15
 #define MAX_ITERATIONS    60
 
-#define MAX_SPHERICAL_ABERRATION_MUTATION 20.0
+
+#define AY_MAX 1.00  // MR units (absolute value)
+#define AX_MAX 1.00  // MR units (absolute value)
+#define CY_MAX 1.00  // MR units (absolute value)
+#define CX_MAX 1.00  // MR units (absolute value)
+#define SA_MAX 0.75  // MR units (absolute value)
+
 
 class GeneticOptimization {
   public:

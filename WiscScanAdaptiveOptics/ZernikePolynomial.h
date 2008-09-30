@@ -84,6 +84,9 @@ class ZernikePolynomial {
     double getTiltY();
     void setTiltY(double tiltY);
 
+	/* Estimation of the Strehl ratio (works for small aberrations). */
+	double StrehlEstimate();
+
 	double focusCorrection();
 
     double getPower();
