@@ -163,6 +163,14 @@ SOURCE=.\ZernikePolynomial.cpp
 
 SOURCE=.\ZernikePolynomial.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\ZernikeSquarePolynomial.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ZernikeSquarePolynomial.h
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
