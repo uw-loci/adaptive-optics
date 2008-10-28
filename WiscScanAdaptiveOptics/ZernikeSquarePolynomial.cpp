@@ -1,3 +1,4 @@
+// GH
 
 #include "StdAfx.h"
 #include "ZernikeSquarePolynomial.h"
