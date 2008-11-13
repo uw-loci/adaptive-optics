@@ -23,6 +23,26 @@ import java.io.*;
 public class slm2 extends javax.swing.JFrame implements WindowListener {
     final boolean USE_DEVICE = false;
     
+    private int numCoef;
+    private double[] dcoef;
+    private static double[][] samples;
+    private static final int WIDTH = 512, HEIGHT = 512;    
+
+    private SurfaceTest srt;
+    
+    private File LUTFile;
+    private String LUT_AbsolutePath;
+    private File PatternFile;
+    private String Pattern_AbsolutePath;
+    
+    private File ZerCoefile;
+    
+    private double dRad;
+    private double []dlut;
+    
+    private double rememberfocus;
+
+    
     /** Creates new form slm2 */
     public slm2() {
         initComponents();
@@ -150,9 +170,11 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jTF_lut = new javax.swing.JTextField();
         jL_slmresolution = new javax.swing.JLabel();
         jTF_slmresolution = new javax.swing.JTextField();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        jCutCenterCheckBox = new javax.swing.JCheckBox();
+        jSquareCheckBox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(1040, 800));
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 formMouseClicked(evt);
@@ -188,7 +210,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
 
         panel1.setBackground(new java.awt.Color(204, 204, 204));
         panel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        panel1.add(jTF_pattern, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, 310, 20));
+        panel1.add(jTF_pattern, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 70, 310, 20));
 
         jBut_patten_brw.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_patten_brw.setText("Browse");
@@ -197,12 +219,12 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                 jBut_patten_brwMouseClicked(evt);
             }
         });
-        panel1.add(jBut_patten_brw, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, -1, -1));
+        panel1.add(jBut_patten_brw, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, -1, -1));
 
         jL_patten.setFont(new java.awt.Font("Arial", 1, 12));
         jL_patten.setForeground(new java.awt.Color(255, 51, 51));
         jL_patten.setText("Select Pattern");
-        panel1.add(jL_patten, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 90, 20));
+        panel1.add(jL_patten, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 90, 20));
 
         jBut_patten_Clear.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_patten_Clear.setText("Clear");
@@ -211,7 +233,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                 jBut_patten_ClearMouseClicked(evt);
             }
         });
-        panel1.add(jBut_patten_Clear, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 50, 80, -1));
+        panel1.add(jBut_patten_Clear, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 40, 80, -1));
 
         jBut_patten_Send.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_patten_Send.setText("Send");
@@ -220,7 +242,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                 jBut_patten_SendMouseClicked(evt);
             }
         });
-        panel1.add(jBut_patten_Send, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 50, 80, -1));
+        panel1.add(jBut_patten_Send, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 40, 80, -1));
 
         panel2.setBackground(new java.awt.Color(204, 204, 204));
         panel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -259,7 +281,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
 
         panel1.add(panel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 560, 330, 120));
 
-        getContentPane().add(panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 560, 330, 120));
+        getContentPane().add(panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 540, 330, 100));
 
         jBut_show.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_show.setText("Show image");
@@ -273,7 +295,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                 jBut_showActionPerformed(evt);
             }
         });
-        getContentPane().add(jBut_show, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 520, 110, 30));
+        getContentPane().add(jBut_show, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 500, 110, 30));
 
         jBut_send2slm.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_send2slm.setText("SendSLM");
@@ -282,7 +304,12 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                 jBut_send2slmMouseClicked(evt);
             }
         });
-        getContentPane().add(jBut_send2slm, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 520, 90, 30));
+        jBut_send2slm.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBut_send2slmActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jBut_send2slm, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 500, 90, 30));
 
         jBut_poweroff.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_poweroff.setText("Power Off");
@@ -496,21 +523,21 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         panel3.add(jLCoef18, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 340, 80, -1));
 
         jBut_lut_changefocus.setFont(new java.awt.Font("Arial", 1, 12));
-        jBut_lut_changefocus.setText("ChangeFocus");
-        jBut_lut_changefocus.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jBut_lut_changefocusActionPerformed(evt);
-            }
-        });
+        jBut_lut_changefocus.setLabel("Correct Focus");
         jBut_lut_changefocus.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jBut_lut_changefocusMouseClicked(evt);
             }
         });
+        jBut_lut_changefocus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBut_lut_changefocusActionPerformed(evt);
+            }
+        });
         panel3.add(jBut_lut_changefocus, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 220, 120, -1));
 
         jBut_lut_resetfocus.setFont(new java.awt.Font("Arial", 1, 12));
-        jBut_lut_resetfocus.setText("ResetFocus");
+        jBut_lut_resetfocus.setText("Reset Focus");
         jBut_lut_resetfocus.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jBut_lut_resetfocusMouseClicked(evt);
@@ -526,14 +553,14 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jBut_open.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_open.setText("Open");
         jBut_open.setToolTipText("");
-        jBut_open.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jBut_openActionPerformed(evt);
-            }
-        });
         jBut_open.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jBut_openMouseClicked(evt);
+            }
+        });
+        jBut_open.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBut_openActionPerformed(evt);
             }
         });
         panel3.add(jBut_open, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 370, 70, -1));
@@ -601,7 +628,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jL_lut.setFont(new java.awt.Font("Arial", 1, 12));
         jL_lut.setForeground(new java.awt.Color(255, 51, 51));
         jL_lut.setText("Select LUT file");
-        panel5.add(jL_lut, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 100, 20));
+        panel5.add(jL_lut, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 100, 20));
 
         jBut_lut_browse.setFont(new java.awt.Font("Arial", 1, 12));
         jBut_lut_browse.setText("Browse");
@@ -610,16 +637,16 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                 jBut_lut_browseMouseClicked(evt);
             }
         });
-        panel5.add(jBut_lut_browse, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 20, 80, -1));
+        panel5.add(jBut_lut_browse, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 10, 80, -1));
 
         jTF_lut.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTF_lutActionPerformed(evt);
             }
         });
-        panel5.add(jTF_lut, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, 300, 20));
+        panel5.add(jTF_lut, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 300, 20));
 
-        getContentPane().add(panel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 420, 330, 90));
+        getContentPane().add(panel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 420, 330, 70));
 
         jL_slmresolution.setFont(new java.awt.Font("Arial", 1, 12));
         jL_slmresolution.setText("SLM resolution");
@@ -628,8 +655,16 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jTF_slmresolution.setText("512");
         getContentPane().add(jTF_slmresolution, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 60, 60, -1));
 
-        jCheckBox1.setLabel("Use circular shape");
-        getContentPane().add(jCheckBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 680, 320, -1));
+        jCutCenterCheckBox.setText("Cut out center");
+        getContentPane().add(jCutCenterCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 680, 320, -1));
+
+        jSquareCheckBox.setText("Use square shape");
+        jSquareCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSquareCheckBoxActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jSquareCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 650, 320, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -714,8 +749,126 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jTFCoef4.setText(foc);
     }
     
+    // The focus value have to be changed for large S.A. and
+    // secondary S.A. aberrations.
+    // This is an analytic correction based on numerical calculations
+    // of the Strehl ratio for large aberrations with a defocus correction.
+    private void correct_focus(){
+        String foc;
+        double SA, S2A, D;
+        
+        SA = Double.valueOf(jTFCoef9.getText());
+        S2A = Double.valueOf(jTFCoef16.getText());
+        
+        D=0.0;
+        
+        /* Correction for S.A. defocus. */
+        if ((SA >= 0.0) && (SA < 0.78)) {
+            D+=0.0;
+        } else if ((SA >= 0.78) && (SA < 1.28)) {
+            D+=1.0;
+        } else if ((SA >= 1.28) && (SA < 1.78)) {
+            D+=2.0;
+        } else if ((SA >= 1.78) && (SA < 2.23)) {
+            D+=3.0;
+        } else if ((SA >= 1.23) && (SA < 2.67)) {
+            D+=4.0;
+        } else if ((SA >= 2.67) && (SA < 3.07)) {
+            D+=5.0;
+        } else if ((SA >= 3.07) && (SA < 3.50)) {
+            D+=6.0;
+        } else if ((SA >= 3.50) && (SA < 3.90)) {
+            D+=7.0;
+        } else if ((SA >= 3.90) && (SA < 4.30)) {
+            D+=8.0;
+        } else if ((SA >= 4.30) && (SA < 4.70)) {
+            D+=9.0;
+        } else if ((SA >= 4.70) && (SA < 5.10)) {
+            D+=10.0;
+        } else if ((SA >= 5.10) && (SA < 5.50)) {
+            D+=11.0;
+        } else if ((SA >= 5.50) && (SA < 5.87)) {
+            D+=12.0;
+        } else if ((SA >= 5.87) && (SA < 6.27)) {
+            D+=13.0;
+        } else if ((SA >= 6.27) && (SA < 6.63)) {
+            D+=14.0;
+        }
+        
+        /* Correction for secondary S.A. defocus. */
+        if ((S2A >= 0.0) && (S2A < 0.78)) {
+            D+=0.0;
+        } else if ((S2A >= 0.78) && (S2A < 1.28)) {
+            D+=1.0;
+        } else if ((S2A >= 1.28) && (S2A < 1.78)) {
+            D+=2.0;
+        } else if ((S2A >= 1.78) && (S2A < 2.23)) {
+            D+=3.0;
+        } else if ((S2A >= 1.23) && (S2A < 2.67)) {
+            D+=4.0;
+        } else if ((S2A >= 2.67) && (S2A < 3.07)) {
+            D+=5.0;
+        } else if ((S2A >= 3.07) && (S2A < 3.50)) {
+            D+=6.0;
+        } else if ((S2A >= 3.50) && (S2A < 3.90)) {
+            D+=7.0;
+        } else if ((S2A >= 3.90) && (S2A < 4.30)) {
+            D+=8.0;
+        } else if ((S2A >= 4.30) && (S2A < 4.70)) {
+            D+=9.0;
+        } else if ((S2A >= 4.70) && (S2A < 5.10)) {
+            D+=10.0;
+        } else if ((S2A >= 5.10) && (S2A < 5.50)) {
+            D+=11.0;
+        } else if ((S2A >= 5.50) && (S2A < 5.87)) {
+            D+=12.0;
+        } else if ((S2A >= 5.87) && (S2A < 6.27)) {
+            D+=13.0;
+        } else if ((S2A >= 6.27) && (S2A < 6.63)) {
+            D+=14.0;
+        }
+        
+        SA = (1.5)*S2A;
+        if ((SA >= 0.0) && (SA < 0.78)) {
+            D-=0.0;
+        } else if ((SA >= 0.78) && (SA < 1.28)) {
+            D-=1.0;
+        } else if ((SA >= 1.28) && (SA < 1.78)) {
+            D-=2.0;
+        } else if ((SA >= 1.78) && (SA < 2.23)) {
+            D-=3.0;
+        } else if ((SA >= 1.23) && (SA < 2.67)) {
+            D-=4.0;
+        } else if ((SA >= 2.67) && (SA < 3.07)) {
+            D-=5.0;
+        } else if ((SA >= 3.07) && (SA < 3.50)) {
+            D-=6.0;
+        } else if ((SA >= 3.50) && (SA < 3.90)) {
+            D-=7.0;
+        } else if ((SA >= 3.90) && (SA < 4.30)) {
+            D-=8.0;
+        } else if ((SA >= 4.30) && (SA < 4.70)) {
+            D-=9.0;
+        } else if ((SA >= 4.70) && (SA < 5.10)) {
+            D-=10.0;
+        } else if ((SA >= 5.10) && (SA < 5.50)) {
+            D-=11.0;
+        } else if ((SA >= 5.50) && (SA < 5.87)) {
+            D-=12.0;
+        } else if ((SA >= 5.87) && (SA < 6.27)) {
+            D-=13.0;
+        } else if ((SA >= 6.27) && (SA < 6.63)) {
+            D-=14.0;
+        }
+
+        
+        jTFCoef4.setText(String.valueOf(D));
+    }
+
+    
     private void jBut_lut_changefocusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBut_lut_changefocusMouseClicked
-        recalculate_focus();
+        //recalculate_focus();
+        correct_focus();
     }//GEN-LAST:event_jBut_lut_changefocusMouseClicked
 
     private void jBut_lut_changefocusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBut_lut_changefocusActionPerformed
@@ -1006,7 +1159,11 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
 		divYSqu = divY*divY;
                 
                 //JOptionPane.showMessageDialog(this, "rho = " + Math.sqrt(divXSqu + divYSqu), "slm2", JOptionPane.INFORMATION_MESSAGE);
-                if ((divXSqu + divYSqu) <= 1) {
+                
+                if ((jSquareCheckBox.isSelected() ||
+                        (divXSqu + divYSqu) <= 1) &&
+                    (!jCutCenterCheckBox.isSelected() ||
+                        ((divXSqu + divYSqu) >= 0.10))) {
                     /* Only defined on the "unit" circle. */
                     //figure out what each term in the equation is
                     /*
@@ -1016,27 +1173,16 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                      *(conventional definition).
                      *XXX/NOTE: Changed to conventional definitions.
                      */
+                    /*
                     term1 = (Piston);
                     term2 = 2*(XTilt)*divX;
                     term3 = 2*(YTilt)*divY;
                     term4 = Math.sqrt(3)*(Power)*(2*XSquPlusYSqu - 1);
-                    //defoterm[row*SLMSIZE+col] = term4;
-                
                     term5 = Math.sqrt(6)*(AstigOne)*(divXSqu - divY*divY);
-                    //stigxterm[row*SLMSIZE+col] = term5;
-              
                     term6 = Math.sqrt(6)*(AstigTwo)*(2*divX*divY);
-                    //stigyterm[row*SLMSIZE+col] = term6;
-                
                     term7 = Math.sqrt(8)*(ComaX)*(3*divX*XSquPlusYSqu - 2*divX);
-                    //comaxterm[row*SLMSIZE+col] = term7;
-                
                     term8 = Math.sqrt(8)*(ComaY)*(3*divY*XSquPlusYSqu - 2*divY);                    
-                    //comayterm[row*SLMSIZE+col] = term8;
-                
                     term9 = Math.sqrt(5)*(PrimarySpherical)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
-                    //speriterm[row*SLMSIZE+col] = term9;
-                
                     term10 = Math.sqrt(8)*(TrefoilX)*(divXSqu*divX - 3*divX*divYSqu);
                     term11 = Math.sqrt(8)*(TrefoilY)*(3*divXSqu*divY - divYSqu*divY);
                     term12 = Math.sqrt(10)*(SecondaryAstigX)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
@@ -1044,6 +1190,23 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
                     term14 = Math.sqrt(12)*(SecondaryComaX)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
                     term15 = Math.sqrt(12)*(SecondaryComaY)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
                     term16 = Math.sqrt(7)*(SecondarySpherical)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu); 
+                     */
+                    term1 = (Piston/2);
+                    term2 = (XTilt/2)*divX;
+                    term3 = (YTilt/2)*divY;
+                    term4 = (Power/2)*(2*XSquPlusYSqu - 1);
+                    term5 = (AstigOne/2)*(divXSqu - divY*divY);
+                    term6 = (AstigTwo/2)*(2*divX*divY);
+                    term7 = (ComaX/2)*(3*divX*XSquPlusYSqu - 2*divX);
+                    term8 = (ComaY/2)*(3*divY*XSquPlusYSqu - 2*divY);                    
+                    term9 = (PrimarySpherical/2)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
+                    term10 = (TrefoilX/2)*(divXSqu*divX - 3*divX*divYSqu);
+                    term11 = (TrefoilY/2)*(3*divXSqu*divY - divYSqu*divY);
+                    term12 = (SecondaryAstigX/2)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
+                    term13 = (SecondaryAstigY/2)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
+                    term14 = (SecondaryComaX/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
+                    term15 = (SecondaryComaY/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
+                    term16 = (SecondarySpherical/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);                    
                     /*
                      * Note: these (commented) coefficients need to be fixed (if to be used).
                     term17 = (TetrafoilX/2)*(divXSqu*divXSqu - 6*divXSqu*divYSqu + divYSqu*divYSqu);
@@ -1332,6 +1495,14 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
     private void jBut_showActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBut_showActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jBut_showActionPerformed
+
+    private void jSquareCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSquareCheckBoxActionPerformed
+        // TODO add your handling code here:
+}//GEN-LAST:event_jSquareCheckBoxActionPerformed
+
+    private void jBut_send2slmActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBut_send2slmActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jBut_send2slmActionPerformed
     
     /**
      * @param args the command line arguments
@@ -1344,26 +1515,6 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         });
     }
  
-    private int numCoef;
-    private double[] dcoef;
-    private static double[][] samples;
-    private static final int WIDTH = 512, HEIGHT = 512;    
-
-    private SurfaceTest srt;
-    
-    
-    private File LUTFile;
-    private String LUT_AbsolutePath;
-    private File PatternFile;
-    private String Pattern_AbsolutePath;
-    
-    private File ZerCoefile;
-
-    
-    private double dRad;
-    private double []dlut;
-    
-    private double rememberfocus;
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1388,7 +1539,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
     javax.swing.JButton jBut_save;
     javax.swing.JButton jBut_send2slm;
     javax.swing.JButton jBut_show;
-    javax.swing.JCheckBox jCheckBox1;
+    javax.swing.JCheckBox jCutCenterCheckBox;
     javax.swing.JFileChooser jFileChooser1;
     javax.swing.JLabel jLCoef1;
     javax.swing.JLabel jLCoef10;
@@ -1417,6 +1568,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
     javax.swing.JLabel jL_zernikpc;
     javax.swing.JPanel jPanel_3dpic;
     javax.swing.JPanel jPanel_3dpic1;
+    javax.swing.JCheckBox jSquareCheckBox;
     javax.swing.JTextField jTFCoef1;
     javax.swing.JTextField jTFCoef10;
     javax.swing.JTextField jTFCoef11;
