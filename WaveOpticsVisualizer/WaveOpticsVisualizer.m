@@ -82,27 +82,6 @@ function varargout = WaveOpticsVisualizer_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --------------------------------------------------------------------
-function Open_122_Callback(hObject, eventdata, handles)
-% hObject    handle to Open_122 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-%axes(handles.axes1);
-
-subplot(2,2,1);
-surf(peaks(2));
-subplot(2,2,2);
-surf(peaks(4));
-subplot(2,2,3);
-surf(peaks(8));
-subplot(2,2,4);
-surf(peaks(16));
-
-guidata(hObject, handles);
-
-
 
 
 % --- Executes on selection change in FieldsListBox.
@@ -203,6 +182,9 @@ for k=1:length(sdData.fields)
 end
 set(handles.FieldsListBox, 'String', fieldList);
 set(handles.FieldsListBox, 'Value', 1);
+
+set(handles.figure1, 'Name', ...
+    sprintf('WaveOpticsVisualizer - %s', fullPath))
 guidata(hObject,handles);
 
 
