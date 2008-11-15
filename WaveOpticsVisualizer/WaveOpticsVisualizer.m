@@ -85,7 +85,8 @@ varargout{1} = handles.output;
 function SelectGraph(index, handles)
 
 if (strcmpi(handles.sdData.fields{index}.opName, 'ZernikeDecompose'))
-  plot(handles.sdData.fields{index}.List);
+  subplot(1,1,1);
+  stem(handles.sdData.fields{index}.List);
 else
   PlotField(handles.sdData.fields{index});
 end
