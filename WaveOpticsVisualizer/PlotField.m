@@ -2,14 +2,13 @@
 function PlotField(F)
 
 Irr=0.5*abs(F.E).^2;
-%ANG=unwrap2d(angle(F.E));
 ANG=unwrap2d(angle(F.E));
 ANG=ANG .* (Irr > max(Irr(:))*0.05);
 N=length(F.SX);
 
 %%
 TL1=strcat(['Field, width=' num2str(F.actualWidth*1e3) 'mm, N=' num2str(length(F.SX))]);
-TL2=strcat(['I(center) =' num2str(Irr((N-1)/2+1,(N-1)/2+1)) ' AOC=' num2str(sum(sum(Irr))/N/N)])
+TL2=strcat(['I(center) =' num2str(Irr((N-1)/2+1,(N-1)/2+1)) ' AOC=' num2str(sum(sum(Irr))/N/N)]);
 
 x=F.SX(1,:);
 y=F.SY(1,:);

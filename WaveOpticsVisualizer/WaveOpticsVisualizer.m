@@ -81,6 +81,19 @@ function varargout = WaveOpticsVisualizer_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+% --- Select a graph to plot.
+function SelectGraph(index, handles)
+
+if (strcmpi(handles.sdData.fields{index}.opName, 'ZernikeDecompose'))
+  plot(handles.sdData.fields{index}.List);
+else
+  PlotField(handles.sdData.fields{index});
+end
+
+set(handles.FunctionText,'String', handles.sdData.fields{index}.opName);
+set(handles.ParametersText,'String', ...
+    strcat(['(' handles.sdData.fields{index}.opParam ')']));
+
 
 
 
@@ -95,13 +108,7 @@ function FieldsListBox_Callback(hObject, eventdata, handles)
 
 %cla(handles.axes1,'reset')
 index=get(hObject,'Value');
-%axes(handles.axes1);
-PlotField(handles.sdData.fields{index});
-
-set(handles.FunctionText,'String', handles.sdData.fields{index}.opName);
-set(handles.ParametersText,'String', ...
-    strcat(['(' handles.sdData.fields{index}.opParam ')']));
-
+SelectGraph(index, handles);
 guidata(hObject, handles);
 
 
@@ -178,14 +185,21 @@ set(handles.InformationListBox, 'Value', 1);
 
 %Fields.
 for k=1:length(sdData.fields)
-    fieldList{k}=strcat(['F' num2str(k) sdData.fields{k}.opName]);
+    if (isfield(sdData.fields{k}, 'name')) 
+        fieldList{k}=sdData.fields{k}.name;
+    else
+        fieldList{k}=strcat(['F' num2str(k) sdData.fields{k}.opName]);
+    end
 end
 set(handles.FieldsListBox, 'String', fieldList);
 set(handles.FieldsListBox, 'Value', 1);
 
 set(handles.figure1, 'Name', ...
     sprintf('WaveOpticsVisualizer - %s', fullPath))
+
+SelectGraph(1, handles);
 guidata(hObject,handles);
+
 
 
 
