@@ -17,6 +17,9 @@ if (diam == 'auto')
   cnt=sum(sum(Irr < max(Irr(:))*0.05));
   cnt2=size(Irr,1);
   diam=sqrt(4/pi*(cnt2^2 - cnt))*FI.actualWidth/cnt2;
+  if (diam > FI.actualWidth)
+    diam = FI.actualWidth
+  end
   sprintf('diam is %1.3fmm\n', diam*1e3)
 end
 
@@ -78,6 +81,6 @@ end
 %FO.E = FI.E .* exp(i*k*phi);
 
 FO.opName='ZernikeDecompose';
-FO.opParam=sprintf('diam=%1.3fmm, lambda=%1.3nm', diam*1e3, lambda*1e9);
+FO.opParam=sprintf('diam=%1.3fmm, lambda=%1.3fnm', diam*1e3, lambda*1e9);
 FO.List=MpList;
 

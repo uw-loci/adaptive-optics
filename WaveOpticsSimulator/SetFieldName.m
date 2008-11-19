@@ -1,3 +1,3 @@
 %Set field name.
-function SetFieldName(FI,name)
+function [FI] = SetFieldName(FI,name)
 FI.name=name;
