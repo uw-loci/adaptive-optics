@@ -69,7 +69,7 @@ for p=1:40
   ZW=ZernikePolynomial(nList(p), mList(p), RSC, TH);
   ZW=ZW.*(RSC<=1);
   Mp=1/(pi/4)*1/(npix^2).*sum(sum(MANG.*ZW));
-  MpList=[MpList Mp];
+  MpList=[MpList Mp/(2*pi)]; 
 end
 
 
