@@ -9,7 +9,8 @@ function [FO] = ZernikeDecompose(FI, diam, lambda)
 
 k=2*pi/lambda;
 
-ANG=unwrap2d(angle(FI.E));
+%ANG=unwrap2d(angle(FI.E));
+ANG=myUnwrap2d(angle(FI.E));
 
 if (diam == 'auto')
   %Auto select the diameter where it goes to 5% of the max.
