@@ -30,6 +30,6 @@ FO.E=E;
 FO.actualWidth = width;
 FO.opticalWidth = width;
 
-FO.opName='PropagateFresnel2';
+FO.opName='PropagateFresnel3';
 FO.opParam=sprintf('z=%1.3fmm, lambda=%dnm, cameraWidth=%1.3fmm, cameraM=%d', ...
     z*1e3, lambda*1e9, width*1e3, M);
