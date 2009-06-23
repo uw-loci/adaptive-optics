@@ -1196,7 +1196,6 @@ public class slm2
                      *(conventional definition).
                      *XXX/NOTE: Changed to conventional definitions.
                      */
-                    /*
                     term1 = (Piston);
                     term2 = 2*(XTilt)*divX;
                     term3 = 2*(YTilt)*divY;
@@ -1213,7 +1212,7 @@ public class slm2
                     term14 = Math.sqrt(12)*(SecondaryComaX)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
                     term15 = Math.sqrt(12)*(SecondaryComaY)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
                     term16 = Math.sqrt(7)*(SecondarySpherical)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu); 
-                     */
+                  /*
                     term1 = (Piston/2);
                     term2 = (XTilt/2)*divX;
                     term3 = (YTilt/2)*divY;
@@ -1230,6 +1229,7 @@ public class slm2
                     term14 = (SecondaryComaX/2)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
                     term15 = (SecondaryComaY/2)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
                     term16 = (SecondarySpherical/2)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);                    
+                    */
                     /*
                      * Note: these (commented) coefficients need to be fixed (if to be used).
                     term17 = (TetrafoilX/2)*(divXSqu*divXSqu - 6*divXSqu*divYSqu + divYSqu*divYSqu);
