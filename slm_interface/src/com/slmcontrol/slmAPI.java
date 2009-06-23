@@ -29,8 +29,8 @@ public class slmAPI {
     public static void slmjava(double[] arr, char flag) {
         new slmAPI().sendData(arr, flag);
     }
+    /*
     static {
-
         //System.loadLibrary("slmAPI");
-    }
+    }*/
 }

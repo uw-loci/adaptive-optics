@@ -81,7 +81,8 @@
         </javah>
 
         <!-- Run javap to produce files containing the JNI signatures -->
-        <apply executable="nbproject/javap-s.bat" dest="${src.dir}"
+        <!--
+        <apply executable="nbproject/javap-s.sh" dest="${src.dir}"
           resolveexecutable="true" failonerror="true" ignoremissing="false">
             <fileset dir="${build.classes.dir}/com/slmcontrol"
               includes="*.class"/>
@@ -89,5 +90,6 @@
             <srcfile/>
             <targetfile/>
         </apply>
+        -->
      </target>    
 </project>

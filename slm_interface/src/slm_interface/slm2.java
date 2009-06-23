@@ -1,6 +1,6 @@
 /*
  * slm2.java
- * author: min ren
+ * author: Min Ren 2005-2007, Gunnsteinn Hall 2007-2009
  * Created on December 20, 2005, 3:31 PM
  * this file accepts the zernike polynomials parameter, lut file or picture pattern
  * generate the data sent to SLM.
@@ -18,32 +18,61 @@ import java.lang.Math;
 import javax.imageio.*;
 import javax.swing.JOptionPane;
 import java.io.*;
+
 /**
+ *
  */
-public class slm2 extends javax.swing.JFrame implements WindowListener {
+public class slm2
+        extends javax.swing.JFrame
+        implements WindowListener {
+    /**
+     * Indicates whether the device is being used, or whether it is running
+     * in graphics only mode.
+     */
     final boolean USE_DEVICE = false;
-    
+
+    /**
+     * Numerical coefficients.
+     */
     private int numCoef;
     private double[] dcoef;
     private static double[][] samples;
     private static final int WIDTH = 512, HEIGHT = 512;    
 
-    private SurfaceTest srt;
-    
+    /**
+     * Surface test?
+     */
+    private SurfacePlotter srt;
+
+    /**
+     * LUT file information.
+     */
     private File LUTFile;
     private String LUT_AbsolutePath;
     private File PatternFile;
     private String Pattern_AbsolutePath;
-    
+
+    /**
+     * Zernike coefficients file.
+     */
     private File ZerCoefile;
-    
+
+    /**
+     * dRad?
+     */
     private double dRad;
     private double []dlut;
-    
+
+    /**
+     * Remember the focus correction?.
+     */
     private double rememberfocus;
 
     
-    /** Creates new form slm2 */
+    /**
+     * Constructor.
+     * Initializes and starts the window.
+     */
     public slm2() {
         initComponents();
         addWindowListener(this);
@@ -51,7 +80,7 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         
         //set the max number of zernike polynomails to 30. 
         numCoef = 30;
-        srt = new SurfaceTest();
+        srt = new SurfacePlotter();
         try{
             srt.buildDisplay(jPanel_3dpic);
             srt.buildDisplay1(jPanel_3dpic1);
@@ -71,10 +100,10 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
     public void windowActivated(WindowEvent e) { }
     public void windowClosed(WindowEvent e) { }
     
-    //called by window closing, set the power off command to slm
+    // Called upon window closing, send the power off command to the SLM.
     public void windowClosing(WindowEvent e) {
         if (USE_DEVICE) {
-            // power off system
+            // Power off the system.
             com.slmcontrol.slmAPI.slmjava(samples[0], (char)65);
         }
     }
@@ -174,12 +203,6 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jSquareCheckBox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setMinimumSize(new java.awt.Dimension(1040, 800));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                formMouseClicked(evt);
-            }
-        });
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLWaveFront.setFont(new java.awt.Font("Arial", 1, 20));
@@ -715,10 +738,8 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         jTFCoef4.setText(oldfocus);
     }//GEN-LAST:event_jBut_lut_resetfocusMouseClicked
 
-    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
-// TODO add your handling code here:
-    }//GEN-LAST:event_formMouseClicked
-    
+    /*    */
+
     //the focus value have to be changed if shperical parameter is changed
     //because shperical polynomials will change focus length also
     //according to the formula, changes on focus value from spherical is 3 times of spherical parameter.
@@ -748,11 +769,14 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         foc = String.valueOf((float)focusold);
         jTFCoef4.setText(foc);
     }
-    
-    // The focus value have to be changed for large S.A. and
-    // secondary S.A. aberrations.
-    // This is an analytic correction based on numerical calculations
-    // of the Strehl ratio for large aberrations with a defocus correction.
+
+    /**
+     * The focus value have to be changed for large S.A. and
+     * secondary S.A. aberrations.
+     *  This is an analytic correction based on numerical calculations
+     * of the Strehl ratio for large aberrations with a defocus correction.
+     * N.B. These are for very high values of SA.
+     */
     private void correct_focus(){
         String foc;
         double SA, S2A, D;
@@ -860,7 +884,6 @@ public class slm2 extends javax.swing.JFrame implements WindowListener {
         } else if ((SA >= 6.27) && (SA < 6.63)) {
             D-=14.0;
         }
-
         
         jTFCoef4.setText(String.valueOf(D));
     }
