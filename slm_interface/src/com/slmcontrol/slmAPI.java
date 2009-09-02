@@ -19,6 +19,7 @@ public class slmAPI {
         try {
             String dllPath = new File("slmAPI.dll").getAbsolutePath();
             System.load(dllPath);
+            System.out.println("Loading DLL: " + dllPath);
         }
         catch (UnsatisfiedLinkError err) {
             JOptionPane.showMessageDialog(null, "Could not find required slmAPI.dll library.", "slmAPI", JOptionPane.ERROR_MESSAGE);

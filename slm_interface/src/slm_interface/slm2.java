@@ -29,7 +29,7 @@ public class slm2
      * Indicates whether the device is being used, or whether it is running
      * in graphics only mode.
      */
-    final boolean USE_DEVICE = false;
+    final boolean USE_DEVICE = true;
 
     /**
      * Numerical coefficients.
@@ -927,6 +927,7 @@ public class slm2
         
         dlut = readlut();
          
+        System.out.println("Showing the picture");
         try{
             //show the surface on the first one that is without limitation of 0 - 2pi
             srt.showpic(samples);
@@ -935,6 +936,8 @@ public class slm2
             JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
         }
         
+        
+        System.out.println("Applying the LUT");
         for (int i = 0; i < WIDTH*HEIGHT; i++)
         {
             // add the lut process at here.
@@ -951,8 +954,10 @@ public class slm2
             JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
         }
         
+        System.out.println("Preparing to send the wavefront");
         if (USE_DEVICE) {
             // send the data to Phase modulator by JNI ---> slmAPI.dll ---> Phase Modulator 
+            System.out.println("Sending data to the SLM");
             com.slmcontrol.slmAPI.slmjava(samples[0], (char)0);      
         }
         

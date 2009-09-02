@@ -60,7 +60,7 @@ public class MainFrame
      * Indicates whether the device is being used, or whether it is running
      * in graphics only mode.
      */
-    final boolean USE_DEVICE = false;
+    final boolean USE_DEVICE = true;
 
     /**
      * Location of default LUT file.
@@ -839,17 +839,50 @@ public class MainFrame
         //double [][] show_samples = new double[1][WIDTH * HEIGHT];
 
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            double startVal = samples[0][i];
             samples[0][i] = (samples[0][i]) * 256;
             samples[0][i] = (Math.floor(samples[0][i]));
-            samples[0][i] = samples[0][i] % 256;
-            if (samples[0][i] < 0) {
-                samples[0][i] = samples[0][i] + 256;
-            }
+            int val = (int) (samples[0][i]);
+            val %= 256;
+            samples[0][i] = val;
+            //System.out.println("startVal: " + startVal + " -> val is: " + val);
         }
 
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
-            samples[0][i] = dlut[(int) (samples[0][i])];
+            int index = (int) (samples[0][i]);
+            samples[0][i] = dlut[index];
         }
+
+        
+        /*
+        double XTilt = Double.valueOf(tf2);
+        if (XTilt > 5) {
+            for (int row = 0; row < 512; row++) {
+                for (int col = 0; col < 512; col++) {
+
+                    double radius = 175;
+                    double realx = (row - 256)/radius;
+                    double realy = (col - 256)/radius;
+
+                    double r = realx * realx + realy * realy;
+                    if (r <= 1.0) {
+                        
+                        samples[0][row * 512 + col] += 255 - (255 - XTilt)*(row - 81)/350;
+                    }
+
+                    //samples[0][row * SLMSIZE + col] = (total);
+                }
+            }*/
+
+            // take the modulo.
+        /*
+            for (int i = 0; i < WIDTH * HEIGHT; i++) {
+                samples[0][i] = samples[0][i] % 256;
+            }
+        }*/
+        
+        
+        
         try {
             srt.showpic1(samples);
         } catch (Exception e) {
@@ -990,8 +1023,11 @@ public class MainFrame
         // change the square to round
         // change the slm size to radius, if slm size if max value (512), the radius is 300.
         //Radius = ActSize*300/512;
-        Radius = ActSize * 256 / 512;
-        // GH: Shouldn't it be 256?
+        //Radius = ActSize * 256 / 512;
+        //Radius = ActSize * 175 / 512;
+        // GH: Selected radius 175 (diam: 350) to make field match scan mirrors
+        // (entrance pupil).
+        Radius = ActSize * 220 / 512; // radius 220 for S-H.
 
         System.out.println("Radius is " + Radius);
 
@@ -1001,30 +1037,54 @@ public class MainFrame
 
         y = ActSize / 2; // 256
         realy = y; // 256
+        
+        System.out.println("Start is " + start+ " end is " + end);
+        
 
         // set the surface by polynomia parameters, pixel by pixel
-        // GH: row=0; row < 512; row++
-        for (int row = start; row < end; row++) {
+        // GH: row=0; row < 512; row++        
+        for (int row = 0; row < 512; row++) {
             //reset x
-            x = (ActSize / 2) * -1;  // GH: -256
-            realx = x;   // GH: -256
+            //x = (ActSize / 2) * -1;  // GH: -256
+            //realx = x;   // GH: -256
+            x = (row - 256);
+            realx = x;
 
             // GH: col=0; col < 512; col++
-            for (int col = start; col < end; col++) {
+            for (int col = 0; col < 512; col++) {
                 //build some terms that are repeated through the equations
+                y = (col - 256);
+                realy = y;
+                
                 divX = realx / Radius; // -256/300 = -0.8533
                 divY = realy / Radius; // +256/300 = -0.8533
                 XSquPlusYSqu = divX * divX + divY * divY;
                 XPYSquSqu = XSquPlusYSqu * XSquPlusYSqu;
                 divXSqu = divX * divX;
                 divYSqu = divY * divY;
+                
+                /*
+                if (x == 0) {
+                    System.out.println("("+x+","+y+") divX: " 
+                         + divX + " divY: " + divY + " rho^2: " + XSquPlusYSqu);
+                }*/
 
                 //JOptionPane.showMessageDialog(this, "rho = " + Math.sqrt(divXSqu + divYSqu), "slm2", JOptionPane.INFORMATION_MESSAGE);
 
                 if ((squareCheckBox.isSelected() || (divXSqu + divYSqu) <= 1) &&
                         (!cutCenterCheckBox.isSelected() ||
                         ((divXSqu + divYSqu) >= 0.10))) {
+                    
+                    double scalingFactor = 1.00;
+                    
                     /* Only defined on the "unit" circle. */
+                    divX = realx / Radius * scalingFactor; // -256/300 = -0.8533
+                    divY = realy / Radius * scalingFactor; // +256/300 = -0.8533
+                    XSquPlusYSqu = divX * divX + divY * divY;
+                    XPYSquSqu = XSquPlusYSqu * XSquPlusYSqu;
+                    divXSqu = divX * divX;
+                    divYSqu = divY * divY;
+
                     //figure out what each term in the equation is
                     /*
                      *XXX/NOTE:
@@ -1033,16 +1093,24 @@ public class MainFrame
                      *(conventional definition).
                      *XXX/NOTE: Changed to conventional definitions.
                      */
-                    /*
                     term1 = (Piston);
                     term2 = 2*(XTilt)*divX;
+                    
+                    /*if (XTilt > 5) {
+                        term2 = 2*(5)*divX;
+                    }*/
+                    
                     term3 = 2*(YTilt)*divY;
-                    term4 = Math.sqrt(3)*(Power)*(2*XSquPlusYSqu - 1);
+                    //term4 = Math.sqrt(3)*(Power)*(2*XSquPlusYSqu - 1);
+                    //Removed Piston
+                    term4 = Math.sqrt(3)*(Power)*(2*XSquPlusYSqu);
                     term5 = Math.sqrt(6)*(AstigOne)*(divXSqu - divY*divY);
                     term6 = Math.sqrt(6)*(AstigTwo)*(2*divX*divY);
                     term7 = Math.sqrt(8)*(ComaX)*(3*divX*XSquPlusYSqu - 2*divX);
                     term8 = Math.sqrt(8)*(ComaY)*(3*divY*XSquPlusYSqu - 2*divY);
-                    term9 = Math.sqrt(5)*(PrimarySpherical)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
+                    //term9 = Math.sqrt(5)*(PrimarySpherical)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
+                    // Removed piston:
+                    term9 = Math.sqrt(5)*(PrimarySpherical)*(- 6*XSquPlusYSqu + 6*XPYSquSqu);
                     term10 = Math.sqrt(8)*(TrefoilX)*(divXSqu*divX - 3*divX*divYSqu);
                     term11 = Math.sqrt(8)*(TrefoilY)*(3*divXSqu*divY - divYSqu*divY);
                     term12 = Math.sqrt(10)*(SecondaryAstigX)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
@@ -1050,7 +1118,8 @@ public class MainFrame
                     term14 = Math.sqrt(12)*(SecondaryComaX)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
                     term15 = Math.sqrt(12)*(SecondaryComaY)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
                     term16 = Math.sqrt(7)*(SecondarySpherical)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
-                     */
+                     
+                    /*
                     term1 = (Piston / 2);
                     term2 = (XTilt / 2) * divX;
                     term3 = (YTilt / 2) * divY;
@@ -1067,6 +1136,7 @@ public class MainFrame
                     term14 = (SecondaryComaX / 2) * (3 * divX - 12 * divX * XSquPlusYSqu + 10 * divX * XPYSquSqu);
                     term15 = (SecondaryComaY / 2) * (3 * divY - 12 * divY * XSquPlusYSqu + 10 * divY * XPYSquSqu);
                     term16 = (SecondarySpherical / 2) * (12 * XSquPlusYSqu - 1 - 30 * XPYSquSqu + 20 * XSquPlusYSqu * XPYSquSqu);
+                     * */
                     /*
                      * Note: these (commented) coefficients need to be fixed (if to be used).
                     term17 = (TetrafoilX/2)*(divXSqu*divXSqu - 6*divXSqu*divYSqu + divYSqu*divYSqu);
@@ -1079,20 +1149,73 @@ public class MainFrame
                     term24 = (TertiaryComaY/2)*(-4*divY + 30*divY*XSquPlusYSqu - 60*divY*XPYSquSqu + 35*divY*XSquPlusYSqu*XPYSquSqu);
                      */
                     total = term1 + term2 + term3 + term10 + term11 + term12 + term13 + term14 + term15 + term16;
-                    total = total + term4 + term5 + term6 + term7 + term8 + term9;
+                    total += term4 + term5 + term6 + term7 + term8 + term9;
                 } else {
                     total = 0;
                 }
 
 
                 zern[row * SLMSIZE + col] = (total);
-                x++;
-                realx = (int) (x / restimes) * restimes;
             }
-
-            y--;
-            realy = (int) (y / restimes) * restimes;
         }
+        
+        // Find the smallest value.
+        double smallestVal = 0;
+        boolean isFirst = true;
+        
+        for (int row = 0; row < 512; row++) {
+            x = (row - 256);
+            realx = x;
+
+            // GH: col=0; col < 512; col++
+            for (int col = 0; col < 512; col++) {
+                y = (col - 256);
+                realy = y;
+                
+                divX = realx / Radius;
+                divY = realy / Radius;
+                divXSqu = divX * divX;
+                divYSqu = divY * divY;
+                
+                if ((squareCheckBox.isSelected() || (divXSqu + divYSqu) <= 1) &&
+                        (!cutCenterCheckBox.isSelected() ||
+                        ((divXSqu + divYSqu) >= 0.10))) {
+                    
+                    int i = row * SLMSIZE + col;
+                    if (isFirst || zern[i] < smallestVal) {
+                        smallestVal = zern[i];
+                        isFirst = false;
+                    }
+                }
+            }
+        }
+
+        
+        //Subtract it everywhere.
+        for (int row = 0; row < 512; row++) {
+            x = (row - 256);
+            realx = x;
+
+            // GH: col=0; col < 512; col++
+            for (int col = 0; col < 512; col++) {
+                y = (col - 256);
+                realy = y;
+                
+                divX = realx / Radius;
+                divY = realy / Radius;
+                divXSqu = divX * divX;
+                divYSqu = divY * divY;
+                
+                if ((squareCheckBox.isSelected() || (divXSqu + divYSqu) <= 1) &&
+                        (!cutCenterCheckBox.isSelected() ||
+                        ((divXSqu + divYSqu) >= 0.10))) {
+                    
+                    int i = row * SLMSIZE + col;
+                    zern[i] -= smallestVal;
+                }
+            }
+        }
+
 
         return zern;
     }
