@@ -4,10 +4,6 @@
  * Created on December 20, 2005, 3:31 PM
  * this file accepts the zernike polynomials parameter, lut file or picture pattern
  * generate the data sent to SLM.
- *
- *
- *change record,
- *1) line635 + ---> -
  */
 package slm_interface;
 
@@ -72,7 +68,7 @@ public class MainFrame
      * Numerical coefficients.
      */
     private int numCoef;
-    private double[] dcoef;
+    private double[] zCoef;
     private static double[][] samples;
     private static final int WIDTH = 512,  HEIGHT = 512;
 
@@ -125,7 +121,7 @@ public class MainFrame
             System.err.println("Caught IOException: " + e.getMessage());
         }
 
-        dcoef = new double[numCoef];
+        zCoef = new double[numCoef];
         samples = new double[1][WIDTH * HEIGHT];
         dlut = new double[256];
         for (int i = 0; i < 256; i++) {
@@ -229,38 +225,52 @@ public class MainFrame
         getContentPane().add(plotPanelRight, new AbsoluteConstraints(690, 140, 350, 350));
 
         /* Zernike coefficient panel. */
-        coefficient1Label = new JLabel();
-        coefficient1TextField = new JTextField();
-        coefficient3TextField = new JTextField();
-        coefficient2Label = new JLabel();
-        coefficient2TextField = new JTextField();
-        coefficient3Label = new JLabel();
-        coefficient6TextFields = new JTextField();
-        coefficient4Label = new JLabel();
-        coefficient5TextField = new JTextField();
-        coefficient5Label = new JLabel();
-        coefficient4TextField = new JTextField();
-        coefficient6Label = new JLabel();
-        coefficient7Label = new JLabel();
-        coefficient7TextField = new JTextField();
-        coefficient8Label = new JLabel();
-        coefficient10TextField = new JTextField();
-        coefficient9Label = new JLabel();
-        coefficient8TextField = new JTextField();
-        coefficient10Label = new JLabel();
-        coefficient11TextField = new JTextField();
-        coefficient11Label = new JLabel();
-        coefficient9TextField = new JTextField();
-        coefficient12Label = new JLabel();
-        coefficient12TextField = new JTextField();
-        coefficient13Label = new JLabel();
-        coefficient13TextField = new JTextField();
-        coefficient14Label = new JLabel();
-        coefficient14TextField = new JTextField();
-        coefficient15Label = new JLabel();
-        coefficient15TextField = new JTextField();
-        coefficient16TextField = new JTextField();
-        coefficient18Label = new JLabel();
+        coefficient1Label = new JLabel("Bias");
+        coefficient1TextField = new JTextField("0");
+        coefficient2Label = new JLabel("Tilt-X");
+        coefficient2TextField = new JTextField("0");
+        coefficient3Label = new JLabel("Tilt-Y");
+        coefficient3TextField = new JTextField("0");
+        coefficient4Label = new JLabel("Defocus");
+        coefficient4TextField = new JTextField("0");
+        coefficient5Label = new JLabel("1-Astg-Y");
+        coefficient5TextField = new JTextField("0");
+        coefficient6Label = new JLabel("1-Astg-X");
+        coefficient6TextFields = new JTextField("0");
+        coefficient7Label = new JLabel("1-Coma-X");
+        coefficient7TextField = new JTextField("0");
+        coefficient8Label = new JLabel("1-Coma-Y");
+        coefficient8TextField = new JTextField("0");
+        coefficient9Label = new JLabel("1-Tref-Y");
+        coefficient9TextField = new JTextField("0");
+        coefficient10Label = new JLabel("1-Tref-X");
+        coefficient10TextField = new JTextField("0");
+        coefficient11Label = new JLabel("1-Spher");
+        coefficient11TextField = new JTextField("0");
+        coefficient12Label = new JLabel("2-Astg-X");
+        coefficient12TextField = new JTextField("0");
+        coefficient13Label = new JLabel("2-Astg-Y");
+        coefficient13TextField = new JTextField("0");
+        coefficient14Label = new JLabel("1-Tetr-X");
+        coefficient14TextField = new JTextField("0");
+        coefficient15Label = new JLabel("1-Tetr-Y");
+        coefficient15TextField = new JTextField("0");
+        coefficient16Label = new JLabel("2-Coma-X");
+        coefficient16TextField = new JTextField("0");
+        coefficient17Label = new JLabel("2-Coma-Y");
+        coefficient17TextField = new JTextField("0");
+        coefficient18Label = new JLabel("2-Tref-X");
+        coefficient18TextField = new JTextField("0");
+        coefficient19Label = new JLabel("2-Tref-Y");
+        coefficient19TextField = new JTextField("0");
+        coefficient20Label = new JLabel("1-Pent-X");
+        coefficient20TextField = new JTextField("0");
+        coefficient21Label = new JLabel("1-Pent-Y");
+        coefficient21TextField = new JTextField("0");
+        coefficient22Label = new JLabel("2-Spher");
+        coefficient22TextField = new JTextField("0");
+
+
         zernikeCoefficientPanel = new JPanel();
         zernikeCoefficientPanel.setBackground(new Color(204, 204, 204));
         zernikeCoefficientPanel.setLayout(new AbsoluteLayout());
@@ -270,117 +280,61 @@ public class MainFrame
                 loweredEtchedBorder, "Zernike Polynomial Coefficients");
         zernikeCoefficientPanel.setBorder(titledBorder);
 
-        coefficient1Label.setFont(new Font("Arial", 1, 12));
-        coefficient1Label.setText("Piston");
-        zernikeCoefficientPanel.add(coefficient1Label, new AbsoluteConstraints(20, 70, 40, -1));
+        /*
+         * L: w 50
+         * T: w 60
+         * Left:  [L x=20, y=70 ] [T x=90,y=70]  dx=70  dy=30
+         *     dx=
+         *   Right: [T x=180, y=100] [L x=90, y=100] 
+         *
+         */
 
-        coefficient1TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient1TextField, new AbsoluteConstraints(90, 70, 60, -1));
+        zernikeCoefficientPanel.add(coefficient1Label,      new AbsoluteConstraints(20, 70, 50, -1));
+        zernikeCoefficientPanel.add(coefficient1TextField,  new AbsoluteConstraints(90, 70, 60, -1));
+        zernikeCoefficientPanel.add(coefficient2Label,      new AbsoluteConstraints(20, 100, 50, -1));
+        zernikeCoefficientPanel.add(coefficient2TextField,  new AbsoluteConstraints(90, 100, 60, -1));
+        zernikeCoefficientPanel.add(coefficient3Label,      new AbsoluteConstraints(20, 130, 50, -1));
+        zernikeCoefficientPanel.add(coefficient3TextField,  new AbsoluteConstraints(90, 130, 60, -1));
+        zernikeCoefficientPanel.add(coefficient4Label,      new AbsoluteConstraints(20, 160, 50, -1));
+        zernikeCoefficientPanel.add(coefficient4TextField,  new AbsoluteConstraints(90, 160, 60, -1));
+        zernikeCoefficientPanel.add(coefficient5Label,      new AbsoluteConstraints(20, 190, 50, -1));
+        zernikeCoefficientPanel.add(coefficient5TextField,  new AbsoluteConstraints(90, 190, 60, -1));
+        zernikeCoefficientPanel.add(coefficient6Label,      new AbsoluteConstraints(20, 220, 50, -1));
+        zernikeCoefficientPanel.add(coefficient6TextField,  new AbsoluteConstraints(90, 220, 60, -1));
+        zernikeCoefficientPanel.add(coefficient7Label,      new AbsoluteConstraints(20, 250, 50, -1));
+        zernikeCoefficientPanel.add(coefficient7TextField,  new AbsoluteConstraints(90, 250, 60, -1));
+        zernikeCoefficientPanel.add(coefficient8Label,      new AbsoluteConstraints(20, 280, 50, -1));
+        zernikeCoefficientPanel.add(coefficient8TextField,  new AbsoluteConstraints(90, 280, 60, -1));
+        zernikeCoefficientPanel.add(coefficient9Label,      new AbsoluteConstraints(20, 310, 50, -1));
+        zernikeCoefficientPanel.add(coefficient9TextField,  new AbsoluteConstraints(90, 310, 60, -1));
+        zernikeCoefficientPanel.add(coefficient10Label,     new AbsoluteConstraints(20, 340, 50, -1));
+        zernikeCoefficientPanel.add(coefficient10TextField, new AbsoluteConstraints(90, 340, 60, -1));
+        zernikeCoefficientPanel.add(coefficient11Label,     new AbsoluteConstraints(20, 370, 50, -1));
+        zernikeCoefficientPanel.add(coefficient11TextField, new AbsoluteConstraints(90, 370, 60, -1));
 
-        coefficient3TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient3TextField, new AbsoluteConstraints(250, 100, 60, -1));
+        zernikeCoefficientPanel.add(coefficient12TextField, new AbsoluteConstraints(170, 70, 60, -1));
+        zernikeCoefficientPanel.add(coefficient12Label,     new AbsoluteConstraints(240, 70, 50, -1));
+        zernikeCoefficientPanel.add(coefficient13TextField, new AbsoluteConstraints(170, 100, 60, -1));
+        zernikeCoefficientPanel.add(coefficient13Label,     new AbsoluteConstraints(240, 100, 50, -1));
+        zernikeCoefficientPanel.add(coefficient14TextField, new AbsoluteConstraints(170, 130, 60, -1));
+        zernikeCoefficientPanel.add(coefficient14Label,     new AbsoluteConstraints(240, 130, 50, -1));
+        zernikeCoefficientPanel.add(coefficient15TextField, new AbsoluteConstraints(170, 160, 60, -1));
+        zernikeCoefficientPanel.add(coefficient15Label,     new AbsoluteConstraints(240, 160, 50, -1));
+        zernikeCoefficientPanel.add(coefficient16TextField, new AbsoluteConstraints(170, 190, 60, -1));
+        zernikeCoefficientPanel.add(coefficient16Label,     new AbsoluteConstraints(240, 190, 50, -1));
+        zernikeCoefficientPanel.add(coefficient17TextField, new AbsoluteConstraints(170, 220, 60, -1));
+        zernikeCoefficientPanel.add(coefficient17Label,     new AbsoluteConstraints(240, 220, 50, -1));
+        zernikeCoefficientPanel.add(coefficient18TextField, new AbsoluteConstraints(170, 250, 60, -1));
+        zernikeCoefficientPanel.add(coefficient18Label,     new AbsoluteConstraints(240, 250, 50, -1));
+        zernikeCoefficientPanel.add(coefficient19TextField, new AbsoluteConstraints(170, 280, 60, -1));
+        zernikeCoefficientPanel.add(coefficient19Label,     new AbsoluteConstraints(240, 280, 50, -1));
+        zernikeCoefficientPanel.add(coefficient20TextField, new AbsoluteConstraints(170, 310, 60, -1));
+        zernikeCoefficientPanel.add(coefficient20Label,     new AbsoluteConstraints(240, 310, 50, -1));
+        zernikeCoefficientPanel.add(coefficient21TextField, new AbsoluteConstraints(170, 340, 60, -1));
+        zernikeCoefficientPanel.add(coefficient21Label,     new AbsoluteConstraints(240, 340, 50, -1));
+        zernikeCoefficientPanel.add(coefficient22TextField, new AbsoluteConstraints(170, 370, 60, -1));
+        zernikeCoefficientPanel.add(coefficient22Label,     new AbsoluteConstraints(240, 370, 50, -1));
 
-        coefficient2Label.setFont(new Font("Arial", 1, 12));
-        coefficient2Label.setText("Tilt y");
-        zernikeCoefficientPanel.add(coefficient2Label, new AbsoluteConstraints(180, 100, 70, -1));
-
-        coefficient2TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient2TextField, new AbsoluteConstraints(90, 100, 60, -1));
-
-        coefficient3Label.setFont(new Font("Arial", 1, 12));
-        coefficient3Label.setText("Tilt x");
-        zernikeCoefficientPanel.add(coefficient3Label, new AbsoluteConstraints(20, 100, 30, -1));
-
-        coefficient6TextFields.setText("0");
-        zernikeCoefficientPanel.add(coefficient6TextFields, new AbsoluteConstraints(250, 160, 60, -1));
-
-        coefficient4Label.setFont(new Font("Arial", 1, 12));
-        coefficient4Label.setText("Astig y");
-        zernikeCoefficientPanel.add(coefficient4Label, new AbsoluteConstraints(180, 160, 60, -1));
-
-        coefficient5TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient5TextField, new AbsoluteConstraints(90, 160, 60, -1));
-
-        coefficient5Label.setFont(new Font("Arial", 1, 12));
-        coefficient5Label.setText("Astig x");
-        zernikeCoefficientPanel.add(coefficient5Label, new AbsoluteConstraints(20, 160, 50, -1));
-
-        coefficient4TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient4TextField, new AbsoluteConstraints(90, 130, 60, -1));
-
-        coefficient6Label.setFont(new Font("Arial", 1, 12));
-        coefficient6Label.setText("Defocus");
-        zernikeCoefficientPanel.add(coefficient6Label, new AbsoluteConstraints(20, 130, 50, -1));
-
-        coefficient7Label.setFont(new Font("Arial", 1, 12));
-        coefficient7Label.setText("Coma x");
-        zernikeCoefficientPanel.add(coefficient7Label, new AbsoluteConstraints(20, 190, 50, -1));
-
-        coefficient7TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient7TextField, new AbsoluteConstraints(90, 190, 60, -1));
-
-        coefficient8Label.setFont(new Font("Arial", 1, 12));
-        coefficient8Label.setText("Trefoil x");
-        zernikeCoefficientPanel.add(coefficient8Label, new AbsoluteConstraints(20, 250, 70, -1));
-
-        coefficient10TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient10TextField, new AbsoluteConstraints(90, 250, 60, -1));
-
-        coefficient9Label.setFont(new Font("Arial", 1, 12));
-        coefficient9Label.setText("Coma y");
-        zernikeCoefficientPanel.add(coefficient9Label, new AbsoluteConstraints(180, 190, 70, -1));
-
-        coefficient8TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient8TextField, new AbsoluteConstraints(250, 190, 60, -1));
-
-        coefficient10Label.setFont(new Font("Arial", 1, 12));
-        coefficient10Label.setText("Trefoil y");
-        zernikeCoefficientPanel.add(coefficient10Label, new AbsoluteConstraints(180, 250, 70, -1));
-
-        coefficient11TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient11TextField, new AbsoluteConstraints(250, 250, 60, -1));
-
-        coefficient11Label.setFont(new Font("Arial", 1, 12));
-        coefficient11Label.setText("Spherical");
-        zernikeCoefficientPanel.add(coefficient11Label, new AbsoluteConstraints(20, 220, 80, -1));
-
-        coefficient9TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient9TextField, new AbsoluteConstraints(90, 220, 60, -1));
-
-        coefficient12Label.setFont(new Font("Arial", 1, 12));
-        coefficient12Label.setText("2nd Astig x");
-        zernikeCoefficientPanel.add(coefficient12Label, new AbsoluteConstraints(20, 280, 70, -1));
-
-        coefficient12TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient12TextField, new AbsoluteConstraints(90, 280, 60, -1));
-
-        coefficient13Label.setFont(new Font("Arial", 1, 12));
-        coefficient13Label.setText("2nd Astig y");
-        zernikeCoefficientPanel.add(coefficient13Label, new AbsoluteConstraints(180, 280, 70, -1));
-
-        coefficient13TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient13TextField, new AbsoluteConstraints(250, 280, 60, -1));
-
-        coefficient14Label.setFont(new Font("Arial", 1, 12));
-        coefficient14Label.setText("2nd Coma x");
-        zernikeCoefficientPanel.add(coefficient14Label, new AbsoluteConstraints(20, 310, 70, -1));
-
-        coefficient14TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient14TextField, new AbsoluteConstraints(90, 310, 60, -1));
-
-        coefficient15Label.setFont(new Font("Arial", 1, 12));
-        coefficient15Label.setText("2nd Coma y");
-        zernikeCoefficientPanel.add(coefficient15Label, new AbsoluteConstraints(180, 310, 70, -1));
-
-        coefficient15TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient15TextField, new AbsoluteConstraints(250, 310, 60, -1));
-
-        coefficient16TextField.setText("0");
-        zernikeCoefficientPanel.add(coefficient16TextField, new AbsoluteConstraints(110, 340, 40, -1));
-
-        coefficient18Label.setFont(new Font("Arial", 1, 12));
-        coefficient18Label.setText("2nd Spherical");
-        zernikeCoefficientPanel.add(coefficient18Label, new AbsoluteConstraints(20, 340, 80, -1));
 
         correctFocusButton.setFont(new Font("Arial", 1, 12));
         correctFocusButton.setText("Correct Focus");
@@ -563,8 +517,8 @@ public class MainFrame
     private void recalculate_focus() {
         double sphparameter, focusold, focuschange, secondsph;
         String sph, foc, secsph;
-        sph = coefficient9TextField.getText();
-        secsph = coefficient16TextField.getText();
+        sph = coefficient11TextField.getText();
+        secsph = coefficient22TextField.getText();
         sphparameter = Double.valueOf(sph);
         secondsph = Double.valueOf(secsph);
 
@@ -605,8 +559,8 @@ public class MainFrame
         String foc;
         double SA, S2A, D;
 
-        SA = Double.valueOf(coefficient9TextField.getText());
-        S2A = Double.valueOf(coefficient16TextField.getText());
+        SA = Double.valueOf(coefficient11TextField.getText());
+        S2A = Double.valueOf(coefficient22TextField.getText());
 
         D = 0.0;
 
@@ -790,43 +744,31 @@ public class MainFrame
         //read the look up table
         dlut = readLUT();
         //get the parameters
-        tf1 = coefficient1TextField.getText();
-        tf2 = coefficient2TextField.getText();
-        tf3 = coefficient3TextField.getText();
-        tf4 = coefficient4TextField.getText();
-        tf5 = coefficient5TextField.getText();
-        tf6 = coefficient6TextFields.getText();
-        tf7 = coefficient7TextField.getText();
-        tf8 = coefficient8TextField.getText();
-        tf9 = coefficient9TextField.getText();
-        tf10 = coefficient10TextField.getText();
-        tf11 = coefficient11TextField.getText();
-        tf12 = coefficient12TextField.getText();
-        tf13 = coefficient13TextField.getText();
-        tf14 = coefficient14TextField.getText();
-        tf15 = coefficient15TextField.getText();
-        tf16 = coefficient16TextField.getText();
-
-        dcoef[0] = Double.valueOf(tf1);
-        dcoef[1] = Double.valueOf(tf2);
-        dcoef[2] = Double.valueOf(tf3);
-        dcoef[3] = Double.valueOf(tf4);
-        dcoef[4] = Double.valueOf(tf5);
-        dcoef[5] = Double.valueOf(tf6);
-        dcoef[6] = Double.valueOf(tf7);
-        dcoef[7] = Double.valueOf(tf8);
-        dcoef[8] = Double.valueOf(tf9);
-        dcoef[9] = Double.valueOf(tf10);
-        dcoef[10] = Double.valueOf(tf11);
-        dcoef[11] = Double.valueOf(tf12);
-        dcoef[12] = Double.valueOf(tf13);
-        dcoef[13] = Double.valueOf(tf14);
-        dcoef[14] = Double.valueOf(tf15);
-        dcoef[15] = Double.valueOf(tf16);
-
+        zCoef[0] = Double.valueOf(coefficient1TextField.getText());
+        zCoef[1] = Double.valueOf(coefficient2TextField.getText());
+        zCoef[2] = Double.valueOf(coefficient3TextField.getText());
+        zCoef[3] = Double.valueOf(coefficient4TextField.getText());
+        zCoef[4] = Double.valueOf(coefficient5TextField.getText());
+        zCoef[5] = Double.valueOf(coefficient6TextField.getText());
+        zCoef[6] = Double.valueOf(coefficient7TextField.getText());
+        zCoef[7] = Double.valueOf(coefficient8TextField.getText());
+        zCoef[8] = Double.valueOf(coefficient9TextField.getText());
+        zCoef[9] = Double.valueOf(coefficient10TextField.getText());
+        zCoef[10] = Double.valueOf(coefficient11TextField.getText());
+        zCoef[11] = Double.valueOf(coefficient12TextField.getText());
+        zCoef[12] = Double.valueOf(coefficient13TextField.getText());
+        zCoef[13] = Double.valueOf(coefficient14TextField.getText());
+        zCoef[14] = Double.valueOf(coefficient15TextField.getText());
+        zCoef[15] = Double.valueOf(coefficient16TextField.getText());
+        zCoef[16] = Double.valueOf(coefficient17TextField.getText());
+        zCoef[17] = Double.valueOf(coefficient18TextField.getText());
+        zCoef[18] = Double.valueOf(coefficient19TextField.getText());
+        zCoef[19] = Double.valueOf(coefficient20TextField.getText());
+        zCoef[20] = Double.valueOf(coefficient21TextField.getText());
+        zCoef[21] = Double.valueOf(coefficient22TextField.getText());
 
         //generate wavefront data by zernike polynomials parameters
-        samples[0] = fzernike(dcoef);
+        samples[0] = generateZernikeWavefront();
 
         try {
             srt.showpic(samples);
@@ -958,44 +900,52 @@ public class MainFrame
     /**
      * Generate slm surface data according to zernike polynomial parameters.
      *
-     * @param dCoef The Zernike coefficient vector.
+     * @param ZCoef The Zernike coefficient vector.
      * @return The output Zernike image matrix.
      */
-    public double[] fzernike(double[] dCoef) {
-        int x, y;
-        double realx, realy, Radius;
-        double divX, divY, XSquPlusYSqu, divXSqu, divYSqu, XPYSquSqu;
-        double term1, term2, term3, term4, term5, term6, term7, term8, term9, term10, term11, term12, term13, term14, term15, term16, total;
-        double term17, term18, term19, term20, term21, term22, term23, term24;
-        double Piston, XTilt, YTilt, Power, AstigOne, AstigTwo, ComaX, ComaY;
-        double PrimarySpherical, TrefoilX, TrefoilY, SecondaryAstigX, SecondaryAstigY, SecondaryComaX, SecondaryComaY, SecondarySpherical;
-        double TetrafoilX, TetrafoilY, SecTrefoilX, SecTrefoilY, TertiaryAstigX, TertiaryAstigY, TertiaryComaX, TertiaryComaY;
+    public double[] generateZernikeWavefront() {
+//        double realx, realy, Radius;
+        double radius;
+        double xs,
+               xs2,
+               xs3,
+               xs4,
+               xs5,
+               ys,
+               ys2,
+               ys3,
+               ys4,
+               ys5,
+               p2,
+               p4,
+               p6;
+        double Z1,  //Piston, 
+               Z2,  //XTilt, 
+               Z3,  //YTilt, 
+               Z4,  //Defocus, 
+               Z5,  //AstigOne, 
+               Z6,  //AstigTwo, 
+               Z7,  //ComaY,
+               Z8,  //ComaX, 
+               Z9,  //TrefoilY, 
+               Z10, //TrefoilX, 
+               Z11, //PrimarySpherical,
+               Z12, //SecondaryAstigX, 
+               Z13, //SecondaryAstigY, 
+               Z14, //TetrafoilX,
+               Z15, //TetrafoilY,
+               Z16, //SecondaryComaX,
+               Z17, //SecondaryComaY,
+               Z18, //SecTrefoilX,
+               Z19, //SecTrefoilY,
+               Z20, //PentafoilX,
+               Z21, //PentafoilY,
+               Z22; //SecondarySpherical;
         int defocusbins, stigxbins, stigybins, comaxbins, comaybins, speribins;
 
         int SLMSIZE, ActSize, start, end;
 
         SLMSIZE = WIDTH;
-        Piston = dCoef[0];
-        XTilt = dCoef[1];
-        YTilt = dCoef[2];
-        Power = dCoef[3];
-        AstigOne = dCoef[4];
-        AstigTwo = dCoef[5];
-        ComaX = dCoef[6];
-        ComaY = dCoef[7];
-        PrimarySpherical = dCoef[8];
-        TrefoilX = dCoef[9];
-        TrefoilY = dCoef[10];
-        SecondaryAstigX = dCoef[11];
-        SecondaryAstigY = dCoef[12];
-        SecondaryComaX = dCoef[13];
-        SecondaryComaY = dCoef[14];
-        SecondarySpherical = dCoef[15];
-        /*
-        TetrafoilX = dCoef[16]; TetrafoilY = dCoef[17]; SecTrefoilX = dCoef[18]; SecTrefoilY = dCoef[19];
-        TertiaryAstigX = dCoef[20]; TertiaryAstigY = dCoef[21]; TertiaryComaX = dCoef[22]; TertiaryComaY = dCoef[23];
-         */
-
         double[] zern = new double[SLMSIZE * SLMSIZE];
         double[] defoterm = new double[SLMSIZE * SLMSIZE];
         double[] stigxterm = new double[SLMSIZE * SLMSIZE];
@@ -1022,134 +972,91 @@ public class MainFrame
 
         // change the square to round
         // change the slm size to radius, if slm size if max value (512), the radius is 300.
-        //Radius = ActSize*300/512;
-        //Radius = ActSize * 256 / 512;
-        //Radius = ActSize * 175 / 512;
+        //radius = ActSize*300/512;
+        //radius = ActSize * 256 / 512;
+        //radius = ActSize * 175 / 512;
         // GH: Selected radius 175 (diam: 350) to make field match scan mirrors
         // (entrance pupil).
-        Radius = ActSize * 220 / 512; // radius 220 for S-H.
+        radius = ActSize * 220 / 512; // radius 220 for S-H.
 
-        System.out.println("Radius is " + Radius);
+        System.out.println("radius is " + radius);
 
         // if the set slm size is not 512, take the center of the phase modulator
         start = (SLMSIZE - ActSize) / 2; // GH: 0
         end = start + ActSize; // GH: 512 (OK, not included).
 
-        y = ActSize / 2; // 256
-        realy = y; // 256
-        
         System.out.println("Start is " + start+ " end is " + end);
+
+        // GH: Is this resolution stuff still applicable?
         
 
         // set the surface by polynomia parameters, pixel by pixel
         // GH: row=0; row < 512; row++        
         for (int row = 0; row < 512; row++) {
-            //reset x
-            //x = (ActSize / 2) * -1;  // GH: -256
-            //realx = x;   // GH: -256
-            x = (row - 256);
-            realx = x;
-
-            // GH: col=0; col < 512; col++
             for (int col = 0; col < 512; col++) {
-                //build some terms that are repeated through the equations
-                y = (col - 256);
-                realy = y;
+                xs = (row - 256) / radius; // -256/300 = -0.8533
+                ys = (col - 256) / radius; // +256/300 = -0.8533
+                p2 = xs*xs + ys*ys;
+                p4 = p2*p2;
+                p6 = p4*p2;
+                xs2 = xs*xs;
+                xs3 = xs2 * xs;
+                xs4 = xs3 * xs;
+                xs5 = xs4 * xs;
+                ys2 = ys*ys;
+                ys3 = ys2 * ys;
+                ys4 = ys3 * ys;
+                ys5 = ys4 * ys;
                 
-                divX = realx / Radius; // -256/300 = -0.8533
-                divY = realy / Radius; // +256/300 = -0.8533
-                XSquPlusYSqu = divX * divX + divY * divY;
-                XPYSquSqu = XSquPlusYSqu * XSquPlusYSqu;
-                divXSqu = divX * divX;
-                divYSqu = divY * divY;
-                
-                /*
-                if (x == 0) {
-                    System.out.println("("+x+","+y+") divX: " 
-                         + divX + " divY: " + divY + " rho^2: " + XSquPlusYSqu);
-                }*/
-
-                //JOptionPane.showMessageDialog(this, "rho = " + Math.sqrt(divXSqu + divYSqu), "slm2", JOptionPane.INFORMATION_MESSAGE);
-
-                if ((squareCheckBox.isSelected() || (divXSqu + divYSqu) <= 1) &&
+                if ((squareCheckBox.isSelected() || p2 <= 1) &&
                         (!cutCenterCheckBox.isSelected() ||
-                        ((divXSqu + divYSqu) >= 0.10))) {
+                        (p2 >= 0.10))) {
                     
+                    /*
                     double scalingFactor = 1.00;
-                    
-                    /* Only defined on the "unit" circle. */
-                    divX = realx / Radius * scalingFactor; // -256/300 = -0.8533
-                    divY = realy / Radius * scalingFactor; // +256/300 = -0.8533
+                    xSc = realx / radius * scalingFactor; // -256/300 = -0.8533
+                    = realy / radius * scalingFactor; // +256/300 = -0.8533
                     XSquPlusYSqu = divX * divX + divY * divY;
                     XPYSquSqu = XSquPlusYSqu * XSquPlusYSqu;
                     divXSqu = divX * divX;
                     divYSqu = divY * divY;
-
-                    //figure out what each term in the equation is
+                    */
+                    
                     /*
-                     *XXX/NOTE:
-                     *Min Ren had all coefficients like: Coeff/2, instead
-                     *of the like sqrt(5) in front of sph. aberration.
-                     *(conventional definition).
-                     *XXX/NOTE: Changed to conventional definitions.
+                     * XXX/NOTE:
+                     * Min Ren had all coefficients like: Coeff/2, instead of the like sqrt(5) in front of sph. aberration.
+                     * (conventional definition).  
+                     * XXX/NOTE: Changed to conventional definitions.
                      */
-                    term1 = (Piston);
-                    term2 = 2*(XTilt)*divX;
-                    
-                    /*if (XTilt > 5) {
-                        term2 = 2*(5)*divX;
-                    }*/
-                    
-                    term3 = 2*(YTilt)*divY;
-                    //term4 = Math.sqrt(3)*(Power)*(2*XSquPlusYSqu - 1);
-                    //Removed Piston
-                    term4 = Math.sqrt(3)*(Power)*(2*XSquPlusYSqu);
-                    term5 = Math.sqrt(6)*(AstigOne)*(divXSqu - divY*divY);
-                    term6 = Math.sqrt(6)*(AstigTwo)*(2*divX*divY);
-                    term7 = Math.sqrt(8)*(ComaX)*(3*divX*XSquPlusYSqu - 2*divX);
-                    term8 = Math.sqrt(8)*(ComaY)*(3*divY*XSquPlusYSqu - 2*divY);
-                    //term9 = Math.sqrt(5)*(PrimarySpherical)*(1 - 6*XSquPlusYSqu + 6*XPYSquSqu);
-                    // Removed piston:
-                    term9 = Math.sqrt(5)*(PrimarySpherical)*(- 6*XSquPlusYSqu + 6*XPYSquSqu);
-                    term10 = Math.sqrt(8)*(TrefoilX)*(divXSqu*divX - 3*divX*divYSqu);
-                    term11 = Math.sqrt(8)*(TrefoilY)*(3*divXSqu*divY - divYSqu*divY);
-                    term12 = Math.sqrt(10)*(SecondaryAstigX)*(3*divYSqu - 3*divXSqu + 4*divXSqu*XSquPlusYSqu - 4*divYSqu*XSquPlusYSqu);
-                    term13 = Math.sqrt(10)*(SecondaryAstigY)*(8*divX*divY*XSquPlusYSqu - 6*divX*divY);
-                    term14 = Math.sqrt(12)*(SecondaryComaX)*(3*divX - 12*divX*XSquPlusYSqu + 10*divX*XPYSquSqu);
-                    term15 = Math.sqrt(12)*(SecondaryComaY)*(3*divY - 12*divY*XSquPlusYSqu + 10*divY*XPYSquSqu);
-                    term16 = Math.sqrt(7)*(SecondarySpherical)*(12*XSquPlusYSqu - 1 - 30*XPYSquSqu + 20*XSquPlusYSqu*XPYSquSqu);
+                
+                    double[] term = new double[22];
+                    term[0]  =  ZCoef[0]*(1);
+                    term[1]  =  ZCoef[1]*(2*xs);
+                    term[2]  =  ZCoef[2]*(2*ys);
+                    term[3]  =  ZCoef[3]*(Math.sqrt(3)) *(2*xs2 + 2*ys2 - 1);
+                    term[4]  =  ZCoef[4]*(Math.sqrt(6)) *(2*xs*ys); 
+                    term[5]  =  ZCoef[5]*(Math.sqrt(6)) *(xs2 - ys2);
+                    term[6]  =  ZCoef[6]*(Math.sqrt(8)) *(3*ys*xs2 + 3*ys3 - 2*ys);
+                    term[7]  =  ZCoef[7]*(Math.sqrt(8)) *(3*xs3 + 3*xs*ys2 - 2*xs);
+                    term[8]  =  ZCoef[8]*(Math.sqrt(8)) *(3*ys*xs2 - ys3);
+                    term[9]  =  ZCoef[9]*(Math.sqrt(8)) *(xs3 - 3*xs*ys2);
+                    term[10] = ZCoef[10]*(Math.sqrt(5)) *(6*p4 - 6*p2 + 1);
+                    term[11] = ZCoef[11]*(Math.sqrt(10))*(4*xs4 - 4*ys4 - 3*xs2 + 3*ys2); 
+                    term[12] = ZCoef[12]*(Math.sqrt(10))*(8*xs3*ys + 8*xs*ys3 - 6*xs*ys);
+                    term[13] = ZCoef[13]*(Math.sqrt(10))*(xs4 - 6*xs2*ys2 + ys4);
+                    term[14] = ZCoef[14]*(Math.sqrt(10))*(4*xs3*ys - 4*xs*ys3);
+                    term[15] = ZCoef[15]*(Math.sqrt(12))*(10*xs5 + 20*xs3*ys2 + 10*xs*ys4 - 12*xs3 - 12*xs*ys2 + 3*xs); 
+                    term[16] = ZCoef[16]*(Math.sqrt(12))*(10*ys*xs4 + 20*xs2*ys3 + 10*ys5 - 12*ys*xs2 - 12*ys3 + 3*ys); 
+                    term[17] = ZCoef[17]*(Math.sqrt(12))*(5*xs5 - 10*xs3*ys2 - 15*xs*ys4 - 4*xs3 + 12*xs*ys2);
+                    term[18] = ZCoef[18]*(Math.sqrt(12))*(15*ys*xs4 + 10*xs2*ys3 - 5*ys5 - 12*ys*xs2 + 4*ys3);
+                    term[19] = ZCoef[19]*(Math.sqrt(12))*(xs5 - 10*xs3*ys2 + 5*xs*ys4);
+                    term[20] = ZCoef[20]*(Math.sqrt(12))*(5*ys*xs4 - 10*xs2*ys3 + ys5);
+                    term[21] = ZCoef[21]*(Math.sqrt(7)) *(20*p6 - 30*p4 + 12*p2 - 1);
                      
-                    /*
-                    term1 = (Piston / 2);
-                    term2 = (XTilt / 2) * divX;
-                    term3 = (YTilt / 2) * divY;
-                    term4 = (Power / 2) * (2 * XSquPlusYSqu - 1);
-                    term5 = (AstigOne / 2) * (divXSqu - divY * divY);
-                    term6 = (AstigTwo / 2) * (2 * divX * divY);
-                    term7 = (ComaX / 2) * (3 * divX * XSquPlusYSqu - 2 * divX);
-                    term8 = (ComaY / 2) * (3 * divY * XSquPlusYSqu - 2 * divY);
-                    term9 = (PrimarySpherical / 2) * (1 - 6 * XSquPlusYSqu + 6 * XPYSquSqu);
-                    term10 = (TrefoilX / 2) * (divXSqu * divX - 3 * divX * divYSqu);
-                    term11 = (TrefoilY / 2) * (3 * divXSqu * divY - divYSqu * divY);
-                    term12 = (SecondaryAstigX / 2) * (3 * divYSqu - 3 * divXSqu + 4 * divXSqu * XSquPlusYSqu - 4 * divYSqu * XSquPlusYSqu);
-                    term13 = (SecondaryAstigY / 2) * (8 * divX * divY * XSquPlusYSqu - 6 * divX * divY);
-                    term14 = (SecondaryComaX / 2) * (3 * divX - 12 * divX * XSquPlusYSqu + 10 * divX * XPYSquSqu);
-                    term15 = (SecondaryComaY / 2) * (3 * divY - 12 * divY * XSquPlusYSqu + 10 * divY * XPYSquSqu);
-                    term16 = (SecondarySpherical / 2) * (12 * XSquPlusYSqu - 1 - 30 * XPYSquSqu + 20 * XSquPlusYSqu * XPYSquSqu);
-                     * */
-                    /*
-                     * Note: these (commented) coefficients need to be fixed (if to be used).
-                    term17 = (TetrafoilX/2)*(divXSqu*divXSqu - 6*divXSqu*divYSqu + divYSqu*divYSqu);
-                    term18 = (TetrafoilY/2)*(4*divXSqu*divX*divY - 4*divX*divY*divYSqu);
-                    term19 = (SecTrefoilX/2)*(divXSqu*divX - 3*divX*divYSqu)*(-4 + 5*XSquPlusYSqu);
-                    term20 = (SecTrefoilY/2)*(3*divXSqu*divY - divYSqu*divY)*(-4 + 5*XSquPlusYSqu);
-                    term21 = (TertiaryAstigX/2)*(6*divXSqu - 6*divYSqu + 20*XSquPlusYSqu*divYSqu - 20*XSquPlusYSqu*divXSqu + 15*XPYSquSqu*divXSqu - 15*XPYSquSqu*divYSqu);
-                    term22 = (TertiaryAstigY/2)*(12*divX*divY - 40*XSquPlusYSqu*divX*divY + 30*XPYSquSqu*divX*divY);
-                    term23 = (TertiaryComaX/2)*(-4*divX + 30*divX*XSquPlusYSqu - 60*divX*XPYSquSqu + 35*divX*XSquPlusYSqu*XPYSquSqu);
-                    term24 = (TertiaryComaY/2)*(-4*divY + 30*divY*XSquPlusYSqu - 60*divY*XPYSquSqu + 35*divY*XSquPlusYSqu*XPYSquSqu);
-                     */
-                    total = term1 + term2 + term3 + term10 + term11 + term12 + term13 + term14 + term15 + term16;
-                    total += term4 + term5 + term6 + term7 + term8 + term9;
+                    total = 0;
+                    for (int i = 0; i < 22; i++) {
+                      total += term[i];
+                    }
                 } else {
                     total = 0;
                 }
@@ -1172,8 +1079,8 @@ public class MainFrame
                 y = (col - 256);
                 realy = y;
                 
-                divX = realx / Radius;
-                divY = realy / Radius;
+                divX = realx / radius;
+                divY = realy / radius;
                 divXSqu = divX * divX;
                 divYSqu = divY * divY;
                 
@@ -1191,24 +1098,17 @@ public class MainFrame
         }
 
         
-        //Subtract it everywhere.
+        //Subtract it (the smallest value) everywhere.
         for (int row = 0; row < 512; row++) {
-            x = (row - 256);
-            realx = x;
-
             // GH: col=0; col < 512; col++
             for (int col = 0; col < 512; col++) {
-                y = (col - 256);
-                realy = y;
-                
-                divX = realx / Radius;
-                divY = realy / Radius;
-                divXSqu = divX * divX;
-                divYSqu = divY * divY;
-                
-                if ((squareCheckBox.isSelected() || (divXSqu + divYSqu) <= 1) &&
+                xs = (row - 256) / radius; // -256/300 = -0.8533
+                ys = (col - 256) / radius; // +256/300 = -0.8533
+                p2 = xs*xs + ys*ys;
+ 
+                if ((squareCheckBox.isSelected() || p2 <= 1) &&
                         (!cutCenterCheckBox.isSelected() ||
-                        ((divXSqu + divYSqu) >= 0.10))) {
+                        (p2 >= 0.10))) {
                     
                     int i = row * SLMSIZE + col;
                     zern[i] -= smallestVal;
@@ -1229,7 +1129,7 @@ public class MainFrame
      */
     private void jBut_saveMouseClicked(MouseEvent evt) {
         String tf1, tf2, tf3, tf4, tf5, tf6, tf7, tf8, tf9, tf10, tf11, tf12, tf13, tf14, tf15, tf16;
-        String tf17, tf18, tf19, tf20, tf21, tf22, tf23, tf24, tfout;
+        String tf17, tf18, tf19, tf20, tf21, tf22, tfout;
         //get the parameters
         tf1 = coefficient1TextField.getText();
         tf2 = coefficient2TextField.getText();
@@ -1247,9 +1147,16 @@ public class MainFrame
         tf14 = coefficient14TextField.getText();
         tf15 = coefficient15TextField.getText();
         tf16 = coefficient16TextField.getText();
+        tf17 = coefficient17TextField.getText();
+        tf18 = coefficient18TextField.getText();
+        tf19 = coefficient19TextField.getText();
+        tf20 = coefficient20TextField.getText();
+        tf21 = coefficient21TextField.getText();
+        tf22 = coefficient22TextField.getText();
 
         tfout = tf1 + ", " + tf2 + ", " + tf3 + ", " + tf4 + ", " + tf5 + ", " + tf6 + ", " + tf7 + ", " + tf8;
         tfout = tfout + ", " + tf9 + ", " + tf10 + ", " + tf11 + ", " + tf12 + ", " + tf13 + ", " + tf14 + ", " + tf15 + ", " + tf16;
+        tfout = tfout + ", " + tf17 + ", " + tf18 + ", " + tf19 + ", " + tf20 + ", " + tf21 + ", " + tf22;
 
         //write to the file
         fileChooserDialog.setVisible(true);
@@ -1276,46 +1183,33 @@ public class MainFrame
      */
     private void jBut_showMouseClicked(MouseEvent evt) {
         // TODO add your handling code here:
-        String tf1, tf2, tf3, tf4, tf5, tf6, tf7, tf8, tf9, tf10, tf11, tf12, tf13, tf14, tf15, tf16;
-        String tf17, tf18, tf19, tf20, tf21, tf22, tf23, tf24;
-        tf1 = coefficient1TextField.getText();
-        tf2 = coefficient2TextField.getText();
-        tf3 = coefficient3TextField.getText();
-        tf4 = coefficient4TextField.getText();
-        tf5 = coefficient5TextField.getText();
-        tf6 = coefficient6TextFields.getText();
-        tf7 = coefficient7TextField.getText();
-        tf8 = coefficient8TextField.getText();
-        tf9 = coefficient9TextField.getText();
-        tf10 = coefficient10TextField.getText();
-        tf11 = coefficient11TextField.getText();
-        tf12 = coefficient12TextField.getText();
-        tf13 = coefficient13TextField.getText();
-        tf14 = coefficient14TextField.getText();
-        tf15 = coefficient15TextField.getText();
-        tf16 = coefficient16TextField.getText();
-
-        dcoef[0] = Double.valueOf(tf1);
-        dcoef[1] = Double.valueOf(tf2);
-        dcoef[2] = Double.valueOf(tf3);
-        dcoef[3] = Double.valueOf(tf4);
-        dcoef[4] = Double.valueOf(tf5);
-        dcoef[5] = Double.valueOf(tf6);
-        dcoef[6] = Double.valueOf(tf7);
-        dcoef[7] = Double.valueOf(tf8);
-        dcoef[8] = Double.valueOf(tf9);
-        dcoef[9] = Double.valueOf(tf10);
-        dcoef[10] = Double.valueOf(tf11);
-        dcoef[11] = Double.valueOf(tf12);
-        dcoef[12] = Double.valueOf(tf13);
-        dcoef[13] = Double.valueOf(tf14);
-        dcoef[14] = Double.valueOf(tf15);
-        dcoef[15] = Double.valueOf(tf16);
+        zCoef[0] = Double.valueOf(coefficient1TextField.getText());
+        zCoef[1] = Double.valueOf(coefficient2TextField.getText());
+        zCoef[2] = Double.valueOf(coefficient3TextField.getText());
+        zCoef[3] = Double.valueOf(coefficient4TextField.getText());
+        zCoef[4] = Double.valueOf(coefficient5TextField.getText());
+        zCoef[5] = Double.valueOf(coefficient6TextField.getText());
+        zCoef[6] = Double.valueOf(coefficient7TextField.getText());
+        zCoef[7] = Double.valueOf(coefficient8TextField.getText());
+        zCoef[8] = Double.valueOf(coefficient9TextField.getText());
+        zCoef[9] = Double.valueOf(coefficient10TextField.getText());
+        zCoef[10] = Double.valueOf(coefficient11TextField.getText());
+        zCoef[11] = Double.valueOf(coefficient12TextField.getText());
+        zCoef[12] = Double.valueOf(coefficient13TextField.getText());
+        zCoef[13] = Double.valueOf(coefficient14TextField.getText());
+        zCoef[14] = Double.valueOf(coefficient15TextField.getText());
+        zCoef[15] = Double.valueOf(coefficient16TextField.getText());
+        zCoef[16] = Double.valueOf(coefficient17TextField.getText());
+        zCoef[17] = Double.valueOf(coefficient18TextField.getText());
+        zCoef[18] = Double.valueOf(coefficient19TextField.getText());
+        zCoef[19] = Double.valueOf(coefficient20TextField.getText());
+        zCoef[20] = Double.valueOf(coefficient21TextField.getText());
+        zCoef[21] = Double.valueOf(coefficient22TextField.getText());
 
 
         //////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////
-        samples[0] = fzernike(dcoef);
+        samples[0] = generateZernikeWavefront();
 
         try {
             srt.showpic(samples);
@@ -1359,6 +1253,12 @@ public class MainFrame
         coefficient14TextField.setText("0");
         coefficient15TextField.setText("0");
         coefficient16TextField.setText("0");
+        coefficient17TextField.setText("0");
+        coefficient18TextField.setText("0");
+        coefficient19TextField.setText("0");
+        coefficient20TextField.setText("0");
+        coefficient21TextField.setText("0");
+        coefficient22TextField.setText("0");
 
         return;
     }
@@ -1406,6 +1306,12 @@ public class MainFrame
         coefficient14TextField.setText(strin_arr[13]);
         coefficient15TextField.setText(strin_arr[14]);
         coefficient16TextField.setText(strin_arr[15]);
+        coefficient17TextField.setText(strin_arr[16]);
+        coefficient18TextField.setText(strin_arr[17]);
+        coefficient19TextField.setText(strin_arr[18]);
+        coefficient20TextField.setText(strin_arr[19]);
+        coefficient21TextField.setText(strin_arr[20]);
+        coefficient22TextField.setText(strin_arr[21]);
         return;
     }
 
@@ -1533,7 +1439,13 @@ public class MainFrame
     JLabel coefficient13Label;
     JLabel coefficient14Label;
     JLabel coefficient15Label;
+    JLabel coefficient16Label;
+    JLabel coefficient17Label;
     JLabel coefficient18Label;
+    JLabel coefficient19Label;
+    JLabel coefficient20Label;
+    JLabel coefficient21Label;
+    JLabel coefficient22Label;
     JTextField coefficient1TextField;
     JTextField coefficient2TextField;
     JTextField coefficient3TextField;
@@ -1550,6 +1462,12 @@ public class MainFrame
     JTextField coefficient14TextField;
     JTextField coefficient15TextField;
     JTextField coefficient16TextField;
+    JTextField coefficient17TextField;
+    JTextField coefficient18TextField;
+    JTextField coefficient19TextField;
+    JTextField coefficient20TextField;
+    JTextField coefficient21TextField;
+    JTextField coefficient22TextField;
 
     JButton correctFocusButton;
     JButton resetFocusButton;
