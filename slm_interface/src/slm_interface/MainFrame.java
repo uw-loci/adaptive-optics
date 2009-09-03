@@ -68,7 +68,7 @@ public class MainFrame
      * Numerical coefficients.
      */
     private int numCoef;
-    private double[] zCoef;
+    private double[] ZCoef;
     private static double[][] samples;
     private static final int WIDTH = 512,  HEIGHT = 512;
 
@@ -121,7 +121,7 @@ public class MainFrame
             System.err.println("Caught IOException: " + e.getMessage());
         }
 
-        zCoef = new double[numCoef];
+        ZCoef = new double[numCoef];
         samples = new double[1][WIDTH * HEIGHT];
         dlut = new double[256];
         for (int i = 0; i < 256; i++) {
@@ -236,7 +236,7 @@ public class MainFrame
         coefficient5Label = new JLabel("1-Astg-Y");
         coefficient5TextField = new JTextField("0");
         coefficient6Label = new JLabel("1-Astg-X");
-        coefficient6TextFields = new JTextField("0");
+        coefficient6TextField = new JTextField("0");
         coefficient7Label = new JLabel("1-Coma-X");
         coefficient7TextField = new JTextField("0");
         coefficient8Label = new JLabel("1-Coma-Y");
@@ -744,28 +744,28 @@ public class MainFrame
         //read the look up table
         dlut = readLUT();
         //get the parameters
-        zCoef[0] = Double.valueOf(coefficient1TextField.getText());
-        zCoef[1] = Double.valueOf(coefficient2TextField.getText());
-        zCoef[2] = Double.valueOf(coefficient3TextField.getText());
-        zCoef[3] = Double.valueOf(coefficient4TextField.getText());
-        zCoef[4] = Double.valueOf(coefficient5TextField.getText());
-        zCoef[5] = Double.valueOf(coefficient6TextField.getText());
-        zCoef[6] = Double.valueOf(coefficient7TextField.getText());
-        zCoef[7] = Double.valueOf(coefficient8TextField.getText());
-        zCoef[8] = Double.valueOf(coefficient9TextField.getText());
-        zCoef[9] = Double.valueOf(coefficient10TextField.getText());
-        zCoef[10] = Double.valueOf(coefficient11TextField.getText());
-        zCoef[11] = Double.valueOf(coefficient12TextField.getText());
-        zCoef[12] = Double.valueOf(coefficient13TextField.getText());
-        zCoef[13] = Double.valueOf(coefficient14TextField.getText());
-        zCoef[14] = Double.valueOf(coefficient15TextField.getText());
-        zCoef[15] = Double.valueOf(coefficient16TextField.getText());
-        zCoef[16] = Double.valueOf(coefficient17TextField.getText());
-        zCoef[17] = Double.valueOf(coefficient18TextField.getText());
-        zCoef[18] = Double.valueOf(coefficient19TextField.getText());
-        zCoef[19] = Double.valueOf(coefficient20TextField.getText());
-        zCoef[20] = Double.valueOf(coefficient21TextField.getText());
-        zCoef[21] = Double.valueOf(coefficient22TextField.getText());
+        ZCoef[0] = Double.valueOf(coefficient1TextField.getText());
+        ZCoef[1] = Double.valueOf(coefficient2TextField.getText());
+        ZCoef[2] = Double.valueOf(coefficient3TextField.getText());
+        ZCoef[3] = Double.valueOf(coefficient4TextField.getText());
+        ZCoef[4] = Double.valueOf(coefficient5TextField.getText());
+        ZCoef[5] = Double.valueOf(coefficient6TextField.getText());
+        ZCoef[6] = Double.valueOf(coefficient7TextField.getText());
+        ZCoef[7] = Double.valueOf(coefficient8TextField.getText());
+        ZCoef[8] = Double.valueOf(coefficient9TextField.getText());
+        ZCoef[9] = Double.valueOf(coefficient10TextField.getText());
+        ZCoef[10] = Double.valueOf(coefficient11TextField.getText());
+        ZCoef[11] = Double.valueOf(coefficient12TextField.getText());
+        ZCoef[12] = Double.valueOf(coefficient13TextField.getText());
+        ZCoef[13] = Double.valueOf(coefficient14TextField.getText());
+        ZCoef[14] = Double.valueOf(coefficient15TextField.getText());
+        ZCoef[15] = Double.valueOf(coefficient16TextField.getText());
+        ZCoef[16] = Double.valueOf(coefficient17TextField.getText());
+        ZCoef[17] = Double.valueOf(coefficient18TextField.getText());
+        ZCoef[18] = Double.valueOf(coefficient19TextField.getText());
+        ZCoef[19] = Double.valueOf(coefficient20TextField.getText());
+        ZCoef[20] = Double.valueOf(coefficient21TextField.getText());
+        ZCoef[21] = Double.valueOf(coefficient22TextField.getText());
 
         //generate wavefront data by zernike polynomials parameters
         samples[0] = generateZernikeWavefront();
@@ -1008,6 +1008,8 @@ public class MainFrame
                 ys4 = ys3 * ys;
                 ys5 = ys4 * ys;
                 
+                double total = 0;
+                
                 if ((squareCheckBox.isSelected() || p2 <= 1) &&
                         (!cutCenterCheckBox.isSelected() ||
                         (p2 >= 0.10))) {
@@ -1071,22 +1073,15 @@ public class MainFrame
         boolean isFirst = true;
         
         for (int row = 0; row < 512; row++) {
-            x = (row - 256);
-            realx = x;
-
             // GH: col=0; col < 512; col++
             for (int col = 0; col < 512; col++) {
-                y = (col - 256);
-                realy = y;
+                xs = (row - 256) / radius; // -256/300 = -0.8533
+                ys = (col - 256) / radius; // +256/300 = -0.8533
+                p2 = xs*xs + ys*ys;
                 
-                divX = realx / radius;
-                divY = realy / radius;
-                divXSqu = divX * divX;
-                divYSqu = divY * divY;
-                
-                if ((squareCheckBox.isSelected() || (divXSqu + divYSqu) <= 1) &&
+                if ((squareCheckBox.isSelected() || p2 <= 1) &&
                         (!cutCenterCheckBox.isSelected() ||
-                        ((divXSqu + divYSqu) >= 0.10))) {
+                        (p2 >= 0.10))) {
                     
                     int i = row * SLMSIZE + col;
                     if (isFirst || zern[i] < smallestVal) {
@@ -1136,7 +1131,7 @@ public class MainFrame
         tf3 = coefficient3TextField.getText();
         tf4 = coefficient4TextField.getText();
         tf5 = coefficient5TextField.getText();
-        tf6 = coefficient6TextFields.getText();
+        tf6 = coefficient6TextField.getText();
         tf7 = coefficient7TextField.getText();
         tf8 = coefficient8TextField.getText();
         tf9 = coefficient9TextField.getText();
@@ -1183,28 +1178,28 @@ public class MainFrame
      */
     private void jBut_showMouseClicked(MouseEvent evt) {
         // TODO add your handling code here:
-        zCoef[0] = Double.valueOf(coefficient1TextField.getText());
-        zCoef[1] = Double.valueOf(coefficient2TextField.getText());
-        zCoef[2] = Double.valueOf(coefficient3TextField.getText());
-        zCoef[3] = Double.valueOf(coefficient4TextField.getText());
-        zCoef[4] = Double.valueOf(coefficient5TextField.getText());
-        zCoef[5] = Double.valueOf(coefficient6TextField.getText());
-        zCoef[6] = Double.valueOf(coefficient7TextField.getText());
-        zCoef[7] = Double.valueOf(coefficient8TextField.getText());
-        zCoef[8] = Double.valueOf(coefficient9TextField.getText());
-        zCoef[9] = Double.valueOf(coefficient10TextField.getText());
-        zCoef[10] = Double.valueOf(coefficient11TextField.getText());
-        zCoef[11] = Double.valueOf(coefficient12TextField.getText());
-        zCoef[12] = Double.valueOf(coefficient13TextField.getText());
-        zCoef[13] = Double.valueOf(coefficient14TextField.getText());
-        zCoef[14] = Double.valueOf(coefficient15TextField.getText());
-        zCoef[15] = Double.valueOf(coefficient16TextField.getText());
-        zCoef[16] = Double.valueOf(coefficient17TextField.getText());
-        zCoef[17] = Double.valueOf(coefficient18TextField.getText());
-        zCoef[18] = Double.valueOf(coefficient19TextField.getText());
-        zCoef[19] = Double.valueOf(coefficient20TextField.getText());
-        zCoef[20] = Double.valueOf(coefficient21TextField.getText());
-        zCoef[21] = Double.valueOf(coefficient22TextField.getText());
+        ZCoef[0] = Double.valueOf(coefficient1TextField.getText());
+        ZCoef[1] = Double.valueOf(coefficient2TextField.getText());
+        ZCoef[2] = Double.valueOf(coefficient3TextField.getText());
+        ZCoef[3] = Double.valueOf(coefficient4TextField.getText());
+        ZCoef[4] = Double.valueOf(coefficient5TextField.getText());
+        ZCoef[5] = Double.valueOf(coefficient6TextField.getText());
+        ZCoef[6] = Double.valueOf(coefficient7TextField.getText());
+        ZCoef[7] = Double.valueOf(coefficient8TextField.getText());
+        ZCoef[8] = Double.valueOf(coefficient9TextField.getText());
+        ZCoef[9] = Double.valueOf(coefficient10TextField.getText());
+        ZCoef[10] = Double.valueOf(coefficient11TextField.getText());
+        ZCoef[11] = Double.valueOf(coefficient12TextField.getText());
+        ZCoef[12] = Double.valueOf(coefficient13TextField.getText());
+        ZCoef[13] = Double.valueOf(coefficient14TextField.getText());
+        ZCoef[14] = Double.valueOf(coefficient15TextField.getText());
+        ZCoef[15] = Double.valueOf(coefficient16TextField.getText());
+        ZCoef[16] = Double.valueOf(coefficient17TextField.getText());
+        ZCoef[17] = Double.valueOf(coefficient18TextField.getText());
+        ZCoef[18] = Double.valueOf(coefficient19TextField.getText());
+        ZCoef[19] = Double.valueOf(coefficient20TextField.getText());
+        ZCoef[20] = Double.valueOf(coefficient21TextField.getText());
+        ZCoef[21] = Double.valueOf(coefficient22TextField.getText());
 
 
         //////////////////////////////////////////////////////////////////////////////////
@@ -1242,7 +1237,7 @@ public class MainFrame
         coefficient3TextField.setText("0");
         coefficient4TextField.setText("0");
         coefficient5TextField.setText("0");
-        coefficient6TextFields.setText("0");
+        coefficient6TextField.setText("0");
         coefficient7TextField.setText("0");
         coefficient8TextField.setText("0");
         coefficient9TextField.setText("0");
@@ -1295,7 +1290,7 @@ public class MainFrame
         coefficient3TextField.setText(strin_arr[2]);
         coefficient4TextField.setText(strin_arr[3]);
         coefficient5TextField.setText(strin_arr[4]);
-        coefficient6TextFields.setText(strin_arr[5]);
+        coefficient6TextField.setText(strin_arr[5]);
         coefficient7TextField.setText(strin_arr[6]);
         coefficient8TextField.setText(strin_arr[7]);
         coefficient9TextField.setText(strin_arr[8]);
@@ -1451,7 +1446,7 @@ public class MainFrame
     JTextField coefficient3TextField;
     JTextField coefficient4TextField;
     JTextField coefficient5TextField;
-    JTextField coefficient6TextFields;
+    JTextField coefficient6TextField;
     JTextField coefficient7TextField;
     JTextField coefficient8TextField;
     JTextField coefficient9TextField;
