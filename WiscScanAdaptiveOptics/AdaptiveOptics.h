@@ -6,13 +6,15 @@
 
 #include "GeneticOptimization.h"
 #include "DefocusMeasurement.h"
+#include "LandscapeMeasurement.h"
 
 
 class AdaptiveOptics
 {
   private:
-    GeneticOptimization *optimizer;
-    DefocusMeasurement *measurand;
+    //GeneticOptimization *optimizer;
+    //DefocusMeasurement *measurand;
+    LandscapeMeasurement *measurand;
 
   public:
     AdaptiveOptics();  

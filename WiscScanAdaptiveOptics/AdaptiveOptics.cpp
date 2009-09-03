@@ -15,8 +15,9 @@
  */
 AdaptiveOptics::AdaptiveOptics()
 {
-  optimizer = new GeneticOptimization();
+  //optimizer = new GeneticOptimization();
   //measurand = new DefocusMeasurement();
+  measurand = new LandscapeMeasurement();
 } 
 
 
@@ -41,8 +42,8 @@ bool AdaptiveOptics::initializePhaseModulator(bool bPowerStatus)
 void AdaptiveOptics::closeDown()
 {
   LOGME("Shutting down (deinitializing the SLM)");
-  //measurand->closeDown();
-  optimizer->closeDown();
+  measurand->closeDown();
+  //optimizer->closeDown();
 }
 
 
@@ -130,6 +131,7 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
 
   // Dump the image data to file.
   //dumpSumBuffer(count, optimizer->generateFileName(), buf, width, height);
+  dumpSumBuffer(count, measurand->generateFileName(), buf, width, height);
 
   averageIntensity = sum / (width*height);
 
@@ -153,11 +155,11 @@ int AdaptiveOptics::processImage(double *buf, int width, int height, char mode)
 
   
   // Send the data to optimization module.
-  optimizer->iterateOnce(averageIntensity);
-  //measurand->iterateOnce(averageIntensity);
+  //optimizer->iterateOnce(averageIntensity);
+  measurand->iterateOnce(averageIntensity);
 
-  if (optimizer->isFinished()) {
-  //if (measurand->isFinished()) {
+  //if (optimizer->isFinished()) {
+  if (measurand->isFinished()) {
     return 0; // Stop scanning.
   } else {
     return 1; // Continue scanning.

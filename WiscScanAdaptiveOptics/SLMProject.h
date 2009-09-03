@@ -13,7 +13,11 @@
 
 #define pi 3.1415
 //#define LUTFILE "slm7041.LUT"
-#define LUTFILE "C:\\LUT_FILES\\slm7041.LUT"
+//#define LUTFILE "C:\\LUT_FILES\\slm7041.LUT"
+//#define LUTFILE "C:\\gunnsteinn\\AdaptiveOptics\\LUT_Files\\g\\gLUT1.lut"
+//#define LUTFILE "C:\\gunnsteinn\\AdaptiveOptics\\LUT_Files\\g\\gLUT1.lut"
+//#define LUTFILE "C:\\gunnsteinn\\AdaptiveOptics\\LUT_Files\\slmnew71.lut"
+#define LUTFILE "C:\\gunnsteinn\\AdaptiveOptics\\LUT_Files\\slmnew71.lut"
 //#define LUTFILE "linear.lut"
 
 

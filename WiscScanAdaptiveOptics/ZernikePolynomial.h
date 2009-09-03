@@ -6,6 +6,9 @@
  * XXX/FIXME: Update coefficient list.
  */
 
+#ifndef _______ZERNIKE_POLYNOMIAL
+#define _______ZERNIKE_POLYNOMIAL
+
 class ZernikePolynomial {
   private:
     double piston;
@@ -95,3 +98,5 @@ class ZernikePolynomial {
 
 };
 
+
+#endif

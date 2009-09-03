@@ -116,6 +116,14 @@ SOURCE=.\GeneticOptimization.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\LandscapeMeasurement.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LandscapeMeasurement.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Logger.cpp
 # End Source File
 # Begin Source File

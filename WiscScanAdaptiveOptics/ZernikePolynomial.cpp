@@ -32,8 +32,8 @@ void ZernikePolynomial::resetCoefficients()
   setSecondaryComaX(0.0);
   setSecondaryComaY(0.0);
   setSecondarySphericalAberration(0.0);
-  setTiltX(50.0);
-  setTiltY(50.0);
+  setTiltX(20.0);
+  setTiltY(20.0);
   //setTiltX(0.0);
   //setTiltY(0.0);
 }
@@ -132,7 +132,14 @@ void ZernikePolynomial::generateImageBufferForSLM(unsigned char *phaseData)
  *  radius = ActSize*256/512;
  *BUT DUE TO MIRROR OVERFILLING, WE USE:
  */
-  radius = ActSize*100/512;
+  /**
+  ** PREFERRED radius: 100 (200x200)
+  */
+  //radius = ActSize*100/512;
+  // COMPROMISE: TOO MUCH LOSS WITH 100.
+  //radius = ActSize*150/512;
+  radius = ActSize*256/512;
+
   
   start = (SLMSIZE - ActSize)/2;
   end = start + ActSize;

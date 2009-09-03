@@ -6,11 +6,13 @@
 #define MAX_ITERATIONS    60
 
 
-#define AY_MAX 1.00  // MR units (absolute value)
-#define AX_MAX 1.00  // MR units (absolute value)
-#define CY_MAX 1.00  // MR units (absolute value)
-#define CX_MAX 1.00  // MR units (absolute value)
-#define SA_MAX 0.75  // MR units (absolute value)
+//#define AY_MAX 0.90  // MR units (absolute value)
+//#define AX_MAX 0.90  // MR units (absolute value)
+#define AY_MAX 2.00  // MR units (absolute value)
+#define AX_MAX 2.00  // MR units (absolute value)
+#define CY_MAX 0.80  // MR units (absolute value)
+#define CX_MAX 0.80  // MR units (absolute value)
+#define SA_MAX 0.60  // MR units (absolute value)
 
 
 class GeneticOptimization {

@@ -545,7 +545,7 @@ bool GeneticOptimization::isStopConditionSatisfied()
   /*double mean = 0, max;
   int i;*/
 
-  if (iterationCount < 4) {
+  if (iterationCount < 10) {
     return false;
   }
 
@@ -556,7 +556,7 @@ bool GeneticOptimization::isStopConditionSatisfied()
   logSS.str("");
 
   //if (pIncrease < 0.20) {
-  return false; // XXX/FIXME: Remove
+  //return false; // XXX/FIXME: Remove
   if (pIncrease < 0.01) {
     return true;
   } else {
