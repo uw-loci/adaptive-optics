@@ -40,7 +40,9 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.border.EmptyBorder;
 
 
 class ZernikePanel {
@@ -61,7 +63,7 @@ public class MainFrame
      * in graphics only mode.
      */
     final boolean USE_DEVICE = false;
-    final boolean ENABLE_PLOTTING = false;
+    final boolean ENABLE_PLOTTING = true;
 
     /**
      * Location of default LUT file.
@@ -188,10 +190,13 @@ public class MainFrame
         resetFocusButton = new JButton();
         coefficientsHeadingLabel = new JLabel();
              
+        JPanel mainPanel = (JPanel) getContentPane();
         
         // 2 Columns.
-        getContentPane().setLayout(
+        mainPanel.setLayout(
                 new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS));
+        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
@@ -205,7 +210,7 @@ public class MainFrame
         //getContentPane().add(fileChooserDialog, new AbsoluteConstraints(390, 200, -1, -1));
 
         // Parameter Form.
-        String paramColsSpec = "p, 4dlu, p";
+        String paramColsSpec = "p, 4dlu, left:max(50dlu;p)";
         String paramRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
         FormLayout paramLayout = new FormLayout(paramColsSpec, paramRowsSpec);
         PanelBuilder paramBuilder = new PanelBuilder(paramLayout);
@@ -222,10 +227,10 @@ public class MainFrame
         paramBuilder.addSeparator("Parameters",     cc.xyw(1, row, 3));
         row += 2;
         paramBuilder.addLabel("SLM Size",           cc.xy(1, row));
-        paramBuilder.add(SLMSizeField,              cc.xy(3, row));
+        paramBuilder.add(SLMSizeField,              cc.xy(3, row, "fill, center"));
         row += 2;
         paramBuilder.addLabel("SLM Resolution",     cc.xy(1, row));
-        paramBuilder.add(SLMResolutionTextField,    cc.xy(3, row));
+        paramBuilder.add(SLMResolutionTextField,    cc.xy(3, row, "fill, center"));
         row += 2;
         paramBuilder.addLabel("Use Square",         cc.xy(1, row));
         paramBuilder.add(squareCheckBox,            cc.xy(3, row));
@@ -246,6 +251,12 @@ public class MainFrame
         plotPanel.add(plotPanelLeft);
         plotPanel.add(plotPanelRight);
         rightPanel.add(plotPanel);
+        
+        // Fill up space.
+        Dimension minSize = new Dimension(5, 100);
+        Dimension prefSize = new Dimension(5, 100);
+        Dimension maxSize = new Dimension(Short.MAX_VALUE, 100);
+        rightPanel.add(new Box.Filler(minSize, prefSize, maxSize));
 
         /* Zernike coefficient panel. */
         String zColSpecs = "p, 4dlu, 30dlu, 8dlu, 30dlu, 4dlu, p"; // 7
@@ -501,9 +512,11 @@ public class MainFrame
         leftPanel.add(patternBuilder.getPanel());
         getContentPane().add(leftPanel);
         getContentPane().add(rightPanel);
+        
+        // Padding on the right.
 
         /* Setup frame. */
-        setSize(1080, 780);
+        setSize(900, 600);
         setLocationRelativeTo(null);
         setTitle("SLM Interface - Zernike Plotter");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
