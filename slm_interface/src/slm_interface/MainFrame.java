@@ -35,8 +35,12 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-import org.netbeans.lib.awtextra.AbsoluteConstraints;
-import org.netbeans.lib.awtextra.AbsoluteLayout;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import javax.swing.BoxLayout;
 
 
 class ZernikePanel {
@@ -56,7 +60,8 @@ public class MainFrame
      * Indicates whether the device is being used, or whether it is running
      * in graphics only mode.
      */
-    final boolean USE_DEVICE = true;
+    final boolean USE_DEVICE = false;
+    final boolean ENABLE_PLOTTING = false;
 
     /**
      * Location of default LUT file.
@@ -113,12 +118,14 @@ public class MainFrame
 
         //set the max number of zernike polynomails to 30.
         numCoef = 30;
-        srt = new SurfacePlotter();
-        try {
-            srt.buildDisplay(plotPanelLeft);
-            srt.buildDisplay1(plotPanelRight);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
+        if (ENABLE_PLOTTING) {
+            srt = new SurfacePlotter();
+            try {
+                srt.buildDisplay(plotPanelLeft);
+                srt.buildDisplay1(plotPanelRight);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
         }
 
         ZCoef = new double[numCoef];
@@ -154,13 +161,9 @@ public class MainFrame
      * Initializes the form.
      * Note: Code initially generated with the NetBeans forms designer.
      */
-    private void initComponents() {
-        waveFrontHeadingLabel = new JLabel();
-        SLMSizeField = new JTextField();
-        SLMSizeLabel = new JLabel();
+    private void initComponents() {        
+        //SLMSizeField = new JTextField();
 
-        plotPanelLeft = new JPanel();
-        plotPanelRight = new JPanel();
 
         LUTFilePanel = new JPanel();
         LUTHeadingLabel = new JLabel();
@@ -185,157 +188,175 @@ public class MainFrame
         resetFocusButton = new JButton();
         coefficientsHeadingLabel = new JLabel();
              
-        SLMResolutionLabel = new JLabel();
-        SLMResolutionTextField = new JTextField();
-        cutCenterCheckBox = new javax.swing.JCheckBox();
-        squareCheckBox = new javax.swing.JCheckBox();
+        
+        // 2 Columns.
+        getContentPane().setLayout(
+                new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS));
 
-        getContentPane().setLayout(new AbsoluteLayout());
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
         
         /* File chooser dialog (used in common). */
+        // ??
         fileChooserDialog = new JFileChooser();
         fileChooserDialog.setPreferredSize(new Dimension(587, 400));
-        getContentPane().add(fileChooserDialog, new AbsoluteConstraints(390, 200, -1, -1));
+        //getContentPane().add(fileChooserDialog, new AbsoluteConstraints(390, 200, -1, -1));
+
+        // Parameter Form.
+        String paramColsSpec = "p, 4dlu, p";
+        String paramRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
+        FormLayout paramLayout = new FormLayout(paramColsSpec, paramRowsSpec);
+        PanelBuilder paramBuilder = new PanelBuilder(paramLayout);
+        paramBuilder.setDefaultDialogBorder();
+        CellConstraints cc = new CellConstraints();
 
         /* SLM Size & Resolution */
-        SLMSizeField.setText("512");
-        getContentPane().add(SLMSizeField, new AbsoluteConstraints(490, 30, 60, -1));
+        SLMSizeField = new JTextField("512");
+        SLMResolutionTextField = new JTextField("512");
+        squareCheckBox = new javax.swing.JCheckBox();
+        cutCenterCheckBox = new javax.swing.JCheckBox();
 
-        SLMSizeLabel.setFont(new Font("Arial", 1, 12));
-        SLMSizeLabel.setText("SLM size");
-        getContentPane().add(SLMSizeLabel, new AbsoluteConstraints(390, 30, 80, 20));
+        int row = 1;
+        paramBuilder.addSeparator("Parameters",     cc.xyw(1, row, 3));
+        row += 2;
+        paramBuilder.addLabel("SLM Size",           cc.xy(1, row));
+        paramBuilder.add(SLMSizeField,              cc.xy(3, row));
+        row += 2;
+        paramBuilder.addLabel("SLM Resolution",     cc.xy(1, row));
+        paramBuilder.add(SLMResolutionTextField,    cc.xy(3, row));
+        row += 2;
+        paramBuilder.addLabel("Use Square",         cc.xy(1, row));
+        paramBuilder.add(squareCheckBox,            cc.xy(3, row));
+        row += 2;
+        paramBuilder.addLabel("Cut Center",         cc.xy(1, row));
+        paramBuilder.add(cutCenterCheckBox,         cc.xy(3, row));
 
-        SLMResolutionLabel.setFont(new Font("Arial", 1, 12));
-        SLMResolutionLabel.setText("SLM resolution");
-        getContentPane().add(SLMResolutionLabel, new AbsoluteConstraints(390, 60, -1, 20));
 
-        SLMResolutionTextField.setText("512");
-        getContentPane().add(SLMResolutionTextField, new AbsoluteConstraints(490, 60, 60, -1));
+        //JPanel paramPanel = new JPanel(paramLayout);
+        rightPanel.add(paramBuilder.getPanel());
 
         /* Plot panels: Left, Right. */
-        waveFrontHeadingLabel.setFont(new Font("Arial", 1, 20));
-        waveFrontHeadingLabel.setForeground(new Color(255, 51, 51));
-        waveFrontHeadingLabel.setText("Wave Front");
-        getContentPane().add(waveFrontHeadingLabel, new AbsoluteConstraints(630, 90, 120, 30));
-
+        JPanel plotPanel = new JPanel(new GridLayout(1,2));
+        plotPanelLeft = new JPanel();
+        plotPanelRight = new JPanel();
         plotPanelLeft.setLayout(new BorderLayout());
-        getContentPane().add(plotPanelLeft, new AbsoluteConstraints(360, 140, 350, 350));
-
         plotPanelRight.setLayout(new BorderLayout());
-        getContentPane().add(plotPanelRight, new AbsoluteConstraints(690, 140, 350, 350));
+        plotPanel.add(plotPanelLeft);
+        plotPanel.add(plotPanelRight);
+        rightPanel.add(plotPanel);
 
         /* Zernike coefficient panel. */
-        coefficient1Label = new JLabel("Bias");
+        String zColSpecs = "p, 4dlu, 30dlu, 8dlu, 30dlu, 4dlu, p"; // 7
+        String zRowSpecs =
+                "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, " +
+                "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p"; //25
+        FormLayout zLayout = new FormLayout(zColSpecs, zRowSpecs);
+        PanelBuilder zBuilder = new PanelBuilder(zLayout);
+        zBuilder.setDefaultDialogBorder();
+
         coefficient1TextField = new JTextField("0");
-        coefficient2Label = new JLabel("Tilt-X");
         coefficient2TextField = new JTextField("0");
-        coefficient3Label = new JLabel("Tilt-Y");
         coefficient3TextField = new JTextField("0");
-        coefficient4Label = new JLabel("Defocus");
         coefficient4TextField = new JTextField("0");
-        coefficient5Label = new JLabel("1-Astg-Y");
         coefficient5TextField = new JTextField("0");
-        coefficient6Label = new JLabel("1-Astg-X");
         coefficient6TextField = new JTextField("0");
-        coefficient7Label = new JLabel("1-Coma-X");
         coefficient7TextField = new JTextField("0");
-        coefficient8Label = new JLabel("1-Coma-Y");
         coefficient8TextField = new JTextField("0");
-        coefficient9Label = new JLabel("1-Tref-Y");
         coefficient9TextField = new JTextField("0");
-        coefficient10Label = new JLabel("1-Tref-X");
         coefficient10TextField = new JTextField("0");
-        coefficient11Label = new JLabel("1-Spher");
         coefficient11TextField = new JTextField("0");
-        coefficient12Label = new JLabel("2-Astg-X");
         coefficient12TextField = new JTextField("0");
-        coefficient13Label = new JLabel("2-Astg-Y");
         coefficient13TextField = new JTextField("0");
-        coefficient14Label = new JLabel("1-Tetr-X");
         coefficient14TextField = new JTextField("0");
-        coefficient15Label = new JLabel("1-Tetr-Y");
         coefficient15TextField = new JTextField("0");
-        coefficient16Label = new JLabel("2-Coma-X");
         coefficient16TextField = new JTextField("0");
-        coefficient17Label = new JLabel("2-Coma-Y");
         coefficient17TextField = new JTextField("0");
-        coefficient18Label = new JLabel("2-Tref-X");
         coefficient18TextField = new JTextField("0");
-        coefficient19Label = new JLabel("2-Tref-Y");
         coefficient19TextField = new JTextField("0");
-        coefficient20Label = new JLabel("1-Pent-X");
         coefficient20TextField = new JTextField("0");
-        coefficient21Label = new JLabel("1-Pent-Y");
         coefficient21TextField = new JTextField("0");
-        coefficient22Label = new JLabel("2-Spher");
         coefficient22TextField = new JTextField("0");
 
 
-        zernikeCoefficientPanel = new JPanel();
-        zernikeCoefficientPanel.setBackground(new Color(204, 204, 204));
-        zernikeCoefficientPanel.setLayout(new AbsoluteLayout());
-        Border loweredEtchedBorder =
-                BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-        Border titledBorder = BorderFactory.createTitledBorder(
-                loweredEtchedBorder, "Zernike Polynomial Coefficients");
-        zernikeCoefficientPanel.setBorder(titledBorder);
+        row = 1;
+        zBuilder.addSeparator(
+                "Zernike Polynomial Coefficients",  cc.xyw(1, row, 7));
+        row += 2;
+        zBuilder.addLabel(" 1. Bias",                cc.xy(1, row));
+        zBuilder.add(coefficient1TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 2. Tilt-X",              cc.xy(1, row));
+        zBuilder.add(coefficient2TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 3. Tilt-Y",              cc.xy(1, row));
+        zBuilder.add(coefficient3TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 4. Defocus",             cc.xy(1, row));
+        zBuilder.add(coefficient4TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 5. 1-Astg-Y",            cc.xy(1, row));
+        zBuilder.add(coefficient5TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 6. 1-Astg-X",            cc.xy(1, row));
+        zBuilder.add(coefficient6TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 7. 1-Coma-X",            cc.xy(1, row));
+        zBuilder.add(coefficient7TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 8. 1-Coma-Y",            cc.xy(1, row));
+        zBuilder.add(coefficient8TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel(" 9. 1-Tref-Y",            cc.xy(1, row));
+        zBuilder.add(coefficient9TextField,         cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel("10. 1-Tref-X",           cc.xy(1, row));
+        zBuilder.add(coefficient10TextField,        cc.xy(3, row));
+        row += 2;
+        zBuilder.addLabel("11. 1-Spher",            cc.xy(1, row));
+        zBuilder.add(coefficient11TextField,        cc.xy(3, row));
+        // Second column.
+        row = 3;
+        zBuilder.addLabel("12. 2-Astg-X",           cc.xy(7, row));
+        zBuilder.add(coefficient12TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("13. 2-Astg-Y",           cc.xy(7, row));
+        zBuilder.add(coefficient13TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("14. 1-Tetr-X",           cc.xy(7, row));
+        zBuilder.add(coefficient14TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("15. 1-Tetr-Y",           cc.xy(7, row));
+        zBuilder.add(coefficient15TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("16. 2-Coma-X",           cc.xy(7, row));
+        zBuilder.add(coefficient16TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("17. 2-Coma-Y",           cc.xy(7, row));
+        zBuilder.add(coefficient17TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("18. 2-Tref-X",           cc.xy(7, row));
+        zBuilder.add(coefficient18TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("19. 2-Tref-Y",           cc.xy(7, row));
+        zBuilder.add(coefficient19TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("20. 1-Pent-X",           cc.xy(7, row));
+        zBuilder.add(coefficient20TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("21. 1-Pent-Y",           cc.xy(7, row));
+        zBuilder.add(coefficient21TextField,        cc.xy(5, row));
+        row += 2;
+        zBuilder.addLabel("22. 2-Spher",            cc.xy(7, row));
+        zBuilder.add(coefficient22TextField,        cc.xy(5, row));
+        row += 2;
+
+        //zernikeCoefficientPanel = new JPanel(zLayout);
+        leftPanel.add(zBuilder.getPanel());
+
 
         /*
-         * L: w 50
-         * T: w 60
-         * Left:  [L x=20, y=70 ] [T x=90,y=70]  dx=70  dy=30
-         *     dx=
-         *   Right: [T x=180, y=100] [L x=90, y=100] 
-         *
-         */
-
-        zernikeCoefficientPanel.add(coefficient1Label,      new AbsoluteConstraints(20, 70, 50, -1));
-        zernikeCoefficientPanel.add(coefficient1TextField,  new AbsoluteConstraints(90, 70, 60, -1));
-        zernikeCoefficientPanel.add(coefficient2Label,      new AbsoluteConstraints(20, 100, 50, -1));
-        zernikeCoefficientPanel.add(coefficient2TextField,  new AbsoluteConstraints(90, 100, 60, -1));
-        zernikeCoefficientPanel.add(coefficient3Label,      new AbsoluteConstraints(20, 130, 50, -1));
-        zernikeCoefficientPanel.add(coefficient3TextField,  new AbsoluteConstraints(90, 130, 60, -1));
-        zernikeCoefficientPanel.add(coefficient4Label,      new AbsoluteConstraints(20, 160, 50, -1));
-        zernikeCoefficientPanel.add(coefficient4TextField,  new AbsoluteConstraints(90, 160, 60, -1));
-        zernikeCoefficientPanel.add(coefficient5Label,      new AbsoluteConstraints(20, 190, 50, -1));
-        zernikeCoefficientPanel.add(coefficient5TextField,  new AbsoluteConstraints(90, 190, 60, -1));
-        zernikeCoefficientPanel.add(coefficient6Label,      new AbsoluteConstraints(20, 220, 50, -1));
-        zernikeCoefficientPanel.add(coefficient6TextField,  new AbsoluteConstraints(90, 220, 60, -1));
-        zernikeCoefficientPanel.add(coefficient7Label,      new AbsoluteConstraints(20, 250, 50, -1));
-        zernikeCoefficientPanel.add(coefficient7TextField,  new AbsoluteConstraints(90, 250, 60, -1));
-        zernikeCoefficientPanel.add(coefficient8Label,      new AbsoluteConstraints(20, 280, 50, -1));
-        zernikeCoefficientPanel.add(coefficient8TextField,  new AbsoluteConstraints(90, 280, 60, -1));
-        zernikeCoefficientPanel.add(coefficient9Label,      new AbsoluteConstraints(20, 310, 50, -1));
-        zernikeCoefficientPanel.add(coefficient9TextField,  new AbsoluteConstraints(90, 310, 60, -1));
-        zernikeCoefficientPanel.add(coefficient10Label,     new AbsoluteConstraints(20, 340, 50, -1));
-        zernikeCoefficientPanel.add(coefficient10TextField, new AbsoluteConstraints(90, 340, 60, -1));
-        zernikeCoefficientPanel.add(coefficient11Label,     new AbsoluteConstraints(20, 370, 50, -1));
-        zernikeCoefficientPanel.add(coefficient11TextField, new AbsoluteConstraints(90, 370, 60, -1));
-
-        zernikeCoefficientPanel.add(coefficient12TextField, new AbsoluteConstraints(170, 70, 60, -1));
-        zernikeCoefficientPanel.add(coefficient12Label,     new AbsoluteConstraints(240, 70, 50, -1));
-        zernikeCoefficientPanel.add(coefficient13TextField, new AbsoluteConstraints(170, 100, 60, -1));
-        zernikeCoefficientPanel.add(coefficient13Label,     new AbsoluteConstraints(240, 100, 50, -1));
-        zernikeCoefficientPanel.add(coefficient14TextField, new AbsoluteConstraints(170, 130, 60, -1));
-        zernikeCoefficientPanel.add(coefficient14Label,     new AbsoluteConstraints(240, 130, 50, -1));
-        zernikeCoefficientPanel.add(coefficient15TextField, new AbsoluteConstraints(170, 160, 60, -1));
-        zernikeCoefficientPanel.add(coefficient15Label,     new AbsoluteConstraints(240, 160, 50, -1));
-        zernikeCoefficientPanel.add(coefficient16TextField, new AbsoluteConstraints(170, 190, 60, -1));
-        zernikeCoefficientPanel.add(coefficient16Label,     new AbsoluteConstraints(240, 190, 50, -1));
-        zernikeCoefficientPanel.add(coefficient17TextField, new AbsoluteConstraints(170, 220, 60, -1));
-        zernikeCoefficientPanel.add(coefficient17Label,     new AbsoluteConstraints(240, 220, 50, -1));
-        zernikeCoefficientPanel.add(coefficient18TextField, new AbsoluteConstraints(170, 250, 60, -1));
-        zernikeCoefficientPanel.add(coefficient18Label,     new AbsoluteConstraints(240, 250, 50, -1));
-        zernikeCoefficientPanel.add(coefficient19TextField, new AbsoluteConstraints(170, 280, 60, -1));
-        zernikeCoefficientPanel.add(coefficient19Label,     new AbsoluteConstraints(240, 280, 50, -1));
-        zernikeCoefficientPanel.add(coefficient20TextField, new AbsoluteConstraints(170, 310, 60, -1));
-        zernikeCoefficientPanel.add(coefficient20Label,     new AbsoluteConstraints(240, 310, 50, -1));
-        zernikeCoefficientPanel.add(coefficient21TextField, new AbsoluteConstraints(170, 340, 60, -1));
-        zernikeCoefficientPanel.add(coefficient21Label,     new AbsoluteConstraints(240, 340, 50, -1));
-        zernikeCoefficientPanel.add(coefficient22TextField, new AbsoluteConstraints(170, 370, 60, -1));
-        zernikeCoefficientPanel.add(coefficient22Label,     new AbsoluteConstraints(240, 370, 50, -1));
-
-
         correctFocusButton.setFont(new Font("Arial", 1, 12));
         correctFocusButton.setText("Correct Focus");
         correctFocusButton.addMouseListener(new MouseAdapter() {
@@ -344,7 +365,9 @@ public class MainFrame
             }
         });
         zernikeCoefficientPanel.add(correctFocusButton, new AbsoluteConstraints(180, 220, 120, -1));
+        */
 
+        /*
         resetFocusButton.setFont(new Font("Arial", 1, 12));
         resetFocusButton.setText("Reset Focus");
         resetFocusButton.addMouseListener(new MouseAdapter() {
@@ -353,140 +376,134 @@ public class MainFrame
             }
         });
         zernikeCoefficientPanel.add(resetFocusButton, new AbsoluteConstraints(180, 130, -1, -1));
+        */
 
-        coefficientsHeadingLabel.setFont(new Font("Arial", 1, 18));
-        coefficientsHeadingLabel.setForeground(new Color(255, 51, 51));
-        coefficientsHeadingLabel.setText("Zernike Polynomial Coefficicents");
-        zernikeCoefficientPanel.add(coefficientsHeadingLabel, new AbsoluteConstraints(20, 20, 300, 30));
 
-        openCoefficientFileButton.setFont(new Font("Arial", 1, 12));
+        // Button Panel. Open / Save / Reset.
+        JPanel zButtonPanel = new JPanel(new GridLayout(1, 3));
+
         openCoefficientFileButton.setText("Open");
-        openCoefficientFileButton.setToolTipText("");
         openCoefficientFileButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_openMouseClicked(evt);
             }
         });
-        zernikeCoefficientPanel.add(openCoefficientFileButton, new AbsoluteConstraints(20, 370, 70, -1));
+        zButtonPanel.add(openCoefficientFileButton);
 
-        saveCoefficientsButton.setFont(new Font("Arial", 1, 12));
         saveCoefficientsButton.setText("Save");
         saveCoefficientsButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_saveMouseClicked(evt);
             }
         });
-        zernikeCoefficientPanel.add(saveCoefficientsButton, new AbsoluteConstraints(120, 370, 70, -1));
+        zButtonPanel.add(saveCoefficientsButton);
 
-        resetCoefficientsButton.setFont(new Font("Arial", 1, 12));
         resetCoefficientsButton.setText("Reset");
         resetCoefficientsButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_resetMouseClicked(evt);
             }
         });
-        zernikeCoefficientPanel.add(resetCoefficientsButton, new AbsoluteConstraints(230, 370, -1, -1));
-        getContentPane().add(zernikeCoefficientPanel, new AbsoluteConstraints(10, 10, 330, 400));
+        zButtonPanel.add(resetCoefficientsButton);
+        zBuilder.add(zButtonPanel,  cc.xyw(1, row, 7));
 
         /* LUT file panel. */
-        LUTFilePanel.setBackground(new Color(204, 204, 204));
-        LUTFilePanel.setLayout(new AbsoluteLayout());
+        String LUTColSpecs = "left:max(100dlu;p), 4dlu, p"; // 3
+        String LUTRowSpecs = "p, 2dlu, p, 2dlu, p"; // 5
+        FormLayout LUTLayout = new FormLayout(LUTColSpecs, LUTRowSpecs);
+        PanelBuilder LUTBuilder = new PanelBuilder(LUTLayout);
+        LUTBuilder.setDefaultDialogBorder();
 
-        LUTHeadingLabel.setFont(new Font("Arial", 1, 12));
-        LUTHeadingLabel.setForeground(new Color(255, 51, 51));
-        LUTHeadingLabel.setText("Select LUT file");
-        LUTFilePanel.add(LUTHeadingLabel, new AbsoluteConstraints(10, 10, 100, 20));
+        row = 1;
+        LUTBuilder.addSeparator("Select LUT File",     cc.xyw(1, row, 3));
+        row += 2;
+        LUTBuilder.add(LUTpathField,                   cc.xyw(1, row, 1, "fill, center"));
 
-        browseLUTButton.setFont(new Font("Arial", 1, 12));
         browseLUTButton.setText("Browse");
         browseLUTButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_lut_browseMouseClicked(evt);
             }
         });
-        LUTFilePanel.add(browseLUTButton, new AbsoluteConstraints(130, 10, -1, -1));
+        LUTBuilder.add(browseLUTButton,                cc.xy(3, row));
 
-        LUTFilePanel.add(LUTpathField, new AbsoluteConstraints(10, 40, 300, 20));
-        getContentPane().add(LUTFilePanel, new AbsoluteConstraints(10, 420, 330, 70));
+        row += 2;
 
         /* Show image, send SLM. */
-        showImageButton.setFont(new Font("Arial", 1, 12));
         showImageButton.setText("Show image");
         showImageButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_showMouseClicked(evt);
             }
         });
-        getContentPane().add(showImageButton, new AbsoluteConstraints(10, 500, 110, 30));
+        LUTBuilder.add(showImageButton,                cc.xy(1, row));
 
-        sendSLMButton.setFont(new Font("Arial", 1, 12));
         sendSLMButton.setText("Send SLM");
         sendSLMButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_send2slmMouseClicked(evt);
             }
         });
-        getContentPane().add(sendSLMButton, new AbsoluteConstraints(240, 500, -1, 30));
+        LUTBuilder.add(sendSLMButton,                  cc.xy(3, row));
+        leftPanel.add(LUTBuilder.getPanel());
+        
 
         /* Pattern panel. */
         patternTextField = new JTextField();
 
-        patternPanel.setBackground(new Color(204, 204, 204));
-        patternPanel.setLayout(new AbsoluteLayout());
-        patternPanel.add(patternTextField, new AbsoluteConstraints(10, 70, 310, 20));
 
-        patternBrowseButton.setFont(new Font("Arial", 1, 12));
+        String panelColSpecs = "left:max(100dlu;p), 4dlu, p"; // 3
+        String panelRowSpecs = "p, 2dlu, p, 2dlu, p, 2dlu, p"; // 7
+        FormLayout panelLayout = new FormLayout(panelColSpecs, panelRowSpecs);
+        PanelBuilder patternBuilder = new PanelBuilder(panelLayout);
+        patternBuilder.setDefaultDialogBorder();
+
+        row = 1;
+        patternBuilder.addSeparator("Pattern (Image)",  cc.xyw(1, row, 3));
+        row += 2;
+        patternBuilder.add(patternTextField,            cc.xy(1, row, "fill, center"));
+
         patternBrowseButton.setText("Browse");
         patternBrowseButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_patten_brwMouseClicked(evt);
             }
         });
-        patternPanel.add(patternBrowseButton, new AbsoluteConstraints(10, 40, -1, -1));
-
-        patternHeadingLabel.setFont(new Font("Arial", 1, 12));
-        patternHeadingLabel.setForeground(new Color(255, 51, 51));
-        patternHeadingLabel.setText("Select Pattern");
-        patternPanel.add(patternHeadingLabel, new AbsoluteConstraints(10, 10, 90, 20));
-
-        clearPatternButton.setFont(new Font("Arial", 1, 12));
-        clearPatternButton.setText("Clear");
-        clearPatternButton.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                jBut_patten_ClearMouseClicked(evt);
-            }
-        });
-        patternPanel.add(clearPatternButton, new AbsoluteConstraints(240, 40, 80, -1));
-
-        sendPatternButton.setFont(new Font("Arial", 1, 12));
+        patternBuilder.add(patternBrowseButton,         cc.xy(3, row));
+        row += 2;
+        
         sendPatternButton.setText("Send");
         sendPatternButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_patten_SendMouseClicked(evt);
             }
         });
-        patternPanel.add(sendPatternButton, new AbsoluteConstraints(150, 40, -1, -1));
-        getContentPane().add(patternPanel, new AbsoluteConstraints(10, 540, 330, 100));
+        patternBuilder.add(sendPatternButton,           cc.xy(1, row));
 
-        /* Modulation shape options. */
-        cutCenterCheckBox.setText("Cut out center");
-        getContentPane().add(cutCenterCheckBox, new AbsoluteConstraints(20, 680, 320, -1));
-
-        squareCheckBox.setText("Use square shape");
-        getContentPane().add(squareCheckBox, new AbsoluteConstraints(20, 650, 320, -1));
+        clearPatternButton.setText("Clear");
+        clearPatternButton.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                jBut_patten_ClearMouseClicked(evt);
+            }
+        });
+        patternBuilder.add(clearPatternButton,         cc.xy(3, row));
+        row += 2;
 
         /* Power off. */
-        powerOffButton.setFont(new Font("Arial", 1, 12));
         powerOffButton.setText("Power Off");
         powerOffButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jBut_poweroffMouseClicked(evt);
             }
         });
-        getContentPane().add(powerOffButton, new AbsoluteConstraints(20, 710, 310, 30));
+        patternBuilder.add(powerOffButton,             cc.xyw(1, row, 3));
+
+        leftPanel.add(patternBuilder.getPanel());
+        getContentPane().add(leftPanel);
+        getContentPane().add(rightPanel);
 
         /* Setup frame. */
-        setSize(1080, 780);        
+        setSize(1080, 780);
         setLocationRelativeTo(null);
         setTitle("SLM Interface - Zernike Plotter");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -696,12 +713,14 @@ public class MainFrame
 
         dlut = readLUT();
 
-        try {
-            //show the surface on the first one that is without limitation of 0 - 2pi
-            srt.showpic(samples);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
-            JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
+        if (ENABLE_PLOTTING) {
+            try {
+                //show the surface on the first one that is without limitation of 0 - 2pi
+                srt.showpic(samples);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+                JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
+            }
         }
 
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
@@ -711,12 +730,14 @@ public class MainFrame
         }
 
 
-        try {
-            //show the surface on the second one that is with limitation of 0 - 2pi
-            srt.showpic1(samples);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
-            JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
+        if (ENABLE_PLOTTING) {
+            try {
+                //show the surface on the second one that is with limitation of 0 - 2pi
+                srt.showpic1(samples);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+                JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
+            }
         }
 
         if (USE_DEVICE) {
@@ -770,10 +791,12 @@ public class MainFrame
         //generate wavefront data by zernike polynomials parameters
         samples[0] = generateZernikeWavefront();
 
-        try {
-            srt.showpic(samples);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
+        if (ENABLE_PLOTTING) {
+            try {
+                srt.showpic(samples);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
         }
 
         double[][] showsamples = new double[1][WIDTH * HEIGHT];
@@ -824,11 +847,13 @@ public class MainFrame
         }*/
         
         
-        
-        try {
-            srt.showpic1(samples);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
+
+        if (ENABLE_PLOTTING) {
+            try {
+                srt.showpic1(samples);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
         }
 
         if (USE_DEVICE) {
@@ -1206,10 +1231,12 @@ public class MainFrame
         ////////////////////////////////////////////////////////////////////
         samples[0] = generateZernikeWavefront();
 
-        try {
-            srt.showpic(samples);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
+        if (ENABLE_PLOTTING) {
+            try {
+                srt.showpic(samples);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
         }
 
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
@@ -1219,11 +1246,14 @@ public class MainFrame
             }
         }
 
-        try {
-            srt.showpic1(samples);
-        } catch (Exception e) {
-            System.err.println("Caught IOException: " + e.getMessage());
+        if (ENABLE_PLOTTING) {
+            try {
+                srt.showpic1(samples);
+            } catch (Exception e) {
+                System.err.println("Caught IOException: " + e.getMessage());
+            }
         }
+
         return;
     }
 
