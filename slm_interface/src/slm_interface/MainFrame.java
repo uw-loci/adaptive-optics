@@ -40,9 +40,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.border.EmptyBorder;
 
 
 class ZernikePanel {
@@ -63,7 +61,7 @@ public class MainFrame
      * in graphics only mode.
      */
     final boolean USE_DEVICE = false;
-    final boolean ENABLE_PLOTTING = true;
+    final boolean ENABLE_PLOTTING = false;
 
     /**
      * Location of default LUT file.
@@ -160,103 +158,18 @@ public class MainFrame
     public void windowOpened(WindowEvent e) { }
 
     /**
-     * Initializes the form.
-     * Note: Code initially generated with the NetBeans forms designer.
+     * Builds the left panel.
+     *
+     * @return The left panel.
      */
-    private void initComponents() {        
-        //SLMSizeField = new JTextField();
+    private JPanel buildLeftPanel()
+    {
+        String leftColSpec = "p"; //1
+        String leftRowSpec = "p, p, p"; //3
 
-
-        LUTFilePanel = new JPanel();
-        LUTHeadingLabel = new JLabel();
-        browseLUTButton = new JButton();
-        LUTpathField = new JTextField();
-
-        patternPanel = new JPanel();
-        patternHeadingLabel = new JLabel();
-        patternBrowseButton = new JButton();
-        clearPatternButton = new JButton();
-        sendPatternButton = new JButton();
-
-        showImageButton = new JButton();
-        sendSLMButton = new JButton();
-        powerOffButton = new JButton();
-
-        openCoefficientFileButton = new JButton();
-        saveCoefficientsButton = new JButton();
-        resetCoefficientsButton = new JButton();
-
-        correctFocusButton = new JButton();
-        resetFocusButton = new JButton();
-        coefficientsHeadingLabel = new JLabel();
-             
-        JPanel mainPanel = (JPanel) getContentPane();
-        
-        // 2 Columns.
-        mainPanel.setLayout(
-                new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS));
-        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        
-
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));
-        
-        /* File chooser dialog (used in common). */
-        // ??
-        fileChooserDialog = new JFileChooser();
-        fileChooserDialog.setPreferredSize(new Dimension(587, 400));
-        //getContentPane().add(fileChooserDialog, new AbsoluteConstraints(390, 200, -1, -1));
-
-        // Parameter Form.
-        String paramColsSpec = "p, 4dlu, left:max(50dlu;p)";
-        String paramRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
-        FormLayout paramLayout = new FormLayout(paramColsSpec, paramRowsSpec);
-        PanelBuilder paramBuilder = new PanelBuilder(paramLayout);
-        paramBuilder.setDefaultDialogBorder();
         CellConstraints cc = new CellConstraints();
-
-        /* SLM Size & Resolution */
-        SLMSizeField = new JTextField("512");
-        SLMResolutionTextField = new JTextField("512");
-        squareCheckBox = new javax.swing.JCheckBox();
-        cutCenterCheckBox = new javax.swing.JCheckBox();
-
-        int row = 1;
-        paramBuilder.addSeparator("Parameters",     cc.xyw(1, row, 3));
-        row += 2;
-        paramBuilder.addLabel("SLM Size",           cc.xy(1, row));
-        paramBuilder.add(SLMSizeField,              cc.xy(3, row, "fill, center"));
-        row += 2;
-        paramBuilder.addLabel("SLM Resolution",     cc.xy(1, row));
-        paramBuilder.add(SLMResolutionTextField,    cc.xy(3, row, "fill, center"));
-        row += 2;
-        paramBuilder.addLabel("Use Square",         cc.xy(1, row));
-        paramBuilder.add(squareCheckBox,            cc.xy(3, row));
-        row += 2;
-        paramBuilder.addLabel("Cut Center",         cc.xy(1, row));
-        paramBuilder.add(cutCenterCheckBox,         cc.xy(3, row));
-
-
-        //JPanel paramPanel = new JPanel(paramLayout);
-        rightPanel.add(paramBuilder.getPanel());
-
-        /* Plot panels: Left, Right. */
-        JPanel plotPanel = new JPanel(new GridLayout(1,2));
-        plotPanelLeft = new JPanel();
-        plotPanelRight = new JPanel();
-        plotPanelLeft.setLayout(new BorderLayout());
-        plotPanelRight.setLayout(new BorderLayout());
-        plotPanel.add(plotPanelLeft);
-        plotPanel.add(plotPanelRight);
-        rightPanel.add(plotPanel);
-        
-        // Fill up space.
-        Dimension minSize = new Dimension(5, 100);
-        Dimension prefSize = new Dimension(5, 100);
-        Dimension maxSize = new Dimension(Short.MAX_VALUE, 100);
-        rightPanel.add(new Box.Filler(minSize, prefSize, maxSize));
+        FormLayout leftLayout = new FormLayout(leftColSpec, leftRowSpec);
+        PanelBuilder leftBuilder = new PanelBuilder(leftLayout);
 
         /* Zernike coefficient panel. */
         String zColSpecs = "p, 4dlu, 30dlu, 8dlu, 30dlu, 4dlu, p"; // 7
@@ -265,7 +178,7 @@ public class MainFrame
                 "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p"; //25
         FormLayout zLayout = new FormLayout(zColSpecs, zRowSpecs);
         PanelBuilder zBuilder = new PanelBuilder(zLayout);
-        zBuilder.setDefaultDialogBorder();
+        //zBuilder.setDefaultDialogBorder();
 
         coefficient1TextField = new JTextField("0");
         coefficient2TextField = new JTextField("0");
@@ -290,36 +203,35 @@ public class MainFrame
         coefficient21TextField = new JTextField("0");
         coefficient22TextField = new JTextField("0");
 
-
-        row = 1;
+        int row = 1;
         zBuilder.addSeparator(
                 "Zernike Polynomial Coefficients",  cc.xyw(1, row, 7));
         row += 2;
-        zBuilder.addLabel(" 1. Bias",                cc.xy(1, row));
+        zBuilder.addLabel(" 1. Bias",               cc.xy(1, row));
         zBuilder.add(coefficient1TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 2. Tilt-X",              cc.xy(1, row));
+        zBuilder.addLabel(" 2. Tilt-X",             cc.xy(1, row));
         zBuilder.add(coefficient2TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 3. Tilt-Y",              cc.xy(1, row));
+        zBuilder.addLabel(" 3. Tilt-Y",             cc.xy(1, row));
         zBuilder.add(coefficient3TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 4. Defocus",             cc.xy(1, row));
+        zBuilder.addLabel(" 4. Defocus",            cc.xy(1, row));
         zBuilder.add(coefficient4TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 5. 1-Astg-Y",            cc.xy(1, row));
+        zBuilder.addLabel(" 5. 1-Astg-Y",           cc.xy(1, row));
         zBuilder.add(coefficient5TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 6. 1-Astg-X",            cc.xy(1, row));
+        zBuilder.addLabel(" 6. 1-Astg-X",           cc.xy(1, row));
         zBuilder.add(coefficient6TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 7. 1-Coma-X",            cc.xy(1, row));
+        zBuilder.addLabel(" 7. 1-Coma-X",           cc.xy(1, row));
         zBuilder.add(coefficient7TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 8. 1-Coma-Y",            cc.xy(1, row));
+        zBuilder.addLabel(" 8. 1-Coma-Y",           cc.xy(1, row));
         zBuilder.add(coefficient8TextField,         cc.xy(3, row));
         row += 2;
-        zBuilder.addLabel(" 9. 1-Tref-Y",            cc.xy(1, row));
+        zBuilder.addLabel(" 9. 1-Tref-Y",           cc.xy(1, row));
         zBuilder.add(coefficient9TextField,         cc.xy(3, row));
         row += 2;
         zBuilder.addLabel("10. 1-Tref-X",           cc.xy(1, row));
@@ -363,32 +275,24 @@ public class MainFrame
         zBuilder.add(coefficient22TextField,        cc.xy(5, row));
         row += 2;
 
-        //zernikeCoefficientPanel = new JPanel(zLayout);
-        leftPanel.add(zBuilder.getPanel());
+        leftBuilder.add(zBuilder.getPanel(),          cc.xy(1, 1));
 
+        LUTFilePanel = new JPanel();
+        LUTHeadingLabel = new JLabel();
+        browseLUTButton = new JButton();
+        LUTpathField = new JTextField();
 
-        /*
-        correctFocusButton.setFont(new Font("Arial", 1, 12));
-        correctFocusButton.setText("Correct Focus");
-        correctFocusButton.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                jBut_lut_changefocusMouseClicked(evt);
-            }
-        });
-        zernikeCoefficientPanel.add(correctFocusButton, new AbsoluteConstraints(180, 220, 120, -1));
-        */
+        showImageButton = new JButton();
+        sendSLMButton = new JButton();
+        powerOffButton = new JButton();
 
-        /*
-        resetFocusButton.setFont(new Font("Arial", 1, 12));
-        resetFocusButton.setText("Reset Focus");
-        resetFocusButton.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                jBut_lut_resetfocusMouseClicked(evt);
-            }
-        });
-        zernikeCoefficientPanel.add(resetFocusButton, new AbsoluteConstraints(180, 130, -1, -1));
-        */
+        openCoefficientFileButton = new JButton();
+        saveCoefficientsButton = new JButton();
+        resetCoefficientsButton = new JButton();
 
+        correctFocusButton = new JButton();
+        resetFocusButton = new JButton();
+        coefficientsHeadingLabel = new JLabel();
 
         // Button Panel. Open / Save / Reset.
         JPanel zButtonPanel = new JPanel(new GridLayout(1, 3));
@@ -419,16 +323,17 @@ public class MainFrame
         zBuilder.add(zButtonPanel,  cc.xyw(1, row, 7));
 
         /* LUT file panel. */
-        String LUTColSpecs = "left:max(100dlu;p), 4dlu, p"; // 3
+        //String LUTColSpecs = "left:max(100dlu;p), 4dlu, p"; // 3
+        String LUTColSpecs = "p, p:grow, 4dlu, p"; // 4
         String LUTRowSpecs = "p, 2dlu, p, 2dlu, p"; // 5
         FormLayout LUTLayout = new FormLayout(LUTColSpecs, LUTRowSpecs);
         PanelBuilder LUTBuilder = new PanelBuilder(LUTLayout);
-        LUTBuilder.setDefaultDialogBorder();
+        //LUTBuilder.setDefaultDialogBorder();
 
         row = 1;
-        LUTBuilder.addSeparator("Select LUT File",     cc.xyw(1, row, 3));
+        LUTBuilder.addSeparator("Select LUT File",     cc.xyw(1, row, 4));
         row += 2;
-        LUTBuilder.add(LUTpathField,                   cc.xyw(1, row, 1, "fill, center"));
+        LUTBuilder.add(LUTpathField,                   cc.xyw(1, row, 2, "fill, center"));
 
         browseLUTButton.setText("Browse");
         browseLUTButton.addMouseListener(new MouseAdapter() {
@@ -436,7 +341,7 @@ public class MainFrame
                 jBut_lut_browseMouseClicked(evt);
             }
         });
-        LUTBuilder.add(browseLUTButton,                cc.xy(3, row));
+        LUTBuilder.add(browseLUTButton,                cc.xy(4, row));
 
         row += 2;
 
@@ -455,24 +360,24 @@ public class MainFrame
                 jBut_send2slmMouseClicked(evt);
             }
         });
-        LUTBuilder.add(sendSLMButton,                  cc.xy(3, row));
-        leftPanel.add(LUTBuilder.getPanel());
-        
+        LUTBuilder.add(sendSLMButton,                  cc.xy(4, row));
+        leftBuilder.add(LUTBuilder.getPanel(),          cc.xy(1, 2));
+
 
         /* Pattern panel. */
         patternTextField = new JTextField();
 
 
-        String panelColSpecs = "left:max(100dlu;p), 4dlu, p"; // 3
+        String panelColSpecs = "p, p:grow, 4dlu, p"; // 4
         String panelRowSpecs = "p, 2dlu, p, 2dlu, p, 2dlu, p"; // 7
         FormLayout panelLayout = new FormLayout(panelColSpecs, panelRowSpecs);
         PanelBuilder patternBuilder = new PanelBuilder(panelLayout);
-        patternBuilder.setDefaultDialogBorder();
+        //patternBuilder.setDefaultDialogBorder();
 
         row = 1;
-        patternBuilder.addSeparator("Pattern (Image)",  cc.xyw(1, row, 3));
+        patternBuilder.addSeparator("Pattern (Image)",  cc.xyw(1, row, 4));
         row += 2;
-        patternBuilder.add(patternTextField,            cc.xy(1, row, "fill, center"));
+        patternBuilder.add(patternTextField,            cc.xyw(1, row, 2, "fill, center"));
 
         patternBrowseButton.setText("Browse");
         patternBrowseButton.addMouseListener(new MouseAdapter() {
@@ -480,9 +385,9 @@ public class MainFrame
                 jBut_patten_brwMouseClicked(evt);
             }
         });
-        patternBuilder.add(patternBrowseButton,         cc.xy(3, row));
+        patternBuilder.add(patternBrowseButton,         cc.xy(4, row));
         row += 2;
-        
+
         sendPatternButton.setText("Send");
         sendPatternButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
@@ -497,7 +402,7 @@ public class MainFrame
                 jBut_patten_ClearMouseClicked(evt);
             }
         });
-        patternBuilder.add(clearPatternButton,         cc.xy(3, row));
+        patternBuilder.add(clearPatternButton,         cc.xy(4, row));
         row += 2;
 
         /* Power off. */
@@ -507,16 +412,111 @@ public class MainFrame
                 jBut_poweroffMouseClicked(evt);
             }
         });
-        patternBuilder.add(powerOffButton,             cc.xyw(1, row, 3));
+        patternBuilder.add(powerOffButton,             cc.xyw(1, row, 4));
 
-        leftPanel.add(patternBuilder.getPanel());
-        getContentPane().add(leftPanel);
-        getContentPane().add(rightPanel);
+        leftBuilder.add(patternBuilder.getPanel(),     cc.xy(1, 3));
+
+        return leftBuilder.getPanel();
+    }
+
+    /**
+     * Builds the right panel.
+     *
+     * @return The right panel.
+     */
+    private JPanel buildRightPanel()
+    {
+        String rightColSpec = "p:grow"; //1
+        String rightRowSpec = "top:p, 2dlu, p:grow"; //2
+        FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
+        PanelBuilder rightBuilder = new PanelBuilder(rightLayout);
+
+        // Parameter Form.
+        String paramColsSpec = "p, 4dlu, p";
+        String paramRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
+        FormLayout paramLayout = new FormLayout(paramColsSpec, paramRowsSpec);
+        PanelBuilder paramBuilder = new PanelBuilder(paramLayout);
+        //paramBuilder.setDefaultDialogBorder();
+
+        CellConstraints cc = new CellConstraints();
+        int row = 1;
+        paramBuilder.addSeparator("Parameters",     cc.xyw(1, row, 3));
+        row += 2;
+        paramBuilder.addLabel("SLM Size",           cc.xy(1, row));
+        SLMSizeField = new JTextField("512");
+        paramBuilder.add(SLMSizeField,              cc.xy(3, row));
+        row += 2;
+        paramBuilder.addLabel("SLM Resolution",     cc.xy(1, row));
+        SLMResolutionTextField = new JTextField("512");
+        paramBuilder.add(SLMResolutionTextField,    cc.xy(3, row));
+        row += 2;
+        paramBuilder.addLabel("Use Square",         cc.xy(1, row));
+        squareCheckBox = new JCheckBox();
+        paramBuilder.add(squareCheckBox,            cc.xy(3, row));
+        row += 2;
+        paramBuilder.addLabel("Cut Center",         cc.xy(1, row));
+        cutCenterCheckBox = new JCheckBox();
+        paramBuilder.add(cutCenterCheckBox,         cc.xy(3, row));
+
+        //JPanel paramPanel = new JPanel(paramLayout);
+        rightBuilder.add(paramBuilder.getPanel(),   cc.xy(1, 1));
+
+        /* Plot panels: Left, Right. */
+        JPanel plotPanel = new JPanel(new GridLayout(1,2));
+        plotPanelLeft = new JPanel();
+        plotPanelRight = new JPanel();
+        plotPanelLeft.setLayout(new BorderLayout());
+        plotPanelRight.setLayout(new BorderLayout());
+        plotPanel.add(plotPanelLeft);
+        plotPanel.add(plotPanelRight);
+
+        if (ENABLE_PLOTTING) {
+            rightBuilder.add(plotPanel,                   cc.xy(1, 3));
+        } else {
+            JPanel lab = new JPanel();
+            lab.setOpaque(true);
+            lab.setBackground(Color.BLACK);
+            rightBuilder.add(lab,                       cc.xy(1, 3));
+        }
+
+        return rightBuilder.getPanel();
+    }
+
+
+    /**
+     * Initializes the form.
+     * Note: Code initially generated with the NetBeans forms designer.
+     */
+    private void initComponents() {
+
+        patternPanel = new JPanel();
+        patternHeadingLabel = new JLabel();
+        patternBrowseButton = new JButton();
+        clearPatternButton = new JButton();
+        sendPatternButton = new JButton();
+
+        fileChooserDialog = new JFileChooser();
+        fileChooserDialog.setPreferredSize(new Dimension(587, 400));
+
+        // Master.
+        JPanel masterPanel = (JPanel) getContentPane();
+        CellConstraints cc = new CellConstraints();
+
+        // 2 Columns.
+        String masterColSpec = "p, 20dlu, p:grow"; //3
+        String masterRowSpec = "top:p:grow";//1
+
+        FormLayout masterLayout = new FormLayout(masterColSpec, masterRowSpec);
+        PanelBuilder masterBuilder = new PanelBuilder(masterLayout, masterPanel);
         
-        // Padding on the right.
-
+        masterBuilder.setDefaultDialogBorder();
+        JPanel leftPanel = buildLeftPanel();
+        JPanel rightPanel = buildRightPanel();
+        masterBuilder.add(leftPanel,                cc.xy(1, 1));
+        masterBuilder.add(rightPanel,               cc.xy(3, 1));
+        
         /* Setup frame. */
-        setSize(900, 600);
+        pack();
         setLocationRelativeTo(null);
         setTitle("SLM Interface - Zernike Plotter");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
