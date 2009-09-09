@@ -427,7 +427,7 @@ public class MainFrame
     private JPanel buildRightPanel()
     {
         String rightColSpec = "p:grow"; //1
-        String rightRowSpec = "top:p, 2dlu, p:grow"; //2
+        String rightRowSpec = "top:p, 2dlu, fill:p:grow"; //2
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
         PanelBuilder rightBuilder = new PanelBuilder(rightLayout);
 
@@ -504,7 +504,7 @@ public class MainFrame
 
         // 2 Columns.
         String masterColSpec = "p, 20dlu, p:grow"; //3
-        String masterRowSpec = "top:p:grow";//1
+        String masterRowSpec = "fill:p:grow";//1
 
         FormLayout masterLayout = new FormLayout(masterColSpec, masterRowSpec);
         PanelBuilder masterBuilder = new PanelBuilder(masterLayout, masterPanel);
