@@ -22,10 +22,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -33,14 +31,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import javax.swing.BoxLayout;
+import java.util.ArrayList;
 
 
 class ZernikePanel {
@@ -165,7 +160,7 @@ public class MainFrame
     private JPanel buildLeftPanel()
     {
         String leftColSpec = "p"; //1
-        String leftRowSpec = "p, p, p"; //3
+        String leftRowSpec = "p, 4dlu, p, 4dlu, p"; //5 incl 3p
 
         CellConstraints cc = new CellConstraints();
         FormLayout leftLayout = new FormLayout(leftColSpec, leftRowSpec);
@@ -361,7 +356,7 @@ public class MainFrame
             }
         });
         LUTBuilder.add(sendSLMButton,                  cc.xy(4, row));
-        leftBuilder.add(LUTBuilder.getPanel(),          cc.xy(1, 2));
+        leftBuilder.add(LUTBuilder.getPanel(),          cc.xy(1, 3));
 
 
         /* Pattern panel. */
@@ -414,7 +409,7 @@ public class MainFrame
         });
         patternBuilder.add(powerOffButton,             cc.xyw(1, row, 4));
 
-        leftBuilder.add(patternBuilder.getPanel(),     cc.xy(1, 3));
+        leftBuilder.add(patternBuilder.getPanel(),     cc.xy(1, 5));
 
         return leftBuilder.getPanel();
     }
@@ -427,39 +422,55 @@ public class MainFrame
     private JPanel buildRightPanel()
     {
         String rightColSpec = "p:grow"; //1
-        String rightRowSpec = "top:p, 2dlu, fill:p:grow"; //2
+        String rightRowSpec = "top:p, 2dlu, p, 2dlu, fill:p:grow, 2dlu, p"; //7
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
         PanelBuilder rightBuilder = new PanelBuilder(rightLayout);
 
         // Parameter Form.
-        String paramColsSpec = "p, 4dlu, p";
-        String paramRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
+        String paramColsSpec = "p, 4dlu, p, p:grow"; //4
+        String paramRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p"; //9
         FormLayout paramLayout = new FormLayout(paramColsSpec, paramRowsSpec);
         PanelBuilder paramBuilder = new PanelBuilder(paramLayout);
         //paramBuilder.setDefaultDialogBorder();
 
         CellConstraints cc = new CellConstraints();
         int row = 1;
-        paramBuilder.addSeparator("Parameters",     cc.xyw(1, row, 3));
+        paramBuilder.addSeparator("Parameters",        cc.xyw(1, row, 4));
         row += 2;
-        paramBuilder.addLabel("SLM Size",           cc.xy(1, row));
+        paramBuilder.addLabel("SLM Size",              cc.xy(1, row));
         SLMSizeField = new JTextField("512");
-        paramBuilder.add(SLMSizeField,              cc.xy(3, row));
+        paramBuilder.add(SLMSizeField,                 cc.xy(3, row));
         row += 2;
-        paramBuilder.addLabel("SLM Resolution",     cc.xy(1, row));
+        paramBuilder.addLabel("SLM Resolution",        cc.xy(1, row));
         SLMResolutionTextField = new JTextField("512");
-        paramBuilder.add(SLMResolutionTextField,    cc.xy(3, row));
+        paramBuilder.add(SLMResolutionTextField,       cc.xy(3, row));
         row += 2;
-        paramBuilder.addLabel("Use Square",         cc.xy(1, row));
+        paramBuilder.addLabel("Use Square",            cc.xy(1, row));
         squareCheckBox = new JCheckBox();
-        paramBuilder.add(squareCheckBox,            cc.xy(3, row));
+        paramBuilder.add(squareCheckBox,               cc.xy(3, row));
         row += 2;
-        paramBuilder.addLabel("Cut Center",         cc.xy(1, row));
+        paramBuilder.addLabel("Cut Center",            cc.xy(1, row));
         cutCenterCheckBox = new JCheckBox();
-        paramBuilder.add(cutCenterCheckBox,         cc.xy(3, row));
+        paramBuilder.add(cutCenterCheckBox,            cc.xy(3, row));
 
         //JPanel paramPanel = new JPanel(paramLayout);
-        rightBuilder.add(paramBuilder.getPanel(),   cc.xy(1, 1));
+        rightBuilder.add(paramBuilder.getPanel(),      cc.xy(1, 1));
+
+        /* Wavefront display settings. */
+        String displayColsSpec = "p, 2dlu, p:grow"; //1
+        String displayRowsSpec = "p, 2dlu, p"; //9
+        FormLayout displayLayout =
+                new FormLayout(displayColsSpec, displayRowsSpec);
+        PanelBuilder displayBuilder = new PanelBuilder(displayLayout);
+
+        row = 1;
+        displayBuilder.addSeparator(
+                "Wavefront Display Settings",          cc.xyw(1, row, 3));
+        row += 2;
+        JCheckBox skipTilt = new JCheckBox("Ignore piston / tip / tilt");
+        displayBuilder.add(skipTilt,                   cc.xy(1, row));
+
+        rightBuilder.add(displayBuilder.getPanel(), cc.xy(1, 3));
 
         /* Plot panels: Left, Right. */
         JPanel plotPanel = new JPanel(new GridLayout(1,2));
@@ -471,13 +482,51 @@ public class MainFrame
         plotPanel.add(plotPanelRight);
 
         if (ENABLE_PLOTTING) {
-            rightBuilder.add(plotPanel,                   cc.xy(1, 3));
+            rightBuilder.add(plotPanel,             cc.xy(1, 5));
         } else {
             JPanel lab = new JPanel();
             lab.setOpaque(true);
             lab.setBackground(Color.BLACK);
-            rightBuilder.add(lab,                       cc.xy(1, 3));
+            rightBuilder.add(lab,                   cc.xy(1, 5));
         }
+
+        /* Wavefront calculations. */
+        String calcColsSpec = "right:p, 4dlu, p:grow"; //3
+        String calcRowsSpec = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p"; //11
+        FormLayout calcLayout =
+                new FormLayout(calcColsSpec, calcRowsSpec);
+        PanelBuilder calcBuilder = new PanelBuilder(calcLayout);
+        row = 1;
+        calcBuilder.addSeparator(
+                "Wavefront statistics",                cc.xyw(1, row, 3));
+        row += 2;
+
+        calcBuilder.addLabel("PV:",                    cc.xy(1, row));
+        pvValueLabel = new JLabel();
+        calcBuilder.add(pvValueLabel,                  cc.xy(3, row));
+        row += 2;
+
+        calcBuilder.addLabel("RMS:",                   cc.xy(1, row));
+        rmsValueLabel = new JLabel();
+        calcBuilder.add(rmsValueLabel,                 cc.xy(3, row));
+        row += 2;
+
+        calcBuilder.addLabel("PV w/o tilt:",           cc.xy(1, row));
+        pvNoTiltValueLabel = new JLabel();
+        calcBuilder.add(pvNoTiltValueLabel,            cc.xy(3, row));
+        row += 2;
+
+        calcBuilder.addLabel("RMS w/o tilt:",          cc.xy(1, row));
+        rmsNoTiltValueLabel = new JLabel();
+        calcBuilder.add(rmsNoTiltValueLabel,           cc.xy(3, row));
+        row += 2;
+
+        calcBuilder.addLabel("Min / max:",            cc.xy(1, row));
+        strehlValueLabel = new JLabel();
+        calcBuilder.add(strehlValueLabel,            cc.xy(3, row));
+
+        rightBuilder.add(calcBuilder.getPanel(),    cc.xy(1, 7));
+
 
         return rightBuilder.getPanel();
     }
@@ -518,15 +567,126 @@ public class MainFrame
         /* Setup frame. */
         pack();
         setLocationRelativeTo(null);
-        setTitle("SLM Interface - Zernike Plotter");
+        setTitle("SLM BeamShaper - Zernike Plotter");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
+
+    private void updateCalculations() {
+        double[] wavefrontData = generateZernikeWavefront(true);
+
+        int SLMSIZE = WIDTH;
+        int ActSize = (int) getRad();
+        double radius = ActSize * 220 / 512; // radius 220 for S-H.
+        // XXX/FIXME: 220 needs to be specified in only one place (should be).
+
+        // Only select values on the pupil.
+        ArrayList valList = new ArrayList();
+
+        for (int row = 0; row < 512; row++) {
+            for (int col = 0; col < 512; col++) {
+
+                double xs = (col - 256) / radius; // -256/300 = -0.8533
+                double ys = (row - 256) / radius; // +256/300 = -0.8533
+                double p2 = xs*xs + ys*ys;
+                int index = row * SLMSIZE + col;
+
+                if ((squareCheckBox.isSelected() || p2 <= 1) &&
+                        (!cutCenterCheckBox.isSelected() ||
+                        (p2 >= 0.10))) {
+                    Double val = new Double(wavefrontData[index]);
+                    valList.add(val);
+                }
+            }
+        }
+
+        // Find max, min, RMS, stddev.
+        double min = 0, max = 0, sum = 0;
+        for (int i = 0; i < valList.size(); i++) {
+            Double val = (Double)valList.get(i);
+            if (i == 0 || val < min) {
+                min = val;
+            }
+            if (i == 0 || val > max) {
+                max = val;
+            }
+            sum += val;
+        }
+        double mean = sum / valList.size();
+
+        double PV = Math.abs(max - min);
+
+        double sum2 = 0;
+        for (int i = 0; i < valList.size(); i++) {
+            Double val = (Double)valList.get(i);
+            sum2 += (val - mean)*(val - mean);
+        }
+
+        double variance = sum2 / valList.size();
+        double stdDev = Math.sqrt(variance);
+
+        pvValueLabel.setText(String.format("%.3f", PV));
+        rmsValueLabel.setText(String.format("%.3f", stdDev));
+        strehlValueLabel.setText(String.format("%.3f / %.3f", min, max));
+        
+        // No tilt now.
+        wavefrontData = generateZernikeWavefront(false);
+
+        // Only select values on the pupil.
+        valList.clear();
+
+        for (int row = 0; row < 512; row++) {
+            for (int col = 0; col < 512; col++) {
+
+                double xs = (col - 256) / radius; // -256/300 = -0.8533
+                double ys = (row - 256) / radius; // +256/300 = -0.8533
+                double p2 = xs*xs + ys*ys;
+                int index = row * SLMSIZE + col;
+
+                if ((squareCheckBox.isSelected() || p2 <= 1) &&
+                        (!cutCenterCheckBox.isSelected() ||
+                        (p2 >= 0.10))) {
+                    Double val = new Double(wavefrontData[index]);
+                    valList.add(val);
+                }
+            }
+        }
+
+        // Find max, min, RMS, stddev.
+        max = min = sum = 0;
+        for (int i = 0; i < valList.size(); i++) {
+            Double val = (Double)valList.get(i);
+            if (i == 0 || val < min) {
+                min = val;
+            }
+            if (i == 0 || val > max) {
+                max = val;
+            }
+            sum += val;
+        }
+        mean = sum / valList.size();
+
+        double PVnoTilt = Math.abs(max - min);
+
+        sum2 = 0;
+        for (int i = 0; i < valList.size(); i++) {
+            Double val = (Double)valList.get(i);
+            sum2 += (val - mean)*(val - mean);
+        }
+
+        variance = sum2 / valList.size();
+        stdDev = Math.sqrt(variance);
+
+        pvNoTiltValueLabel.setText(String.format("%.3f", PVnoTilt));
+        rmsNoTiltValueLabel.setText(String.format("%.3f", stdDev));
+    }
+
 
     /**
      * Called when the "Reset focus" button is clicked.
      *
      * @param evt The event instance.
      */
+    /*
     private void jBut_lut_resetfocusMouseClicked(MouseEvent evt) {
         String oldfocus;
         // Take the value remembered before focus is changed due
@@ -535,7 +695,7 @@ public class MainFrame
 
         // Set the old value to the defocus parameter.
         coefficient4TextField.setText(oldfocus);
-    }
+    }*/
 
     /**
      * MR:
@@ -544,6 +704,7 @@ public class MainFrame
      * according to the formula, changes on focus value from spherical is
      * 3 times of spherical parameter.
      */
+    /*
     private void recalculate_focus() {
         double sphparameter, focusold, focuschange, secondsph;
         String sph, foc, secsph;
@@ -576,7 +737,7 @@ public class MainFrame
 
         foc = String.valueOf((float) focusold);
         coefficient4TextField.setText(foc);
-    }
+    }*/
 
     /**
      * The focus value have to be changed for large S.A. and
@@ -585,6 +746,7 @@ public class MainFrame
      * of the Strehl ratio for large aberrations with a defocus correction.
      * N.B. These are for very high values of SA.
      */
+    /*
     private void correct_focus() {
         String foc;
         double SA, S2A, D;
@@ -594,7 +756,7 @@ public class MainFrame
 
         D = 0.0;
 
-        /* Correction for S.A. defocus. */
+        // Correction for S.A. defocus.
         if ((SA >= 0.0) && (SA < 0.78)) {
             D += 0.0;
         } else if ((SA >= 0.78) && (SA < 1.28)) {
@@ -627,7 +789,7 @@ public class MainFrame
             D += 14.0;
         }
 
-        /* Correction for secondary S.A. defocus. */
+        // Correction for secondary S.A. defocus.
         if ((S2A >= 0.0) && (S2A < 0.78)) {
             D += 0.0;
         } else if ((S2A >= 0.78) && (S2A < 1.28)) {
@@ -694,12 +856,13 @@ public class MainFrame
         }
 
         coefficient4TextField.setText(String.valueOf(D));
-    }
+    }*/
 
+    /*
     private void jBut_lut_changefocusMouseClicked(MouseEvent evt) {
         //recalculate_focus();
         correct_focus(); //GH
-    }
+    }*/
 
     private void jBut_patten_ClearMouseClicked(MouseEvent evt) {
         patternTextField.setText("");
@@ -777,32 +940,9 @@ public class MainFrame
 
         //read the look up table
         dlut = readLUT();
-        //get the parameters
-        ZCoef[0] = Double.valueOf(coefficient1TextField.getText());
-        ZCoef[1] = Double.valueOf(coefficient2TextField.getText());
-        ZCoef[2] = Double.valueOf(coefficient3TextField.getText());
-        ZCoef[3] = Double.valueOf(coefficient4TextField.getText());
-        ZCoef[4] = Double.valueOf(coefficient5TextField.getText());
-        ZCoef[5] = Double.valueOf(coefficient6TextField.getText());
-        ZCoef[6] = Double.valueOf(coefficient7TextField.getText());
-        ZCoef[7] = Double.valueOf(coefficient8TextField.getText());
-        ZCoef[8] = Double.valueOf(coefficient9TextField.getText());
-        ZCoef[9] = Double.valueOf(coefficient10TextField.getText());
-        ZCoef[10] = Double.valueOf(coefficient11TextField.getText());
-        ZCoef[11] = Double.valueOf(coefficient12TextField.getText());
-        ZCoef[12] = Double.valueOf(coefficient13TextField.getText());
-        ZCoef[13] = Double.valueOf(coefficient14TextField.getText());
-        ZCoef[14] = Double.valueOf(coefficient15TextField.getText());
-        ZCoef[15] = Double.valueOf(coefficient16TextField.getText());
-        ZCoef[16] = Double.valueOf(coefficient17TextField.getText());
-        ZCoef[17] = Double.valueOf(coefficient18TextField.getText());
-        ZCoef[18] = Double.valueOf(coefficient19TextField.getText());
-        ZCoef[19] = Double.valueOf(coefficient20TextField.getText());
-        ZCoef[20] = Double.valueOf(coefficient21TextField.getText());
-        ZCoef[21] = Double.valueOf(coefficient22TextField.getText());
 
-        //generate wavefront data by zernike polynomials parameters
-        samples[0] = generateZernikeWavefront();
+        // Generate wavefront data by zernike polynomials parameters.
+        samples[0] = generateZernikeWavefrontFromCurrentSettings(true);
 
         if (ENABLE_PLOTTING) {
             try {
@@ -872,6 +1012,8 @@ public class MainFrame
         if (USE_DEVICE) {
             com.slmcontrol.slmAPI.slmjava(samples[0], (char) 0);
         }
+
+        updateCalculations();
     }
 
     /**
@@ -935,13 +1077,41 @@ public class MainFrame
         return lut;
     }
 
+    private double[] generateZernikeWavefrontFromCurrentSettings(
+            boolean includeTipTilt) {
+        ZCoef[0] = Double.valueOf(coefficient1TextField.getText());
+        ZCoef[1] = Double.valueOf(coefficient2TextField.getText());
+        ZCoef[2] = Double.valueOf(coefficient3TextField.getText());
+        ZCoef[3] = Double.valueOf(coefficient4TextField.getText());
+        ZCoef[4] = Double.valueOf(coefficient5TextField.getText());
+        ZCoef[5] = Double.valueOf(coefficient6TextField.getText());
+        ZCoef[6] = Double.valueOf(coefficient7TextField.getText());
+        ZCoef[7] = Double.valueOf(coefficient8TextField.getText());
+        ZCoef[8] = Double.valueOf(coefficient9TextField.getText());
+        ZCoef[9] = Double.valueOf(coefficient10TextField.getText());
+        ZCoef[10] = Double.valueOf(coefficient11TextField.getText());
+        ZCoef[11] = Double.valueOf(coefficient12TextField.getText());
+        ZCoef[12] = Double.valueOf(coefficient13TextField.getText());
+        ZCoef[13] = Double.valueOf(coefficient14TextField.getText());
+        ZCoef[14] = Double.valueOf(coefficient15TextField.getText());
+        ZCoef[15] = Double.valueOf(coefficient16TextField.getText());
+        ZCoef[16] = Double.valueOf(coefficient17TextField.getText());
+        ZCoef[17] = Double.valueOf(coefficient18TextField.getText());
+        ZCoef[18] = Double.valueOf(coefficient19TextField.getText());
+        ZCoef[19] = Double.valueOf(coefficient20TextField.getText());
+        ZCoef[20] = Double.valueOf(coefficient21TextField.getText());
+        ZCoef[21] = Double.valueOf(coefficient22TextField.getText());
+
+        return generateZernikeWavefront(includeTipTilt);
+    }
     /**
      * Generate slm surface data according to zernike polynomial parameters.
      *
-     * @param ZCoef The Zernike coefficient vector.
+     * @param includeTiptTilt Shall piston, tip, tilt be included in the calculation?
+     *
      * @return The output Zernike image matrix.
      */
-    public double[] generateZernikeWavefront() {
+    public double[] generateZernikeWavefront(boolean includeTipTilt) {
 //        double realx, realy, Radius;
         double radius;
         double xs,
@@ -1029,11 +1199,11 @@ public class MainFrame
         
 
         // set the surface by polynomia parameters, pixel by pixel
-        // GH: row=0; row < 512; row++        
+        // GH: row=0; row < 512; row++
         for (int row = 0; row < 512; row++) {
             for (int col = 0; col < 512; col++) {
-                xs = (row - 256) / radius; // -256/300 = -0.8533
-                ys = (col - 256) / radius; // +256/300 = -0.8533
+                xs = (col - 256) / radius; // -256/300 = -0.8533
+                ys = (row - 256) / radius; // +256/300 = -0.8533
                 p2 = xs*xs + ys*ys;
                 p4 = p2*p2;
                 p6 = p4*p2;
@@ -1070,9 +1240,13 @@ public class MainFrame
                      */
                 
                     double[] term = new double[22];
-                    term[0]  =  ZCoef[0]*(1);
-                    term[1]  =  ZCoef[1]*(2*xs);
-                    term[2]  =  ZCoef[2]*(2*ys);
+                    if (includeTipTilt) {
+                        term[0]  =  ZCoef[0]*(1);
+                        term[1]  =  ZCoef[1]*(2*xs);
+                        term[2]  =  ZCoef[2]*(2*ys);
+                    } else {
+                        term[0] = term[1] = term[2] = 0;
+                    }
                     term[3]  =  ZCoef[3]*(Math.sqrt(3)) *(2*xs2 + 2*ys2 - 1);
                     term[4]  =  ZCoef[4]*(Math.sqrt(6)) *(2*xs*ys); 
                     term[5]  =  ZCoef[5]*(Math.sqrt(6)) *(xs2 - ys2);
@@ -1210,39 +1384,12 @@ public class MainFrame
 
     //
     /**
-     * Show the slm surface data on computer, but don't send to slm.
+     * Show the wavefront surface data, but don't send to the SLM.
      *
      * @param evt The mouse event object.
      */
     private void jBut_showMouseClicked(MouseEvent evt) {
-        // TODO add your handling code here:
-        ZCoef[0] = Double.valueOf(coefficient1TextField.getText());
-        ZCoef[1] = Double.valueOf(coefficient2TextField.getText());
-        ZCoef[2] = Double.valueOf(coefficient3TextField.getText());
-        ZCoef[3] = Double.valueOf(coefficient4TextField.getText());
-        ZCoef[4] = Double.valueOf(coefficient5TextField.getText());
-        ZCoef[5] = Double.valueOf(coefficient6TextField.getText());
-        ZCoef[6] = Double.valueOf(coefficient7TextField.getText());
-        ZCoef[7] = Double.valueOf(coefficient8TextField.getText());
-        ZCoef[8] = Double.valueOf(coefficient9TextField.getText());
-        ZCoef[9] = Double.valueOf(coefficient10TextField.getText());
-        ZCoef[10] = Double.valueOf(coefficient11TextField.getText());
-        ZCoef[11] = Double.valueOf(coefficient12TextField.getText());
-        ZCoef[12] = Double.valueOf(coefficient13TextField.getText());
-        ZCoef[13] = Double.valueOf(coefficient14TextField.getText());
-        ZCoef[14] = Double.valueOf(coefficient15TextField.getText());
-        ZCoef[15] = Double.valueOf(coefficient16TextField.getText());
-        ZCoef[16] = Double.valueOf(coefficient17TextField.getText());
-        ZCoef[17] = Double.valueOf(coefficient18TextField.getText());
-        ZCoef[18] = Double.valueOf(coefficient19TextField.getText());
-        ZCoef[19] = Double.valueOf(coefficient20TextField.getText());
-        ZCoef[20] = Double.valueOf(coefficient21TextField.getText());
-        ZCoef[21] = Double.valueOf(coefficient22TextField.getText());
-
-
-        //////////////////////////////////////////////////////////////////////////////////
-        ////////////////////////////////////////////////////////////////////
-        samples[0] = generateZernikeWavefront();
+        samples[0] = generateZernikeWavefrontFromCurrentSettings(true);
 
         if (ENABLE_PLOTTING) {
             try {
@@ -1266,6 +1413,8 @@ public class MainFrame
                 System.err.println("Caught IOException: " + e.getMessage());
             }
         }
+
+        updateCalculations();
 
         return;
     }
@@ -1542,6 +1691,15 @@ public class MainFrame
      */
     JCheckBox squareCheckBox;
     JCheckBox cutCenterCheckBox;
+
+    /**
+     * Calculation labels.
+     */
+    JLabel pvValueLabel;
+    JLabel rmsValueLabel;
+    JLabel pvNoTiltValueLabel;
+    JLabel rmsNoTiltValueLabel;
+    JLabel strehlValueLabel;
 
     /*
      * Power the device off.

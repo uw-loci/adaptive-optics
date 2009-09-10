@@ -9,7 +9,7 @@ clear all;
 %% Define constants.
 
 %Wavelength.
-lambda=600e-9;
+lambda=800e-9;
 %Source parameters.
 sourceWidth=1e-3; 
 sourceN=401;
