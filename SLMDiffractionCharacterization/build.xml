@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="TestSwig" default="default" basedir=".">
+    <description>Builds, tests, and runs the project TestSwig.</description>
+
+    <property file="build.properties" />
+    
+    <import file="nbproject/build-impl.xml"/>
+
+    <!-- Customized pre-compile command. -->
+    <target name="-pre-compile">
+        <echo message="LOCI: Copying Swig-generated java files to swig package" />
+        <delete dir="${src.dir}/${swigexchange.swig-java-src-dir}/" includes="*.java" />
+        <copy todir="${src.dir}/${swigexchange.swig-java-src-dir}/">
+            <fileset dir="${swigexchange.java-swig-dir}" includes="*.java" />
+        </copy>
+    </target>
+</project>
