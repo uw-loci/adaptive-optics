@@ -55,8 +55,8 @@ public class MainFrame
      * Indicates whether the device is being used, or whether it is running
      * in graphics only mode.
      */
-    final boolean USE_DEVICE = false;
-    final boolean ENABLE_PLOTTING = false;
+    final boolean USE_DEVICE = true;
+    final boolean ENABLE_PLOTTING = true;
 
     /**
      * Location of default LUT file.
@@ -160,7 +160,7 @@ public class MainFrame
     private JPanel buildLeftPanel()
     {
         String leftColSpec = "p"; //1
-        String leftRowSpec = "p, 4dlu, p, 4dlu, p"; //5 incl 3p
+        String leftRowSpec = "p, 4dlu:grow, p, 4dlu:grow, p"; //5 incl 3p
 
         CellConstraints cc = new CellConstraints();
         FormLayout leftLayout = new FormLayout(leftColSpec, leftRowSpec);
@@ -480,6 +480,7 @@ public class MainFrame
         plotPanelRight.setLayout(new BorderLayout());
         plotPanel.add(plotPanelLeft);
         plotPanel.add(plotPanelRight);
+        plotPanel.validate();
 
         if (ENABLE_PLOTTING) {
             rightBuilder.add(plotPanel,             cc.xy(1, 5));
@@ -565,7 +566,8 @@ public class MainFrame
         masterBuilder.add(rightPanel,               cc.xy(3, 1));
         
         /* Setup frame. */
-        pack();
+        setSize(900, 600);
+        //pack(); -not working, drawing area not included....
         setLocationRelativeTo(null);
         setTitle("SLM BeamShaper - Zernike Plotter");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -1185,7 +1187,8 @@ public class MainFrame
         //radius = ActSize * 175 / 512;
         // GH: Selected radius 175 (diam: 350) to make field match scan mirrors
         // (entrance pupil).
-        radius = ActSize * 220 / 512; // radius 220 for S-H.
+        //radius = ActSize * 220 / 512; // radius 220 for S-H.
+        radius = ActSize * 175 / 512;
 
         System.out.println("radius is " + radius);
 
