@@ -139,8 +139,8 @@ public class Main extends JFrame implements Observer {
         PanelBuilder leftBuilder = new PanelBuilder(leftLayout);
 
         /* Calibration Pattern Panel. */
-        String calibImageColSpecs = "400dlu";
-        String calibImageRowSpecs = "p, 4dlu, 250dlu";
+        String calibImageColSpecs = "600dlu";
+        String calibImageRowSpecs = "p, 4dlu, 260dlu";
         FormLayout calibImageLayout =
                 new FormLayout(calibImageColSpecs, calibImageRowSpecs);
         PanelBuilder calibImageBuilder = new PanelBuilder(calibImageLayout);
@@ -158,8 +158,8 @@ public class Main extends JFrame implements Observer {
 
 
         /* CCD Image Panel. */
-        String ccdColSpecs = "400dlu";
-        String ccdRowSpecs = "p, 4dlu, 250dlu";
+        String ccdColSpecs = "600dlu";
+        String ccdRowSpecs = "p, 4dlu, 260dlu";
         FormLayout ccdLayout = new FormLayout(ccdColSpecs, ccdRowSpecs);
         PanelBuilder ccdBuilder = new PanelBuilder(ccdLayout);
 

@@ -54,12 +54,12 @@ class ImagePanel extends JPanel implements MouseListener {
     /**
      * The maximum width of the Image Panel (in pixels).
      */
-    private final int maxWidth = 800;
+    private final int maxWidth = 1000;
 
     /**
      * The maximum height of the Image Panel (in pixels).
      */
-    private final int maxHeight = 600;
+    private final int maxHeight = 800;
 
     /**
      * A notifier object used to inform observers when a change has been
@@ -192,7 +192,8 @@ class ImagePanel extends JPanel implements MouseListener {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(img, 0, 0, null);
+
+        g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
         if (x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0) {
             g.setColor(Color.RED);
             g.drawRect(x1, y1, x2 - x1, y2 - y1);

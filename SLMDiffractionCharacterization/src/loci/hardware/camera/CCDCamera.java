@@ -15,6 +15,7 @@
 package loci.hardware.camera;
 
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -57,11 +58,15 @@ public class CCDCamera {
 
     public BufferedImage getImage() {
         BufferedImage img =
-                new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+                new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
         for (int m = 0; m < width; m++) {
             for (int n = 0; n < height; n++) {
                 int index = n*width + m;
-                img.setRGB(m, n, frame[index]);
+                byte val = (byte)(frame[index] & 0xff);
+                // 32bit
+                int rgbVal = (val << 16) | (val << 8) | val;
+                img.setRGB(m, n, rgbVal);
             }
         }
 
@@ -75,14 +80,9 @@ public class CCDCamera {
             return -1;
         }
 
-        System.out.println("loading up");
-        int val = CCDCamWrapper.get_frame_at_pos(0);
-        System.out.println("first val: " + val);
-
         for (int i = 0; i < width*height; i++) {
             frame[i] = CCDCamWrapper.get_frame_at_pos(i);
         }
-
 
         return retVal;
     }
