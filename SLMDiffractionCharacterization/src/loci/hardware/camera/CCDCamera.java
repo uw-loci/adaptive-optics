@@ -14,6 +14,12 @@
 
 package loci.hardware.camera;
 
+import java.awt.Canvas;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
 import loci.hardware.camera.swig.CCDCamWrapper;
 
 /**
@@ -25,11 +31,16 @@ import loci.hardware.camera.swig.CCDCamWrapper;
  * images from the camera.
  */
 public class CCDCamera {
-    private static final String dllPath = "C:\\SWIGExchange\\CCDCamWrapper.dll";
+    private static final String dllPath = "C:\\gunnsteinn\\AdaptiveOptics\\SWIG\\CCDCamWrapper.dll";
+    private int[] frame;
+    private int width = 1024;
+    private int height = 768;
+
 
     public CCDCamera() {
         // Load the SWIG C++ bindings DLL.
         System.load(dllPath);
+        frame = new int[width*height];
     }
 
     public int testMe() {
@@ -44,7 +55,37 @@ public class CCDCamera {
         return CCDCamWrapper.get_note();
     }
 
-    public int captureFrame() {
-        return CCDCamWrapper.capture_frame();
+    public BufferedImage getImage() {
+        BufferedImage img =
+                new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+        for (int m = 0; m < width; m++) {
+            for (int n = 0; n < height; n++) {
+                int index = n*width + m;
+                img.setRGB(m, n, frame[index]);
+            }
+        }
+
+        return img;
     }
+
+    public int captureFrame() {
+        int retVal = CCDCamWrapper.capture_frame();
+        if (retVal != (width * height)) {
+            System.out.println("error in buf length");
+            return -1;
+        }
+
+        System.out.println("loading up");
+        int val = CCDCamWrapper.get_frame_at_pos(0);
+        System.out.println("first val: " + val);
+
+        for (int i = 0; i < width*height; i++) {
+            frame[i] = CCDCamWrapper.get_frame_at_pos(i);
+        }
+
+
+        return retVal;
+    }
+
+
 }

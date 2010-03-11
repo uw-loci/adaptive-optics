@@ -402,6 +402,11 @@ public class Main extends JFrame implements Observer {
         System.out.println("Note: " + ccdCamera.getNote());
         
         int frameLen = ccdCamera.captureFrame();
+        if (frameLen < 0) {
+            System.out.println("Err: " + ccdCamera.getNote());
+        } else {
+            ccdImagePanel.setImage(ccdCamera.getImage());
+        }
         System.out.println("frameLength: " + frameLen);
     }
     

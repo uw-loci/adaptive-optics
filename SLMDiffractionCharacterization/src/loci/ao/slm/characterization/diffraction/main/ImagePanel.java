@@ -14,6 +14,7 @@ package loci.ao.slm.characterization.diffraction.main;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
@@ -90,8 +91,19 @@ class ImagePanel extends JPanel implements MouseListener {
            img = ImageIO.read(new File("C:/Users/Public/Pictures/Sample Pictures/Tulips.jpg"));
         } catch (IOException e) {
         }
+        setImage(img);
 
         setPreferredSize(getPreferredSize());
+    }
+
+    /**
+     * Set the new image.
+     * 
+     * @param img The new image to be shown.
+     */
+    public void setImage(BufferedImage img) {
+        this.img = img;
+        repaint();
     }
 
     /**
