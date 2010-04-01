@@ -54,12 +54,12 @@ class ImagePanel extends JPanel implements MouseListener {
     /**
      * The maximum width of the Image Panel (in pixels).
      */
-    private final int maxWidth = 1000;
+    protected final int maxWidth = 1000;
 
     /**
      * The maximum height of the Image Panel (in pixels).
      */
-    private final int maxHeight = 800;
+    protected final int maxHeight = 800;
 
     /**
      * A notifier object used to inform observers when a change has been
@@ -74,6 +74,8 @@ class ImagePanel extends JPanel implements MouseListener {
 
     /**
      * Constructs the ImagePanel object.  Initializes and sets up the image.
+     *
+     * @param enableROI True if the ROI selection is to be used, false otherwise.
      */
     public ImagePanel(boolean enableROI) {
         this.enableROI = enableROI;
@@ -94,6 +96,14 @@ class ImagePanel extends JPanel implements MouseListener {
         setImage(img);
 
         setPreferredSize(getPreferredSize());
+    }
+
+    /**
+     * Constructs the ImagePanel object.  Initializes and sets up the image.
+     * Disables the ROI.
+     */
+    public ImagePanel() {
+        this(false);
     }
 
     /**
@@ -198,6 +208,58 @@ class ImagePanel extends JPanel implements MouseListener {
             g.setColor(Color.RED);
             g.drawRect(x1, y1, x2 - x1, y2 - y1);
         }
+    }
+
+    /**
+     * Calculates the mean intensity of the image within the ROI.
+     * XXX/FIXME: has not been tested properly.
+     * @return The mean intensity of the image within the ROI.
+     */
+    public double getROIIntensity()
+    {
+        BufferedImage roiImage = getROIImage();
+
+        double area = roiImage.getWidth() * roiImage.getHeight();
+        double mean = 0.0;
+        for (int m = 0; m < roiImage.getWidth(); m++) {
+            for (int n = 0; n < roiImage.getHeight(); n++) {
+                int rgb = roiImage.getRGB(m, n);
+                int grayVal = rgb & 0xff;
+                mean = mean + 1.0 * grayVal / area;
+            }
+        }
+        
+        return mean;
+    }
+
+    /**
+     * Get the ROI image.  Useful for testing.
+     */
+    public BufferedImage getROIImage()    
+    {
+        if (!enableROI) {
+            return null;
+        }
+        
+        double scalingWidth = 1.0 * img.getWidth() / getWidth();
+        double scalingHeight = 1.0 * img.getHeight() / getHeight();
+        int imgRoiX1 = (int) (x1 * scalingWidth);
+        int imgRoiX2 = (int) (x2 * scalingWidth);
+        int imgRoiY1 = (int) (y1 * scalingHeight);
+        int imgRoiY2 = (int) (y2 * scalingHeight);
+        int roiWidth = (imgRoiX2 - imgRoiX1);
+        int roiHeight = (imgRoiY2 - imgRoiY1);
+
+        BufferedImage roiImage =
+                new BufferedImage(roiWidth, roiHeight, BufferedImage.TYPE_INT_RGB);
+        for (int x = imgRoiX1; x < imgRoiX2; x++) {
+            for (int y = imgRoiY1; y < imgRoiY2; y++) {
+                int rgb = img.getRGB(x, y);
+                roiImage.setRGB(x - imgRoiX1, y - imgRoiY1, rgb);
+            }
+        }
+
+        return roiImage;
     }
 
     /**

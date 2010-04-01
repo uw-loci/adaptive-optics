@@ -67,13 +67,18 @@ public class Main extends JFrame implements Observer {
     /**
      * Used to display the current calibration pattern.
      */
-    private ImagePanel calibImagePanel;
+    private GratingImagePanel calibImagePanel;
    
     /**
      * Used to isplay an image from a CCD camera.  Also used in showing and
      * specifying the ROI for the CCD.
      */
     private ImagePanel ccdImagePanel;
+
+    /**
+     * CCD zoom region.
+     */
+    private ImagePanel ccdZoomRegion;
 
     /**
      * FileChooser widget used to select output folder location.
@@ -89,6 +94,46 @@ public class Main extends JFrame implements Observer {
      * A button that triggers the folder chooser dialog to appear.
      */
     private JButton browseButton;
+
+    /**
+     * Specifies the number of gratings.
+     */
+    private JTextField gratingsEdit;
+
+    /**
+     * Specifies the numbers of regions.
+     */
+    private JTextField regionsEdit;
+
+    /**
+     * Specifies the currently selected region.
+     */
+    private JTextField regionEdit;
+
+    /**
+     * Specifies the 8-bit reference value.
+     */
+    private JTextField refValueEdit;
+
+    /**
+     * Specifies the 8-bit variable value.
+     */
+    private JTextField varValueEdit;
+
+    /**
+     * Labels that indicate the current state of the application.
+     */
+    private JLabel regionLabel;
+    private JLabel curValueLabel;
+    private JLabel refValueLabel;
+    private JLabel percentageLabel;
+    private JLabel roiIntensityLabel;
+
+    /**
+     * Constants.
+     */
+    private final boolean USE_SLM_DEVICE = false;
+
 
     /**
      * Constructs the Main class.  Sets up and displays the GUI.
@@ -139,14 +184,14 @@ public class Main extends JFrame implements Observer {
         PanelBuilder leftBuilder = new PanelBuilder(leftLayout);
 
         /* Calibration Pattern Panel. */
-        String calibImageColSpecs = "600dlu";
+        String calibImageColSpecs = "550dlu";
         String calibImageRowSpecs = "p, 4dlu, 260dlu";
         FormLayout calibImageLayout =
                 new FormLayout(calibImageColSpecs, calibImageRowSpecs);
         PanelBuilder calibImageBuilder = new PanelBuilder(calibImageLayout);
 
         // Prepare contents.
-        calibImagePanel = new ImagePanel(false);
+        calibImagePanel = new GratingImagePanel();
 
         // Arrange contents.
         int row = 1;
@@ -156,9 +201,8 @@ public class Main extends JFrame implements Observer {
 
         leftBuilder.add(calibImageBuilder.getPanel(),              cc.xy(1, 1));
 
-
         /* CCD Image Panel. */
-        String ccdColSpecs = "600dlu";
+        String ccdColSpecs = "550dlu";
         String ccdRowSpecs = "p, 4dlu, 260dlu";
         FormLayout ccdLayout = new FormLayout(ccdColSpecs, ccdRowSpecs);
         PanelBuilder ccdBuilder = new PanelBuilder(ccdLayout);
@@ -199,13 +243,21 @@ public class Main extends JFrame implements Observer {
 
 
     /**
+     * Updates the status panel.
+     */
+    private void updateStatus()
+    {
+        roiIntensityLabel.setText("" + ccdImagePanel.getROIIntensity());
+    }
+
+    /**
      * Builds and returns the right panel.
      *
      * @return The right content panel.
      */
     private JPanel buildRightPanel() {
         String rightColSpec = "fill:p"; // 1
-        String rightRowSpec   = "p, 7dlu, p, 7dlu, p, 7dlu, p, 7dlu, p"; // 9
+        String rightRowSpec   = "p, 7dlu, p, 7dlu, p, 7dlu, p, 7dlu, p, 7dlu, p"; // 11
 
         CellConstraints cc = new CellConstraints();
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
@@ -231,6 +283,9 @@ public class Main extends JFrame implements Observer {
                 Integer y2 = new Integer(lowerRightY.getText());
                 ccdImagePanel.setRectangle(x1, y1, x2, y2);
                 ccdImagePanel.repaint();
+
+                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
+                updateStatus();
             }
         });
 
@@ -257,32 +312,56 @@ public class Main extends JFrame implements Observer {
         rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, 1));
 
         /* Calibration Settings Panel. */
-        String calibColSpecs = "p, 4dlu, 30dlu, 4dlu:grow"; // 4
-        String calibRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p"; // 7
+        String calibColSpecs = "p, 4dlu, 30dlu, 8dlu, p, 4dlu, 30dlu, 4dlu:grow"; // 8
+        String calibRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
         FormLayout calibLayout = new FormLayout(calibColSpecs, calibRowSpecs);
         PanelBuilder calibBuilder = new PanelBuilder(calibLayout);
 
         // Prepare contents.
-        JTextField gratingsEdit = new JTextField("");
-        JTextField regionsEdit = new JTextField("");
+        gratingsEdit = new JTextField("100");
+        regionsEdit = new JTextField("16");
+        regionEdit = new JTextField("0");
+        refValueEdit = new JTextField("0");
+        varValueEdit = new JTextField("255");
+
         JButton calSetButton = new JButton("Set");
         calSetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Set");
+                calibImagePanel.setParams(
+                        new Integer(gratingsEdit.getText()),
+                        new Integer(refValueEdit.getText()),
+                        new Integer(varValueEdit.getText()),
+                        new Integer(regionEdit.getText()),
+                        new Integer(regionsEdit.getText()));
+
+                if (USE_SLM_DEVICE) {
+                    double[] dataMatrix = calibImagePanel.getDataMatrix();
+                    com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
+                }
             }
         });
 
+
         // Arrange contents.
         row = 1;
-        calibBuilder.addSeparator("Calibration Settings",   cc.xyw(1, row, 4));
+        calibBuilder.addSeparator("Calibration Settings",   cc.xyw(1, row, 8));
         row += 2;
         calibBuilder.addLabel("# Gratings:",                cc.xy(1, row));
         calibBuilder.add(gratingsEdit,                      cc.xy(3, row));
+        calibBuilder.addLabel("Ref. val [0-255]:",          cc.xy(5, row));
+        calibBuilder.add(refValueEdit,                      cc.xy(7, row));
+
         row += 2;
         calibBuilder.addLabel("# Regions:",                 cc.xy(1, row));
         calibBuilder.add(regionsEdit,                       cc.xy(3, row));
+        calibBuilder.addLabel("Var. val [0-255]:",          cc.xy(5, row));
+        calibBuilder.add(varValueEdit,                      cc.xy(7, row));
+
         row += 2;
-        calibBuilder.add(calSetButton,                       cc.xy(1, row));
+        calibBuilder.addLabel("Region:",                    cc.xy(1, row));
+        calibBuilder.add(regionEdit,                        cc.xy(3, row));
+        row += 2;
+        calibBuilder.add(calSetButton,                      cc.xy(1, row));
 
         rightBuilder.add(calibBuilder.getPanel(),           cc.xy(1, 3));
 
@@ -324,11 +403,12 @@ public class Main extends JFrame implements Observer {
         PanelBuilder opBuilder = new PanelBuilder(opLayout);
 
         // Prepare items.
-        JButton startButton = new JButton("Start");
+        JButton startButton = new JButton("CCD Capture");
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Start button pressed");
                 runCamera();
+                updateStatus();
             }
         });
         JButton cancelButton = new JButton("Cancel");
@@ -349,16 +429,16 @@ public class Main extends JFrame implements Observer {
 
         /* Status panel. */
         String statColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
-        String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 12
+        String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 11
         FormLayout statLayout = new FormLayout(statColSpecs, statRowSpecs);
         PanelBuilder statBuilder = new PanelBuilder(statLayout);
 
         // Prepare contents.
-        JLabel regionLabel = new JLabel("");
-        JLabel curValueLabel = new JLabel("");
-        JLabel refValueLabel = new JLabel("");
-        JLabel percentageLabel = new JLabel("");
-        JLabel roiIntensityLabel = new JLabel("");
+        regionLabel = new JLabel("");
+        curValueLabel = new JLabel("");
+        refValueLabel = new JLabel("");
+        percentageLabel = new JLabel("");
+        roiIntensityLabel = new JLabel("");        
 
         // Arrange contents.
         row = 1;
@@ -379,7 +459,22 @@ public class Main extends JFrame implements Observer {
         statBuilder.addLabel("ROI intensity:",             cc.xy(1, row));
         statBuilder.add(roiIntensityLabel,                 cc.xy(3, row));
 
-        rightBuilder.add(statBuilder.getPanel(),            cc.xy(1, 9));
+        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 9));
+
+        /* CCD zoom panel. */
+        String ccdZoomColSpecs = "200dlu"; // 1
+        String ccdZoomRowSpecs = "200dlu"; // 1
+        FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
+        PanelBuilder ccdZoomBuilder = new PanelBuilder(ccdZoomLayout);
+
+        // Prepare contents.
+        ccdZoomRegion = new ImagePanel(false);
+
+        // Arrange contents.
+        row = 1;
+        ccdZoomBuilder.add(ccdZoomRegion,                     cc.xy(1, row));
+
+        rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, 11));
 
         return rightBuilder.getPanel();
     }
@@ -394,7 +489,6 @@ public class Main extends JFrame implements Observer {
 
         if (ccdCamera.initialize()) {
             System.out.println("Successfully initialized the CCD Camera");
-
         } else {
             System.out.println("Failed to initialize the CCD Camera");
         }
