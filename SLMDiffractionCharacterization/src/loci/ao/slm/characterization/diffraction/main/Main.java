@@ -14,6 +14,7 @@ package loci.ao.slm.characterization.diffraction.main;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -81,9 +82,9 @@ public class Main extends JFrame implements Observer {
     private ImagePanel ccdZoomRegion;
 
     /**
-     * FileChooser widget used to select output folder location.
+     * FileChooser widget used to select output file location.
      */
-    private JFileChooser folderChooser;
+    private JFileChooser fileChooser;
 
     /**
      * Textfield used to show/modify the output folder path.
@@ -119,6 +120,21 @@ public class Main extends JFrame implements Observer {
      * Specifies the 8-bit variable value.
      */
     private JTextField varValueEdit;
+
+    /**
+     * Series - Output path text field.
+     */
+    private JTextField seriesOutPathEdit;
+
+    /**
+     * Series - Output file browse button.
+     */
+    private JButton seriesBrowseButton;
+
+    /**
+     * Output writer handler.
+     */
+    private OutputWriter outpWriter = null;
 
     /**
      * Labels that indicate the current state of the application.
@@ -257,61 +273,14 @@ public class Main extends JFrame implements Observer {
      */
     private JPanel buildRightPanel() {
         String rightColSpec = "fill:p"; // 1
-        String rightRowSpec   = "p, 7dlu, p, 7dlu, p, 7dlu, p, 7dlu, p, 7dlu, p"; // 11
+        String rightRowSpec   = "p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p"; // 11
 
         CellConstraints cc = new CellConstraints();
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
         PanelBuilder rightBuilder = new PanelBuilder(rightLayout);
 
-        /* ROI Panel. */
-        String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 10
-        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p"; // 7
-        FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
-        PanelBuilder roiBuilder = new PanelBuilder(roiLayout);
 
-        // Prepare contents.
-        upperLeftX = new JTextField();
-        upperLeftY = new JTextField();
-        lowerRightX = new JTextField();
-        lowerRightY = new JTextField();
-        JButton applyButton = new JButton("Apply");
-        applyButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Integer x1 = new Integer(upperLeftX.getText());
-                Integer y1 = new Integer(upperLeftY.getText());
-                Integer x2 = new Integer(lowerRightX.getText());
-                Integer y2 = new Integer(lowerRightY.getText());
-                ccdImagePanel.setRectangle(x1, y1, x2, y2);
-                ccdImagePanel.repaint();
-
-                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
-                updateStatus();
-            }
-        });
-
-        // Arrange items.
-        int row = 1;
-        roiBuilder.addSeparator("Define ROI",               cc.xyw(1, row, 10));
-        row += 2;
-        roiBuilder.addLabel("Upper left:",                  cc.xy(1, row));
-        roiBuilder.addLabel("X:",                           cc.xy(3, row));
-        roiBuilder.add(upperLeftX,                          cc.xy(5, row));
-        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
-        roiBuilder.add(upperLeftY,                          cc.xy(9, row));
-
-        row += 2;
-        roiBuilder.addLabel("Lower right:",                  cc.xy(1, row));
-        roiBuilder.addLabel("X:",                           cc.xy(3, row));
-        roiBuilder.add(lowerRightX,                         cc.xy(5, row));
-        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
-        roiBuilder.add(lowerRightY,                         cc.xy(9, row));
-
-        row += 2;
-        roiBuilder.add(applyButton,                         cc.xy(1, row));
-        
-        rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, 1));
-
-        /* Calibration Settings Panel. */
+        /* 1. Grating Settings Panel. */
         String calibColSpecs = "p, 4dlu, 30dlu, 8dlu, p, 4dlu, 30dlu, 4dlu:grow"; // 8
         String calibRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
         FormLayout calibLayout = new FormLayout(calibColSpecs, calibRowSpecs);
@@ -324,8 +293,8 @@ public class Main extends JFrame implements Observer {
         refValueEdit = new JTextField("0");
         varValueEdit = new JTextField("255");
 
-        JButton calSetButton = new JButton("Set");
-        calSetButton.addActionListener(new ActionListener() {
+        JButton calApplyButton = new JButton("Apply");
+        calApplyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 calibImagePanel.setParams(
                         new Integer(gratingsEdit.getText()),
@@ -340,96 +309,92 @@ public class Main extends JFrame implements Observer {
                 }
             }
         });
-
-
+        
         // Arrange contents.
-        row = 1;
-        calibBuilder.addSeparator("Calibration Settings",   cc.xyw(1, row, 8));
+        int row = 1;
+        calibBuilder.addSeparator("Grating Settings",     cc.xyw(1, row, 8));
         row += 2;
-        calibBuilder.addLabel("# Gratings:",                cc.xy(1, row));
-        calibBuilder.add(gratingsEdit,                      cc.xy(3, row));
-        calibBuilder.addLabel("Ref. val [0-255]:",          cc.xy(5, row));
-        calibBuilder.add(refValueEdit,                      cc.xy(7, row));
+        calibBuilder.addLabel("# Gratings:",              cc.xy(1, row));
+        calibBuilder.add(gratingsEdit,                    cc.xy(3, row));
+        calibBuilder.addLabel("Ref. val [0-255]:",        cc.xy(5, row));
+        calibBuilder.add(refValueEdit,                    cc.xy(7, row));
 
         row += 2;
-        calibBuilder.addLabel("# Regions:",                 cc.xy(1, row));
-        calibBuilder.add(regionsEdit,                       cc.xy(3, row));
-        calibBuilder.addLabel("Var. val [0-255]:",          cc.xy(5, row));
-        calibBuilder.add(varValueEdit,                      cc.xy(7, row));
+        calibBuilder.addLabel("# Regions:",               cc.xy(1, row));
+        calibBuilder.add(regionsEdit,                     cc.xy(3, row));
+        calibBuilder.addLabel("Var. val [0-255]:",        cc.xy(5, row));
+        calibBuilder.add(varValueEdit,                    cc.xy(7, row));
 
         row += 2;
-        calibBuilder.addLabel("Region:",                    cc.xy(1, row));
-        calibBuilder.add(regionEdit,                        cc.xy(3, row));
+        calibBuilder.addLabel("Region:",                  cc.xy(1, row));
+        calibBuilder.add(regionEdit,                      cc.xy(3, row));
         row += 2;
-        calibBuilder.add(calSetButton,                      cc.xy(1, row));
+        calibBuilder.add(calApplyButton,                  cc.xy(1, row));
 
-        rightBuilder.add(calibBuilder.getPanel(),           cc.xy(1, 3));
+        rightBuilder.add(calibBuilder.getPanel(),         cc.xy(1, 1));
 
-        /* Output Panel. */
-        String outpColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
-        String outpRowSpecs = "p, 4dlu, p"; // 3
-        FormLayout outpLayout = new FormLayout(outpColSpecs, outpRowSpecs);
-        PanelBuilder outpBuilder = new PanelBuilder(outpLayout);
+
+        /* 2. CCD Camera Panel. */
+        String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 10
+        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p"; // 7
+        FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
+        PanelBuilder roiBuilder = new PanelBuilder(roiLayout);
 
         // Prepare contents.
-        folderChooser = new JFileChooser();
-        outPathEdit = new JTextField("");
-        browseButton = new JButton("Browse");
-        browseButton.addActionListener(new ActionListener() {
+        upperLeftX = new JTextField();
+        upperLeftY = new JTextField();
+        lowerRightX = new JTextField();
+        lowerRightY = new JTextField();
+        JButton ROIApplyButton = new JButton("Set ROI");
+        ROIApplyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                int retVal = folderChooser.showOpenDialog(browseButton);
-                if (retVal == JFileChooser.APPROVE_OPTION) {
-                    File chosenFile = folderChooser.getSelectedFile();
-                    outPathEdit.setText(chosenFile.getPath());
-                }
+                Integer x1 = new Integer(upperLeftX.getText());
+                Integer y1 = new Integer(upperLeftY.getText());
+                Integer x2 = new Integer(lowerRightX.getText());
+                Integer y2 = new Integer(lowerRightY.getText());
+                ccdImagePanel.setRectangle(x1, y1, x2, y2);
+                ccdImagePanel.repaint();
+
+                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
+                updateStatus();
             }
         });
-
-        // Arrange items.
-        row = 1;
-        outpBuilder.addSeparator("Output options",          cc.xyw(1, row, 6));
-        row += 2;
-        outpBuilder.addLabel("Output Folder:",              cc.xy(1, row));
-        outpBuilder.add(outPathEdit,                        cc.xy(3, row));
-        outpBuilder.add(browseButton,                       cc.xy(5, row));
-
-        rightBuilder.add(outpBuilder.getPanel(),            cc.xy(1, 5));
-
-        /* Measurement Operations Panel. */
-        String opColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
-        String opRowSpecs = "p, 4dlu, p"; // 3
-        FormLayout opLayout = new FormLayout(opColSpecs, opRowSpecs);
-        PanelBuilder opBuilder = new PanelBuilder(opLayout);
-
-        // Prepare items.
-        JButton startButton = new JButton("CCD Capture");
-        startButton.addActionListener(new ActionListener() {
+        JButton ccdCaptureButton = new JButton("Capture");
+        ccdCaptureButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Start button pressed");
+                // Update camera.
                 runCamera();
                 updateStatus();
             }
         });
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Cancel");
-            }
-        });
 
         // Arrange items.
         row = 1;
-        opBuilder.addSeparator("Operations",                cc.xyw(1, row, 4));
+        roiBuilder.addSeparator("CCD Camera",               cc.xyw(1, row, 10));
         row += 2;
-        opBuilder.add(startButton,                          cc.xy(1, row));
-        opBuilder.add(cancelButton,                         cc.xy(3, row));
+        roiBuilder.addLabel("ROI - Upper left:",            cc.xy(1, row));
+        roiBuilder.addLabel("X:",                           cc.xy(3, row));
+        roiBuilder.add(upperLeftX,                          cc.xy(5, row));
+        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
+        roiBuilder.add(upperLeftY,                          cc.xy(9, row));
 
-        rightBuilder.add(opBuilder.getPanel(),              cc.xy(1, 7));
+        row += 2;
+        roiBuilder.addLabel("ROI - Lower right:",           cc.xy(1, row));
+        roiBuilder.addLabel("X:",                           cc.xy(3, row));
+        roiBuilder.add(lowerRightX,                         cc.xy(5, row));
+        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
+        roiBuilder.add(lowerRightY,                         cc.xy(9, row));
 
-        /* Status panel. */
+        row += 2;
+        roiBuilder.add(ccdCaptureButton,                    cc.xy(1, row));
+        roiBuilder.add(ROIApplyButton,                      cc.xyw(3, row, 7));
+        
+        rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, 3));
+
+
+        /* 3. Status panel. */
         String statColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
-        String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 11
+        String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 13
         FormLayout statLayout = new FormLayout(statColSpecs, statRowSpecs);
         PanelBuilder statBuilder = new PanelBuilder(statLayout);
 
@@ -459,9 +424,141 @@ public class Main extends JFrame implements Observer {
         statBuilder.addLabel("ROI intensity:",             cc.xy(1, row));
         statBuilder.add(roiIntensityLabel,                 cc.xy(3, row));
 
-        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 9));
+        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 5));
+        
 
-        /* CCD zoom panel. */
+        /* 4. Manual Output Panel. */
+        String outpColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
+        String outpRowSpecs = "p, 4dlu, p, 4dlu, p"; // 5
+        FormLayout outpLayout = new FormLayout(outpColSpecs, outpRowSpecs);
+        PanelBuilder outpBuilder = new PanelBuilder(outpLayout);
+
+        // Prepare contents.
+        fileChooser = new JFileChooser();
+        outPathEdit = new JTextField("");
+        browseButton = new JButton("Browse");
+        browseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                int retVal = fileChooser.showOpenDialog(browseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = fileChooser.getSelectedFile();
+                    outPathEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+        JButton manualUpdateButton = new JButton("Update");
+        manualUpdateButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                runCamera();
+                updateStatus();
+            }
+        });
+        JButton manualRecordButton = new JButton("Record");
+        manualRecordButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Record the current status to file.
+                // recordData();
+
+                try {
+                    Integer numGratings = new Integer(gratingsEdit.getText());
+                    Integer refVal = new Integer(refValueEdit.getText());
+                    Integer region = new Integer(regionEdit.getText());
+                    Integer varVal = new Integer(varValueEdit.getText());
+                    Double roiInt = new Double(roiIntensityLabel.getText());
+                    if (outpWriter == null) {
+                        outpWriter = new OutputWriter(outPathEdit.getText());
+                        outpWriter.writeHeader(numGratings, refVal);
+                    } else {
+                        if (!outpWriter.getFilePath().equals(outPathEdit.getText())) {
+                            outpWriter = new OutputWriter(outPathEdit.getText());
+                            outpWriter.writeHeader(numGratings, refVal);
+                        }
+                    }
+
+                    outpWriter.recordData(region, refVal, varVal, roiInt);
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Number format error - nothing recorded");
+                }
+            }
+        });
+
+        // Arrange items.
+        row = 1;
+        outpBuilder.addSeparator("Output - Manual",       cc.xyw(1, row, 6));
+        row += 2;
+        outpBuilder.addLabel("Output File:",              cc.xy(1, row));
+        outpBuilder.add(outPathEdit,                      cc.xy(3, row));
+        outpBuilder.add(browseButton,                     cc.xy(5, row));
+        row += 2;
+        outpBuilder.add(manualUpdateButton,               cc.xy(1, row));
+        outpBuilder.add(manualRecordButton,               cc.xy(3, row));
+
+        rightBuilder.add(outpBuilder.getPanel(),          cc.xy(1, 7));
+
+
+        /* 5. Series Output Panel. */
+        String opColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 14
+        String opRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p"; // 7
+        FormLayout opLayout = new FormLayout(opColSpecs, opRowSpecs);
+        PanelBuilder outSeriesBuilder = new PanelBuilder(opLayout);
+
+        // Prepare items.
+        JButton seriesRunButton = new JButton("Run Series");
+        seriesRunButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Start button pressed");
+                runCamera();
+                updateStatus();
+            }
+        });
+        JButton seriesCancelButton = new JButton("Cancel");
+        seriesCancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Cancel");
+            }
+        });
+
+        seriesOutPathEdit = new JTextField("");
+        seriesBrowseButton = new JButton("Browse");
+        seriesBrowseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                int retVal = fileChooser.showOpenDialog(seriesBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = fileChooser.getSelectedFile();
+                    seriesOutPathEdit.setText(chosenFile.getPath());
+                }
+            }        
+        });
+        JTextField varValueFromField = new JTextField("");
+        JTextField varValueToField = new JTextField("");
+        JTextField varValueStepField = new JTextField("");
+        
+        // Arrange items.
+        row = 1;
+        outSeriesBuilder.addSeparator("Output - Series",  cc.xyw(1, row, 14));
+        row += 2;
+        outSeriesBuilder.addLabel("Output File:",         cc.xy(1, row));
+        outSeriesBuilder.add(seriesOutPathEdit,           cc.xyw(3, row, 9));
+        outSeriesBuilder.add(seriesBrowseButton,          cc.xyw(13, row, 2));
+        row += 2;
+        outSeriesBuilder.addLabel("Var. value",           cc.xy(1, row));
+        outSeriesBuilder.addLabel("From:",                cc.xy(3, row));
+        outSeriesBuilder.add(varValueFromField,           cc.xy(5, row));
+        outSeriesBuilder.addLabel("To:",                  cc.xy(7, row));
+        outSeriesBuilder.add(varValueToField,             cc.xy(9, row));
+        outSeriesBuilder.addLabel("Step size:",            cc.xy(11, row));
+        outSeriesBuilder.add(varValueStepField,           cc.xy(13, row));
+
+        row += 2;
+        outSeriesBuilder.add(seriesRunButton,             cc.xyw(1, row, 5));
+        outSeriesBuilder.add(seriesCancelButton,          cc.xyw(7, row, 5));
+
+        rightBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, 9));
+
+
+        /* 6. CCD zoom panel. */
         String ccdZoomColSpecs = "200dlu"; // 1
         String ccdZoomRowSpecs = "200dlu"; // 1
         FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);

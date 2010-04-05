@@ -90,7 +90,7 @@ class ImagePanel extends JPanel implements MouseListener {
         // Load the image.
 
         try {
-           img = ImageIO.read(new File("C:/Users/Public/Pictures/Sample Pictures/Tulips.jpg"));
+           img = ImageIO.read(new File("Standby.jpg"));
         } catch (IOException e) {
         }
         setImage(img);
@@ -237,7 +237,7 @@ class ImagePanel extends JPanel implements MouseListener {
      */
     public BufferedImage getROIImage()    
     {
-        if (!enableROI) {
+        if (!enableROI || img == null) {
             return null;
         }
         
