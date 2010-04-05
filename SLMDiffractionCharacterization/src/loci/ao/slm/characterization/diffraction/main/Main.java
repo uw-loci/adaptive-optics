@@ -18,6 +18,8 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.Observable;
 import java.util.Observer;
@@ -40,7 +42,7 @@ import loci.hardware.camera.CCDCamera;
  * The Main class handles controlling the flow of control and setting up
  * the experiment as well as displaying the user interface.
  */
-public class Main extends JFrame implements Observer {
+public class Main extends JFrame implements Observer, WindowListener {
     /**
      * Textfield that specifies the x coordinate of the upper left corner of
      * the ROI.
@@ -148,7 +150,7 @@ public class Main extends JFrame implements Observer {
     /**
      * Constants.
      */
-    private final boolean USE_SLM_DEVICE = false;
+    private final boolean USE_SLM_DEVICE = true;
 
 
     /**
@@ -178,6 +180,9 @@ public class Main extends JFrame implements Observer {
         JPanel rightPanel = buildRightPanel();
         masterBuilder.add(leftPanel,                    cc.xy(1, 1));
         masterBuilder.add(rightPanel,                   cc.xy(3, 1));
+
+        // Listen for close operations.
+        addWindowListener(this);
 
         /* Setup the frame. */
         pack();
@@ -296,17 +301,7 @@ public class Main extends JFrame implements Observer {
         JButton calApplyButton = new JButton("Apply");
         calApplyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                calibImagePanel.setParams(
-                        new Integer(gratingsEdit.getText()),
-                        new Integer(refValueEdit.getText()),
-                        new Integer(varValueEdit.getText()),
-                        new Integer(regionEdit.getText()),
-                        new Integer(regionsEdit.getText()));
-
-                if (USE_SLM_DEVICE) {
-                    double[] dataMatrix = calibImagePanel.getDataMatrix();
-                    com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
-                }
+                updateSLM();
             }
         });
         
@@ -450,6 +445,13 @@ public class Main extends JFrame implements Observer {
         JButton manualUpdateButton = new JButton("Update");
         manualUpdateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                updateSLM();
+                
+                try {
+                    Thread.sleep(600);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 runCamera();
                 updateStatus();
             }
@@ -579,6 +581,24 @@ public class Main extends JFrame implements Observer {
     }
 
     /**
+     * Updates the SLM device, sets the correct parameters and sends the
+     * corresponding grating image to the device.
+     */
+    private void updateSLM() {
+        calibImagePanel.setParams(
+                new Integer(gratingsEdit.getText()),
+                new Integer(refValueEdit.getText()),
+                new Integer(varValueEdit.getText()),
+                new Integer(regionEdit.getText()),
+                new Integer(regionsEdit.getText()));
+
+        if (USE_SLM_DEVICE) {
+            double[] dataMatrix = calibImagePanel.getDataMatrix();
+            com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
+        }
+    }
+
+    /**
      * Runs the camera (for test purposes).
      */
     private void runCamera() {
@@ -599,6 +619,7 @@ public class Main extends JFrame implements Observer {
             System.out.println("Err: " + ccdCamera.getNote());
         } else {
             ccdImagePanel.setImage(ccdCamera.getImage());
+            ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
         }
         System.out.println("frameLength: " + frameLen);
     }
@@ -622,5 +643,31 @@ public class Main extends JFrame implements Observer {
         }
 
         new Main().setVisible(true);
+    }    
+
+   /**
+     * Called upon window closing, send the power off command to the SLM.
+     *
+     * @param e Window event object.
+     */
+    public void windowClosing(WindowEvent e) {
+        System.out.println("window closing!");
+        if (USE_SLM_DEVICE) {
+            System.out.println("- turning off");
+            // Power off the system.
+            double[] dataMatrix = calibImagePanel.getDataMatrix();
+            // XXX/FIXME data should not be necessary to turn it off!
+            com.slmcontrol.slmAPI.slmjava(dataMatrix, (char) 65);
+        }
     }
+
+    /*
+     * Unused window operations.
+     */
+    public void windowOpened(WindowEvent e) {}
+    public void windowClosed(WindowEvent e) {}
+    public void windowIconified(WindowEvent e) {}
+    public void windowDeiconified(WindowEvent e) {}
+    public void windowActivated(WindowEvent e) {}
+    public void windowDeactivated(WindowEvent e) { }
 }

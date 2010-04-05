@@ -247,8 +247,8 @@ class ImagePanel extends JPanel implements MouseListener {
         int imgRoiX2 = (int) (x2 * scalingWidth);
         int imgRoiY1 = (int) (y1 * scalingHeight);
         int imgRoiY2 = (int) (y2 * scalingHeight);
-        int roiWidth = (imgRoiX2 - imgRoiX1);
-        int roiHeight = (imgRoiY2 - imgRoiY1);
+        int roiWidth = (int)Math.abs(imgRoiX2 - imgRoiX1);
+        int roiHeight = (int)Math.abs(imgRoiY2 - imgRoiY1);
 
         BufferedImage roiImage =
                 new BufferedImage(roiWidth, roiHeight, BufferedImage.TYPE_INT_RGB);
