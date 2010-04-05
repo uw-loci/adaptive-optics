@@ -465,7 +465,7 @@ public class Main extends JFrame implements Observer {
                     Integer refVal = new Integer(refValueEdit.getText());
                     Integer region = new Integer(regionEdit.getText());
                     Integer varVal = new Integer(varValueEdit.getText());
-                    Double roiInt = new Double(roiIntensityLabel.getText());
+                    Double roiInt = ccdImagePanel.getROIIntensity();
                     if (outpWriter == null) {
                         outpWriter = new OutputWriter(outPathEdit.getText());
                         outpWriter.writeHeader(numGratings, refVal);
@@ -479,6 +479,8 @@ public class Main extends JFrame implements Observer {
                     outpWriter.recordData(region, refVal, varVal, roiInt);
                 } catch (NumberFormatException nfe) {
                     System.out.println("Number format error - nothing recorded");
+                } catch (NullPointerException npe) {
+                    System.out.println("Null pointer excp. - nothing recorded");
                 }
             }
         });
