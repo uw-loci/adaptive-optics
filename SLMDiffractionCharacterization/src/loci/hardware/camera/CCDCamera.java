@@ -58,14 +58,15 @@ public class CCDCamera {
 
     public BufferedImage getImage() {
         BufferedImage img =
-                new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
         for (int m = 0; m < width; m++) {
             for (int n = 0; n < height; n++) {
                 int index = n*width + m;
-                byte val = (byte)(frame[index] & 0xff);
+                int byteVal = (int)frame[index];
+                byteVal &= 0xff;
                 // 32bit
-                int rgbVal = (val << 16) | (val << 8) | val;
+                int rgbVal = (byteVal << 16) | (byteVal << 8) | byteVal;
                 img.setRGB(m, n, rgbVal);
             }
         }
