@@ -217,6 +217,10 @@ class ImagePanel extends JPanel implements MouseListener {
      */
     public double getROIIntensity()
     {
+        if (!Constants.USE_CCD) {
+            return -1;
+        }
+        
         BufferedImage roiImage = getROIImage();
 
         double area = roiImage.getWidth() * roiImage.getHeight();

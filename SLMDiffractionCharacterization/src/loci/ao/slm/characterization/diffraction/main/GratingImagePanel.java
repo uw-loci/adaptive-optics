@@ -1,6 +1,12 @@
+//
+// GratingImagePanel.java
+//
+
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Diffraction calibration of a SLM device by imaging the SLM in the far-field
+ * on a CCD Camera.  Measuring the intensity of the first diffraction order.
+ * Copyright (C) 2010-@year@ Gunnsteinn Hall @LOCI Labs.
+ * University of Wisconsin - Madison.
  */
 
 package loci.ao.slm.characterization.diffraction.main;

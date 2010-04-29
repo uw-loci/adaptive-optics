@@ -44,6 +44,11 @@ import loci.hardware.camera.CCDCamera;
  */
 public class Main extends JFrame implements Observer, WindowListener {
     /**
+     * Singleton instance of the class.
+     */
+    private static Main instance = null;
+
+    /**
      * Textfield that specifies the x coordinate of the upper left corner of
      * the ROI.
      */
@@ -134,6 +139,13 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JButton seriesBrowseButton;
 
     /**
+     * For the series: variable settings.
+     */
+    JTextField varValueFromField;
+    JTextField varValueToField;
+    JTextField varValueStepField;
+
+    /**
      * Output writer handler.
      */
     private OutputWriter outpWriter = null;
@@ -148,16 +160,26 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JLabel roiIntensityLabel;
 
     /**
-     * Constants.
+     * For running series.
      */
-    private final boolean USE_SLM_DEVICE = true;
-
+    SerieRunner serieRunner;
 
     /**
      * Constructs the Main class.  Sets up and displays the GUI.
      */
     private Main() {        
         initComponents();        
+    }
+
+    /**
+     * Get the singleton instance of the class.
+     */
+    public static Main getInstance()
+    {
+        if (instance == null) {
+            instance = new Main();
+        }
+        return instance;
     }
 
     /**
@@ -244,6 +266,23 @@ public class Main extends JFrame implements Observer, WindowListener {
     }
 
     /**
+     * Get the grating panel.
+     */
+    public synchronized GratingImagePanel getGratingImagePanel()
+    {
+        return calibImagePanel;
+    }
+
+    /**
+     * Get the ccd camera panel.
+     */
+    public synchronized ImagePanel getCameraImagePanel()
+    {
+        return ccdImagePanel;
+    }
+
+
+    /**
      * The update method listens for events from Observable objects.
      * Currently that is the CCD Image Panel.
      *
@@ -262,11 +301,10 @@ public class Main extends JFrame implements Observer, WindowListener {
         lowerRightY.setText("" + ((int)ROI.getMaxY()));
     }
 
-
     /**
      * Updates the status panel.
      */
-    private void updateStatus()
+    public synchronized void updateStatus()
     {
         roiIntensityLabel.setText("" + ccdImagePanel.getROIIntensity());
     }
@@ -511,15 +549,31 @@ public class Main extends JFrame implements Observer, WindowListener {
         JButton seriesRunButton = new JButton("Run Series");
         seriesRunButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Start button pressed");
-                runCamera();
-                updateStatus();
+                System.out.println("Run Series button pressed");
+                serieRunner = SerieRunner.getInstance();
+                serieRunner.start();
+                Integer numGratings = new Integer(gratingsEdit.getText());
+                Integer refVal = new Integer(refValueEdit.getText());
+                Integer region = new Integer(regionEdit.getText());
+                Integer regions = new Integer(regionsEdit.getText());
+
+                Integer varFrom = new Integer(varValueFromField.getText());
+                Integer varTo = new Integer(varValueToField.getText());
+                Integer varStepSize = new Integer(varValueStepField.getText());
+
+                serieRunner.setGratingVars(numGratings, refVal, region, regions);
+                serieRunner.setVarRange(varFrom, varTo, varStepSize);
+                serieRunner.setOutputFileName(seriesOutPathEdit.getText());
+                serieRunner.run();
+                //runCamera();
+                //updateStatus();
             }
         });
         JButton seriesCancelButton = new JButton("Cancel");
         seriesCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Cancel");
+                System.out.println("Cancelling");
+                serieRunner.stop();
             }
         });
 
@@ -535,9 +589,9 @@ public class Main extends JFrame implements Observer, WindowListener {
                 }
             }        
         });
-        JTextField varValueFromField = new JTextField("");
-        JTextField varValueToField = new JTextField("");
-        JTextField varValueStepField = new JTextField("");
+        varValueFromField = new JTextField("0");
+        varValueToField = new JTextField("255");
+        varValueStepField = new JTextField("1");
         
         // Arrange items.
         row = 1;
@@ -592,7 +646,7 @@ public class Main extends JFrame implements Observer, WindowListener {
                 new Integer(regionEdit.getText()),
                 new Integer(regionsEdit.getText()));
 
-        if (USE_SLM_DEVICE) {
+        if (Constants.USE_SLM_DEVICE) {
             double[] dataMatrix = calibImagePanel.getDataMatrix();
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
         }
@@ -601,7 +655,11 @@ public class Main extends JFrame implements Observer, WindowListener {
     /**
      * Runs the camera (for test purposes).
      */
-    private void runCamera() {
+    public void runCamera() {
+        if (!Constants.USE_CCD) {
+            return;
+        }
+
         CCDCamera ccdCamera = new CCDCamera();
 
         System.out.println("testMe(): " + ccdCamera.testMe());
@@ -642,7 +700,7 @@ public class Main extends JFrame implements Observer, WindowListener {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        new Main().setVisible(true);
+        Main.getInstance().setVisible(true);
     }    
 
    /**
@@ -652,7 +710,7 @@ public class Main extends JFrame implements Observer, WindowListener {
      */
     public void windowClosing(WindowEvent e) {
         System.out.println("window closing!");
-        if (USE_SLM_DEVICE) {
+        if (Constants.USE_SLM_DEVICE) {
             System.out.println("- turning off");
             // Power off the system.
             double[] dataMatrix = calibImagePanel.getDataMatrix();
