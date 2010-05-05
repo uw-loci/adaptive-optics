@@ -237,6 +237,34 @@ class ImagePanel extends JPanel implements MouseListener {
     }
 
     /**
+     * Determines the number of saturated pixel values in the ROI.
+     *
+     * @return The number of saturated pixel values in the ROI.
+     */
+    public int getROISaturatedPixelCount()
+    {
+        if (!Constants.USE_CCD) {
+            return -1;
+        }
+
+        BufferedImage roiImage = getROIImage();
+        int satPixelCount = 0;
+        for (int m = 0; m < roiImage.getWidth(); m++) {
+            for (int n = 0; n < roiImage.getHeight(); n++) {
+                int rgb = roiImage.getRGB(m, n);
+                int grayVal = rgb & 0xff;
+
+                if (grayVal == 255) {
+                    satPixelCount ++;
+                }
+            }
+        }
+        
+        return satPixelCount;
+    }
+
+
+    /**
      * Get the ROI image.  Useful for testing.
      */
     public BufferedImage getROIImage()    

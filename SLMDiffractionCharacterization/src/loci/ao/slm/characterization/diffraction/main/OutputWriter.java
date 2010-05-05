@@ -80,16 +80,33 @@ public class OutputWriter {
      * Write the header.
      * 
      * @param numGratings The number of gratings.
+     * @param numRegions The number of regions specified.
      * @param refVal The reference value.
+     * @param roiULCornerX The X-coordinate of the U.L. corner of the ROI.
+     * @param roiULCornerY The Y-coordinate of the U.L. corner of the ROI.
+     * @param roiLRCornerX The X-coordinate of the L.R. corner of the ROI.
+     * @param roiLRCornerY The Y-coordinate of the U.L. corner of the ROI.
      */
-    public void writeHeader(int numGratings, int refVal) {
+    public void writeHeader(int numGratings, int numRegions, int refVal,
+            int roiULCornerX, int roiULCornerY,
+            int roiLRCornerX, int roiLRCornerY) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
             openFile(true);
             fStream.write("% SLM Diffraction Calibration\n");
             fStream.write("% Created at " + dateFormat.format(date) +  "\n");
-            fStream.write("% Gratings: " + numGratings + "\n");
+            fStream.write("% #Gratings: " + numGratings + "\n");
+            fStream.write("% #Regions: " + numRegions + "\n");
+            fStream.write("% ROI UL: X: "
+                    + roiULCornerX + " Y: " + roiULCornerY + "\n");
+            fStream.write("% ROI LR: X: "
+                    + roiLRCornerX + " Y: " + roiLRCornerY + "\n");
+
+            int roiHeight = (int)Math.abs(roiLRCornerY - roiULCornerY);
+            int roiWidth = (int)Math.abs(roiLRCornerX - roiULCornerX);
+            fStream.write("% ROI Width: " + roiWidth
+                    + "; Height: " + roiHeight + "\n");
             fStream.write("% Ref. val.: " + refVal + "\n");
             fStream.write("%[region] [refval] [value] [roi int.]\n");
             closeFile();

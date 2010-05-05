@@ -139,11 +139,22 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JButton seriesBrowseButton;
 
     /**
+     * Number of averages for the CCD camera.
+     */
+    private JTextField ccdAveragesField;
+
+    /**
      * For the series: variable settings.
      */
     JTextField varValueFromField;
     JTextField varValueToField;
     JTextField varValueStepField;
+
+    /**
+     * For the series: region settings.
+     */
+    JTextField regionFromField;
+    JTextField regionToField;
 
     /**
      * Output writer handler.
@@ -156,7 +167,7 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JLabel regionLabel;
     private JLabel curValueLabel;
     private JLabel refValueLabel;
-    private JLabel percentageLabel;
+    private JLabel roiSatPixelsLabel;
     private JLabel roiIntensityLabel;
 
     /**
@@ -281,7 +292,6 @@ public class Main extends JFrame implements Observer, WindowListener {
         return ccdImagePanel;
     }
 
-
     /**
      * The update method listens for events from Observable objects.
      * Currently that is the CCD Image Panel.
@@ -306,7 +316,23 @@ public class Main extends JFrame implements Observer, WindowListener {
      */
     public synchronized void updateStatus()
     {
-        roiIntensityLabel.setText("" + ccdImagePanel.getROIIntensity());
+        // Determine and set the status of the current ROI image.
+        ExperimentStatus.getInstance().setRoiIntensity(
+                ccdImagePanel.getROIIntensity());
+        ExperimentStatus.getInstance().setRoiSaturatedPixelCount(
+                ccdImagePanel.getROISaturatedPixelCount());
+
+        // Update the status labels.
+        regionLabel.setText(
+                "" + ExperimentStatus.getInstance().getRegion());
+        curValueLabel.setText(
+                "" + ExperimentStatus.getInstance().getVarValue());
+        refValueLabel.setText(
+                "" + ExperimentStatus.getInstance().getRefValue());
+        roiIntensityLabel.setText(
+                "" + ExperimentStatus.getInstance().getRoiIntensity());
+        roiSatPixelsLabel.setText(
+                "" + ExperimentStatus.getInstance().getRoiSaturatedPixelCount());
     }
 
     /**
@@ -369,7 +395,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         /* 2. CCD Camera Panel. */
         String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 10
-        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p"; // 7
+        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
         FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
         PanelBuilder roiBuilder = new PanelBuilder(roiLayout);
 
@@ -378,6 +404,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         upperLeftY = new JTextField();
         lowerRightX = new JTextField();
         lowerRightY = new JTextField();
+        ccdAveragesField = new JTextField("1");
         JButton ROIApplyButton = new JButton("Set ROI");
         ROIApplyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -417,6 +444,11 @@ public class Main extends JFrame implements Observer, WindowListener {
         roiBuilder.add(lowerRightX,                         cc.xy(5, row));
         roiBuilder.addLabel("Y:",                           cc.xy(7, row));
         roiBuilder.add(lowerRightY,                         cc.xy(9, row));
+        row += 2;
+        roiBuilder.addLabel("# Averages:",                  cc.xy(1, row));
+        roiBuilder.add(ccdAveragesField,                    cc.xy(5, row));
+
+
 
         row += 2;
         roiBuilder.add(ccdCaptureButton,                    cc.xy(1, row));
@@ -435,7 +467,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         regionLabel = new JLabel("");
         curValueLabel = new JLabel("");
         refValueLabel = new JLabel("");
-        percentageLabel = new JLabel("");
+        roiSatPixelsLabel = new JLabel("");
         roiIntensityLabel = new JLabel("");        
 
         // Arrange contents.
@@ -451,11 +483,11 @@ public class Main extends JFrame implements Observer, WindowListener {
         statBuilder.addLabel("Reference:",                 cc.xy(1, row));
         statBuilder.add(refValueLabel,                     cc.xy(3, row));
         row += 2;
-        statBuilder.addLabel("Percentage:",                cc.xy(1, row));
-        statBuilder.add(percentageLabel,                   cc.xy(3, row));
-        row += 2;
         statBuilder.addLabel("ROI intensity:",             cc.xy(1, row));
         statBuilder.add(roiIntensityLabel,                 cc.xy(3, row));
+        row += 2;
+        statBuilder.addLabel("ROI saturated pixels:",      cc.xy(1, row));
+        statBuilder.add(roiSatPixelsLabel,                 cc.xy(3, row));
 
         rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 5));
         
@@ -504,15 +536,24 @@ public class Main extends JFrame implements Observer, WindowListener {
                     Integer numGratings = new Integer(gratingsEdit.getText());
                     Integer refVal = new Integer(refValueEdit.getText());
                     Integer region = new Integer(regionEdit.getText());
+                    Integer regions = new Integer(regionsEdit.getText());
                     Integer varVal = new Integer(varValueEdit.getText());
+                    Integer roiULCornerX = new Integer(upperLeftX.getText());
+                    Integer roiULCornerY = new Integer(upperLeftY.getText());
+                    Integer roiLRCornerX = new Integer(lowerRightX.getText());
+                    Integer roiLRCornerY = new Integer(lowerRightY.getText());
+
                     Double roiInt = ccdImagePanel.getROIIntensity();
                     if (outpWriter == null) {
                         outpWriter = new OutputWriter(outPathEdit.getText());
-                        outpWriter.writeHeader(numGratings, refVal);
+                        outpWriter.writeHeader(
+                                numGratings, regions, refVal,
+                                roiULCornerX, roiULCornerY, roiLRCornerX, roiLRCornerY);
                     } else {
                         if (!outpWriter.getFilePath().equals(outPathEdit.getText())) {
                             outpWriter = new OutputWriter(outPathEdit.getText());
-                            outpWriter.writeHeader(numGratings, refVal);
+                            outpWriter.writeHeader(numGratings, regions, refVal,
+                                    roiULCornerX, roiULCornerY, roiLRCornerX, roiLRCornerY);
                         }
                     }
 
@@ -541,7 +582,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         /* 5. Series Output Panel. */
         String opColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 14
-        String opRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p"; // 7
+        String opRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
         FormLayout opLayout = new FormLayout(opColSpecs, opRowSpecs);
         PanelBuilder outSeriesBuilder = new PanelBuilder(opLayout);
 
@@ -557,13 +598,25 @@ public class Main extends JFrame implements Observer, WindowListener {
                 Integer region = new Integer(regionEdit.getText());
                 Integer regions = new Integer(regionsEdit.getText());
 
+                Integer regionFrom = new Integer(regionFromField.getText());
+                Integer regionTo = new Integer(regionToField.getText());
+
                 Integer varFrom = new Integer(varValueFromField.getText());
                 Integer varTo = new Integer(varValueToField.getText());
                 Integer varStepSize = new Integer(varValueStepField.getText());
 
-                serieRunner.setGratingVars(numGratings, refVal, region, regions);
-                serieRunner.setVarRange(varFrom, varTo, varStepSize);
+                Integer roiULCornerX = new Integer(upperLeftX.getText());
+                Integer roiULCornerY = new Integer(upperLeftY.getText());
+                Integer roiLRCornerX = new Integer(lowerRightX.getText());
+                Integer roiLRCornerY = new Integer(lowerRightY.getText());
+
+
+                serieRunner.setGratingVars(numGratings, refVal, regions);
+                serieRunner.setRange(regionFrom, regionTo,
+                        varFrom, varTo, varStepSize);
                 serieRunner.setOutputFileName(seriesOutPathEdit.getText());
+                serieRunner.setROIInformation(roiULCornerX, roiULCornerY,
+                        roiLRCornerX, roiLRCornerY);
                 serieRunner.run();
                 //runCamera();
                 //updateStatus();
@@ -592,6 +645,9 @@ public class Main extends JFrame implements Observer, WindowListener {
         varValueFromField = new JTextField("0");
         varValueToField = new JTextField("255");
         varValueStepField = new JTextField("1");
+
+        regionFromField = new JTextField("0");
+        regionToField = new JTextField("15");
         
         // Arrange items.
         row = 1;
@@ -601,20 +657,24 @@ public class Main extends JFrame implements Observer, WindowListener {
         outSeriesBuilder.add(seriesOutPathEdit,           cc.xyw(3, row, 9));
         outSeriesBuilder.add(seriesBrowseButton,          cc.xyw(13, row, 2));
         row += 2;
+        outSeriesBuilder.addLabel("Region",               cc.xy(1, row));
+        outSeriesBuilder.addLabel("From:",                cc.xy(3, row));
+        outSeriesBuilder.add(regionFromField,             cc.xy(5, row));
+        outSeriesBuilder.addLabel("To:",                  cc.xy(7, row));
+        outSeriesBuilder.add(regionToField,               cc.xy(9, row));
+        row += 2;
         outSeriesBuilder.addLabel("Var. value",           cc.xy(1, row));
         outSeriesBuilder.addLabel("From:",                cc.xy(3, row));
         outSeriesBuilder.add(varValueFromField,           cc.xy(5, row));
         outSeriesBuilder.addLabel("To:",                  cc.xy(7, row));
         outSeriesBuilder.add(varValueToField,             cc.xy(9, row));
-        outSeriesBuilder.addLabel("Step size:",            cc.xy(11, row));
+        outSeriesBuilder.addLabel("Step size:",           cc.xy(11, row));
         outSeriesBuilder.add(varValueStepField,           cc.xy(13, row));
-
         row += 2;
         outSeriesBuilder.add(seriesRunButton,             cc.xyw(1, row, 5));
         outSeriesBuilder.add(seriesCancelButton,          cc.xyw(7, row, 5));
 
         rightBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, 9));
-
 
         /* 6. CCD zoom panel. */
         String ccdZoomColSpecs = "200dlu"; // 1
@@ -650,6 +710,14 @@ public class Main extends JFrame implements Observer, WindowListener {
             double[] dataMatrix = calibImagePanel.getDataMatrix();
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
         }
+
+        // Update experiment status.
+        Integer refVal = new Integer(refValueEdit.getText());
+        Integer region = new Integer(regionEdit.getText());
+        Integer varVal = new Integer(varValueEdit.getText());
+        ExperimentStatus.getInstance().setRefValue(refVal);
+        ExperimentStatus.getInstance().setRegion(region);
+        ExperimentStatus.getInstance().setVarValue(varVal);
     }
 
     /**
@@ -671,8 +739,10 @@ public class Main extends JFrame implements Observer, WindowListener {
         }
 
         System.out.println("Note: " + ccdCamera.getNote());
+
+        Integer imageAverages = new Integer(ccdAveragesField.getText());
         
-        int frameLen = ccdCamera.captureFrame();
+        int frameLen = ccdCamera.captureFrame(imageAverages);
         if (frameLen < 0) {
             System.out.println("Err: " + ccdCamera.getNote());
         } else {

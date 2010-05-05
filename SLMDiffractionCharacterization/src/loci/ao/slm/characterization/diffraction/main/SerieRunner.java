@@ -32,18 +32,23 @@ public class SerieRunner
     private Thread thread;
 
     /**
-     * The range to scan over.
+     * Variable modulation: The range to scan over.
      */
     private int fromVar;
     private int toVar;
     private int stepSize;
+    
+    /**
+     * Regions: The regions to scan over.
+     */
+    private int fromRegion;
+    private int toRegion;
 
     /**
      * Fixed grating settings.
      */
     private int fixedGratings;
     private int fixedRefValue;
-    private int fixedRegion;
     private int fixedRegions;
     
     /*
@@ -60,6 +65,19 @@ public class SerieRunner
      * Current variable value;
      */
     private int currentVar;
+
+    /**
+     * Current region.
+     */
+    private int currentRegion;
+
+    /**
+     * Camera ROI definition.
+     */
+    private int roiULCornerX;
+    private int roiULCornerY;
+    private int roiLRCornerX;
+    private int roiLRCornerY;
 
     /**
      * Constructor.
@@ -96,26 +114,47 @@ public class SerieRunner
      * Setup fixed grating variables.
      */
     public void setGratingVars(
-        int fixedGratings, int fixedRefValue,
-        int fixedRegion, int fixedRegions)
+            int fixedGratings, int fixedRefValue, int fixedRegions)
     {
         this.fixedGratings = fixedGratings;
         this.fixedRefValue = fixedRefValue;
-        this.fixedRegion = fixedRegion;
         this.fixedRegions = fixedRegions;
     }
 
     /**
      * Set parameters of the serie runner.
      *
+     * @param fromRegion The region to start at.
+     * @param toRegion The region to end at.
      * @param fromVar Variable value range: starting point (from).
      * @param toVar Variable value range: end point (to).
      * @param stepSize The step size to scan the variable in.
      */
-    public void setVarRange(int fromVar, int toVar, int stepSize) {
+    public void setRange(int fromRegion, int toRegion,
+            int fromVar, int toVar, int stepSize)
+    {
+        this.fromRegion = fromRegion;
+        this.toRegion = toRegion;
         this.fromVar = fromVar;
         this.toVar = toVar;
         this.stepSize = stepSize;
+    }
+
+    /**
+     * Set ROI information, e.g. the corner locations.
+     * 
+     * @param roiULCornerX The U.L. corner of the ROI, X-coordinate.
+     * @param roiULCornerY The U.L. corner of the ROI, Y-coordinate.
+     * @param roiLRCornerX The L.R. corner of the ROI, X-coordinate.
+     * @param roiLRCornerY The L.R. corner of the ROI, Y-coordinate.
+     */
+    public void setROIInformation(int roiULCornerX, int roiULCornerY,
+            int roiLRCornerX, int roiLRCornerY)
+    {
+        this.roiULCornerX = roiULCornerX;
+        this.roiULCornerY = roiULCornerY;
+        this.roiLRCornerX = roiLRCornerX;
+        this.roiLRCornerY = roiLRCornerY;
     }
 
     /**
@@ -140,7 +179,7 @@ public class SerieRunner
                 new Integer(fixedGratings),
                 new Integer(fixedRefValue),
                 new Integer(currentVar),
-                new Integer(fixedRegion),
+                new Integer(currentRegion),
                 new Integer(fixedRegions));
 
         if (Constants.USE_SLM_DEVICE) {
@@ -161,7 +200,7 @@ public class SerieRunner
         Double roiInt = ccdImagePanel.getROIIntensity();
 
         // Get the roi intensity.
-        outpWriter.recordData(fixedRegion, fixedRefValue, currentVar, roiInt);
+        outpWriter.recordData(currentRegion, fixedRefValue, currentVar, roiInt);
     }
 
     private synchronized void updateStatus()
@@ -180,35 +219,43 @@ public class SerieRunner
         Thread thisThread = Thread.currentThread();
 
         outpWriter = new OutputWriter(outputFileName);
-        outpWriter.writeHeader(fixedGratings, fixedRefValue);
+        outpWriter.writeHeader(fixedGratings, fixedRegions, fixedRefValue,
+                roiULCornerX, roiULCornerY, roiLRCornerX, roiLRCornerY);
 
-        for (currentVar = fromVar; (currentVar < toVar) && (thread == thisThread); currentVar+=stepSize) {
-            System.out.println("Current var: " + currentVar);
-            upgradeParams();
-            updateSLMGrating();
+        for (currentRegion = fromRegion; (currentRegion <= toRegion) && (thread == thisThread); currentRegion++) {
+            for (currentVar = fromVar; (currentVar <= toVar) && (thread == thisThread); currentVar+=stepSize) {
+                System.out.println("Region: " + currentRegion + "; Current var: " + currentVar);
+                upgradeParams();
+                updateSLMGrating();
 
-            // This is to make sure that the image has been displayed
-            // appropriately.
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-            }
+                ExperimentStatus.getInstance().setRefValue(fixedRefValue);
+                ExperimentStatus.getInstance().setRegion(currentRegion);
+                ExperimentStatus.getInstance().setVarValue(currentVar);
 
-            // Run the camera.
-            upgradeCamera();
+                // This is to make sure that the image has been displayed
+                // appropriately.
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                }
 
-            // Record results.
-            recordData();
+                // Run the camera.
+                upgradeCamera();
 
-            // Update the status.
-            updateStatus();
+                // Record results.
+                recordData();
 
-            // This is to keep the GUI responsive.
-            // Might not be necessary.
-            try {
-                //Thread.sleep(100);
-                Thread.sleep(1000); // XXX: Debugging 1 second.
-            } catch (InterruptedException ex) {
+
+                // Update the status.
+                updateStatus();
+
+                // This is to keep the GUI responsive.
+                // Might not be necessary.
+                try {
+                    //Thread.sleep(100);
+                    Thread.sleep(1000); // XXX: Debugging 1 second.
+                } catch (InterruptedException ex) {
+                }
             }
         }
         

@@ -74,15 +74,30 @@ public class CCDCamera {
         return img;
     }
 
-    public int captureFrame() {
-        int retVal = CCDCamWrapper.capture_frame();
-        if (retVal != (width * height)) {
-            System.out.println("error in buf length");
-            return -1;
+    /**
+     * Captures one frame with averaging optional.
+     *
+     * @param averages The number of averages to take.
+     *
+     * @return -1 on error, otherwise the width*height of the image (in pixels).
+     */
+    public int captureFrame(int averages) {
+        // Clean up frame.
+        for (int i = 0; i < width*height; i++) {
+           frame[i] = 0;
         }
 
-        for (int i = 0; i < width*height; i++) {
-            frame[i] = CCDCamWrapper.get_frame_at_pos(i);
+        int retVal = 0;
+        for (int j = 0; j < averages; j++) {
+            retVal = CCDCamWrapper.capture_frame();
+            if (retVal != (width * height)) {
+                System.out.println("error in buf length");
+                return -1;
+            }
+
+            for (int i = 0; i < width*height; i++) {
+                frame[i] += CCDCamWrapper.get_frame_at_pos(i) / averages;
+            }
         }
 
         return retVal;
