@@ -74,6 +74,13 @@ public class CCDCamera {
         return img;
     }
 
+    private void waitAndTryAgain() {
+        System.out.println("Waiting 1sec before trying again!");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+        }
+    }
     /**
      * Captures one frame with averaging optional.
      *
@@ -91,12 +98,19 @@ public class CCDCamera {
         for (int j = 0; j < averages; j++) {
             retVal = CCDCamWrapper.capture_frame();
             if (retVal != (width * height)) {
-                System.out.println("error in buf length");
-                return -1;
+                System.out.println("IMAGE COLLECTION ERROR");
+                waitAndTryAgain();
             }
 
             for (int i = 0; i < width*height; i++) {
                 frame[i] += CCDCamWrapper.get_frame_at_pos(i) / averages;
+            }
+
+            // Give it a little time to prepare for next.
+            // Experimental.
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
             }
         }
 

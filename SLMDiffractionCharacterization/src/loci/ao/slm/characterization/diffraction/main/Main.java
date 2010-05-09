@@ -751,6 +751,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         }
         System.out.println("frameLength: " + frameLen);
     }
+
     
     /**
      * Starts the application.
