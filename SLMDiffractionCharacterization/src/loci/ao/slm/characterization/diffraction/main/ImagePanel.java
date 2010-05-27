@@ -88,7 +88,6 @@ class ImagePanel extends JPanel implements MouseListener {
         }
 
         // Load the image.
-
         try {
            img = ImageIO.read(new File("Standby.jpg"));
         } catch (IOException e) {
@@ -111,7 +110,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * 
      * @param img The new image to be shown.
      */
-    public void setImage(BufferedImage img) {
+    public synchronized void setImage(BufferedImage img) {
         this.img = img;
         repaint();
     }
@@ -143,7 +142,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * @return The dimension of the image panel.
      */
     @Override
-    public Dimension getPreferredSize() {
+    public synchronized Dimension getPreferredSize() {
         if (img == null) {
              return new Dimension(maxWidth, maxHeight);
         } else {
@@ -166,7 +165,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * @param x2 X-coordinate of the lower-right corner.
      * @param y2 Y-coordinate of the lower-right corner.
      */
-    public void setRectangle(int x1, int y1, int x2, int y2) {
+    public synchronized void setRectangle(int x1, int y1, int x2, int y2) {
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
@@ -178,7 +177,7 @@ class ImagePanel extends JPanel implements MouseListener {
      *
      * @return The ROI (region of interest).
      */
-    public Rectangle getROI() {
+    public synchronized Rectangle getROI() {
         return new Rectangle(x1, y1, x2 - x1, y2 - y1);
     }
 
@@ -187,7 +186,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * 
      * @return True if the ROI has been defined, false otherwise.
      */
-    public boolean isROIDefined() {
+    public synchronized boolean isROIDefined() {
         if (x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0)
             return false;
         else
@@ -200,7 +199,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * @param g The graphics object.
      */
     @Override
-    public void paintComponent(Graphics g) {
+    public synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
@@ -215,7 +214,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * XXX/FIXME: has not been tested properly.
      * @return The mean intensity of the image within the ROI.
      */
-    public double getROIIntensity()
+    public synchronized double getROIIntensity()
     {
         if (!Constants.USE_CCD) {
             return -1;
@@ -241,7 +240,7 @@ class ImagePanel extends JPanel implements MouseListener {
      *
      * @return The number of saturated pixel values in the ROI.
      */
-    public int getROISaturatedPixelCount()
+    public synchronized int getROISaturatedPixelCount()
     {
         if (!Constants.USE_CCD) {
             return -1;
@@ -267,7 +266,7 @@ class ImagePanel extends JPanel implements MouseListener {
     /**
      * Get the ROI image.  Useful for testing.
      */
-    public BufferedImage getROIImage()    
+    public synchronized BufferedImage getROIImage()
     {
         if (!enableROI || img == null) {
             return null;
@@ -300,7 +299,7 @@ class ImagePanel extends JPanel implements MouseListener {
      *
      * @param e The event description object.
      */
-    public void mousePressed(MouseEvent e) {
+    public synchronized void mousePressed(MouseEvent e) {
         Point cursor = e.getLocationOnScreen();
 
         if (isFirstPoint) {
@@ -329,7 +328,7 @@ class ImagePanel extends JPanel implements MouseListener {
      * The ImagePanelNotifier class is intended only as a means for the
      * ImagePanel class to notify observers about changes.
      */
-    class ImagePanelNotifier extends Observable {
+    class  ImagePanelNotifier extends Observable {
         protected void notifyChange(ImagePanel ip) {
             setChanged();
             notifyObservers(ip);

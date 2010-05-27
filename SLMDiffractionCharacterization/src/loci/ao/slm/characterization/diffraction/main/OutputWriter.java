@@ -27,7 +27,7 @@ public class OutputWriter {
      * The file path to write the output to.
      */
     private String filePath;
-    FileWriter fStream = null;
+    private FileWriter fStream = null;
 
     /**
      * Initialize the OutputWriter class.
@@ -47,7 +47,7 @@ public class OutputWriter {
      *
      * @param The output file path.
      */
-    public String getFilePath()
+    public synchronized String getFilePath()
     {
         return filePath;
     }
@@ -57,7 +57,7 @@ public class OutputWriter {
      *
      * @param append If true, then appends to the file, otherwise creates it.
      */
-    private void openFile(boolean append) {
+    private synchronized void openFile(boolean append) {
         try {
             fStream = new FileWriter(filePath, append);
         } catch (IOException ex) {
@@ -68,7 +68,7 @@ public class OutputWriter {
     /**
      * Close the file.
      */
-    private void closeFile() {
+    private synchronized void closeFile() {
         try {
             fStream.close();
         } catch (IOException ex) {
@@ -87,7 +87,7 @@ public class OutputWriter {
      * @param roiLRCornerX The X-coordinate of the L.R. corner of the ROI.
      * @param roiLRCornerY The Y-coordinate of the U.L. corner of the ROI.
      */
-    public void writeHeader(int numGratings, int numRegions, int refVal,
+    public synchronized void writeHeader(int numGratings, int numRegions, int refVal,
             int roiULCornerX, int roiULCornerY,
             int roiLRCornerX, int roiLRCornerY) {
         try {
@@ -118,7 +118,7 @@ public class OutputWriter {
     /**
      * Records one set of data.
      */
-    public void recordData(int region, int refVal, int varVal, double roiInt) {
+    public synchronized void recordData(int region, int refVal, int varVal, double roiInt) {
         try {
             openFile(true);
             String txtLine = region + "\t" + refVal + "\t" + varVal + "\t" + roiInt + "\n";

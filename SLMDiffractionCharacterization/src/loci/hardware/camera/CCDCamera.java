@@ -44,19 +44,19 @@ public class CCDCamera {
         frame = new int[width*height];
     }
 
-    public int testMe() {
+    public synchronized int testMe() {
         return CCDCamWrapper.test_me();
     }
 
-    public boolean initialize() {
+    public synchronized boolean initialize() {
         return CCDCamWrapper.init_camera();
     }
 
-    public String getNote() {
+    public synchronized String getNote() {
         return CCDCamWrapper.get_note();
     }
 
-    public BufferedImage getImage() {
+    public synchronized BufferedImage getImage() {
         BufferedImage img =
                 new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
@@ -74,7 +74,7 @@ public class CCDCamera {
         return img;
     }
 
-    private void waitAndTryAgain() {
+    private synchronized void waitAndTryAgain() {
         System.out.println("Waiting 1sec before trying again!");
         try {
             Thread.sleep(1000);
@@ -88,7 +88,7 @@ public class CCDCamera {
      *
      * @return -1 on error, otherwise the width*height of the image (in pixels).
      */
-    public int captureFrame(int averages) {
+    public synchronized int captureFrame(int averages) {
         // Clean up frame.
         for (int i = 0; i < width*height; i++) {
            frame[i] = 0;

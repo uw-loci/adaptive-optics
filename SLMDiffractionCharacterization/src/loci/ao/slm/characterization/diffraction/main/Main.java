@@ -299,7 +299,7 @@ public class Main extends JFrame implements Observer, WindowListener {
      * @param o The observable object that registered the update.
      * @param arg Input arguments, currently the actual class.
      */
-    public void update(Observable o, Object arg) {
+    public synchronized void update(Observable o, Object arg) {
         if (arg == null)
             return;
 
@@ -503,7 +503,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         outPathEdit = new JTextField("");
         browseButton = new JButton("Browse");
         browseButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 int retVal = fileChooser.showOpenDialog(browseButton);
                 if (retVal == JFileChooser.APPROVE_OPTION) {
@@ -514,7 +514,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         });
         JButton manualUpdateButton = new JButton("Update");
         manualUpdateButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
                 updateSLM();
                 
                 try {
@@ -528,7 +528,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         });
         JButton manualRecordButton = new JButton("Record");
         manualRecordButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
                 // Record the current status to file.
                 // recordData();
 
@@ -589,7 +589,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         // Prepare items.
         JButton seriesRunButton = new JButton("Run Series");
         seriesRunButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
                 System.out.println("Run Series button pressed");
                 serieRunner = SerieRunner.getInstance();
                 serieRunner.start();
@@ -624,7 +624,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         });
         JButton seriesCancelButton = new JButton("Cancel");
         seriesCancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
                 System.out.println("Cancelling");
                 serieRunner.stop();
             }
@@ -633,7 +633,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         seriesOutPathEdit = new JTextField("");
         seriesBrowseButton = new JButton("Browse");
         seriesBrowseButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 int retVal = fileChooser.showOpenDialog(seriesBrowseButton);
                 if (retVal == JFileChooser.APPROVE_OPTION) {
@@ -698,7 +698,7 @@ public class Main extends JFrame implements Observer, WindowListener {
      * Updates the SLM device, sets the correct parameters and sends the
      * corresponding grating image to the device.
      */
-    private void updateSLM() {
+    private synchronized void updateSLM() {
         calibImagePanel.setParams(
                 new Integer(gratingsEdit.getText()),
                 new Integer(refValueEdit.getText()),
@@ -723,7 +723,7 @@ public class Main extends JFrame implements Observer, WindowListener {
     /**
      * Runs the camera (for test purposes).
      */
-    public void runCamera() {
+    public synchronized void runCamera() {
         if (!Constants.USE_CCD) {
             return;
         }

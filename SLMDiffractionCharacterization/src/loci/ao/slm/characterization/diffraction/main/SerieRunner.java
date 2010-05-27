@@ -105,7 +105,7 @@ public class SerieRunner
         return instance;
     }
 
-    public void setOutputFileName(String filePath)
+    public synchronized void setOutputFileName(String filePath)
     {
         this.outputFileName = filePath;
     }
@@ -113,7 +113,7 @@ public class SerieRunner
     /**
      * Setup fixed grating variables.
      */
-    public void setGratingVars(
+    public synchronized void setGratingVars(
             int fixedGratings, int fixedRefValue, int fixedRegions)
     {
         this.fixedGratings = fixedGratings;
@@ -130,7 +130,7 @@ public class SerieRunner
      * @param toVar Variable value range: end point (to).
      * @param stepSize The step size to scan the variable in.
      */
-    public void setRange(int fromRegion, int toRegion,
+    public synchronized void setRange(int fromRegion, int toRegion,
             int fromVar, int toVar, int stepSize)
     {
         this.fromRegion = fromRegion;
@@ -148,7 +148,7 @@ public class SerieRunner
      * @param roiLRCornerX The L.R. corner of the ROI, X-coordinate.
      * @param roiLRCornerY The L.R. corner of the ROI, Y-coordinate.
      */
-    public void setROIInformation(int roiULCornerX, int roiULCornerY,
+    public synchronized void setROIInformation(int roiULCornerX, int roiULCornerY,
             int roiLRCornerX, int roiLRCornerY)
     {
         this.roiULCornerX = roiULCornerX;
@@ -160,7 +160,7 @@ public class SerieRunner
     /**
      * Notify observers about the parameter change.
      */
-    public void upgradeParams()
+    public synchronized void upgradeParams()
     {
         notifyObservers();
     }
@@ -208,13 +208,13 @@ public class SerieRunner
         Main.getInstance().updateStatus();
     }
 
-    public void start() {
+    public synchronized void start() {
        // Thread the instance.
        thread = new Thread(this);
        thread.start();
     }
 
-    public void run() {
+    public synchronized void run() {
         System.out.println("Serial Thread running");
         Thread thisThread = Thread.currentThread();
 
