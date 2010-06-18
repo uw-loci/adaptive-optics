@@ -90,7 +90,7 @@ public class SerieRunner
     /**
      * Stop the thread.
      */
-    public synchronized void stop()
+    public void stop()
     {
         thread = null;
     }
@@ -98,7 +98,7 @@ public class SerieRunner
     /**
      * Get the instance of the class.
      */
-    public static SerieRunner getInstance() {
+    public synchronized static SerieRunner getInstance() {
         if (instance == null) {
             instance = new SerieRunner();
         }
@@ -215,7 +215,9 @@ public class SerieRunner
     }
 
     public synchronized void run() {
-        System.out.println("Serial Thread running");
+        if (Constants.DEBUG) {
+            System.out.println("Serial Thread running");
+        }
         Thread thisThread = Thread.currentThread();
 
         outpWriter = new OutputWriter(outputFileName);
@@ -224,9 +226,18 @@ public class SerieRunner
 
         for (currentRegion = fromRegion; (currentRegion <= toRegion) && (thread == thisThread); currentRegion++) {
             for (currentVar = fromVar; (currentVar <= toVar) && (thread == thisThread); currentVar+=stepSize) {
-                System.out.println("Region: " + currentRegion + "; Current var: " + currentVar);
+                if (Constants.DEBUG) {
+                    System.out.println("Region: " + currentRegion + "; Current var: " + currentVar);
+                }
+
+                //long durStart = System.currentTimeMillis();
+
                 upgradeParams();
                 updateSLMGrating();
+
+                //long durEnd = System.currentTimeMillis();
+                //long duration = durEnd - durStart;
+                //System.out.println("SLM upgrade duration: " + duration);
 
                 ExperimentStatus.getInstance().setRefValue(fixedRefValue);
                 ExperimentStatus.getInstance().setRegion(currentRegion);
@@ -235,30 +246,37 @@ public class SerieRunner
                 // This is to make sure that the image has been displayed
                 // appropriately.
                 try {
-                    Thread.sleep(500);
+                    //Thread.sleep(500);
+                    Thread.sleep(100);
                 } catch (InterruptedException ex) {
                 }
 
                 // Run the camera.
+                //durStart = System.currentTimeMillis();
                 upgradeCamera();
+                //durEnd = System.currentTimeMillis();
+                //duration = durEnd - durStart;
+                //System.out.println("Camera upgrade duration: " + duration);
 
                 // Record results.
                 recordData();
-
 
                 // Update the status.
                 updateStatus();
 
                 // This is to keep the GUI responsive.
                 // Might not be necessary.
+                /*
                 try {
-                    //Thread.sleep(100);
-                    Thread.sleep(1000); // XXX: Debugging 1 second.
+                    Thread.sleep(50);
+                    //Thread.sleep(1000); // XXX: Debugging 1 second.
                 } catch (InterruptedException ex) {
-                }
+                }*/
             }
         }
-        
-        System.out.println("Serial Thread exiting loop.");
+
+        if (Constants.DEBUG) {
+            System.out.println("Serial Thread exiting loop.");
+        }
     }
 }

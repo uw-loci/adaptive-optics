@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Observable;
 import java.util.Observer;
@@ -730,26 +731,40 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         CCDCamera ccdCamera = new CCDCamera();
 
-        System.out.println("testMe(): " + ccdCamera.testMe());
+        if (Constants.DEBUG) {
+            System.out.println("testMe(): " + ccdCamera.testMe());
+        }
 
         if (ccdCamera.initialize()) {
-            System.out.println("Successfully initialized the CCD Camera");
+            if (Constants.DEBUG) {
+                System.out.println("Successfully initialized the CCD Camera");
+            }
         } else {
             System.out.println("Failed to initialize the CCD Camera");
         }
 
-        System.out.println("Note: " + ccdCamera.getNote());
+        if (Constants.DEBUG) {
+            System.out.println("Note: " + ccdCamera.getNote());
+        }
 
         Integer imageAverages = new Integer(ccdAveragesField.getText());
-        
+
+        //long durStart = System.currentTimeMillis();
         int frameLen = ccdCamera.captureFrame(imageAverages);
+        //long durEnd = System.currentTimeMillis();
+        //long duration = durEnd - durStart;
+        //System.out.println("cpature frame duration: " + duration);
+
         if (frameLen < 0) {
             System.out.println("Err: " + ccdCamera.getNote());
         } else {
-            ccdImagePanel.setImage(ccdCamera.getImage());
+            BufferedImage camImage = ccdCamera.getImage();
+            ccdImagePanel.setImage(camImage);
             ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
         }
-        System.out.println("frameLength: " + frameLen);
+        if (Constants.DEBUG) {
+            System.out.println("frameLength: " + frameLen);
+        }
     }
 
     

@@ -13,6 +13,7 @@ public class Constants {
     /**
      * Constants.
      */
-    public static final boolean USE_SLM_DEVICE = false;
-    public static final boolean USE_CCD = false;
+    public static final boolean USE_SLM_DEVICE = true;
+    public static final boolean USE_CCD = true;
+    public static final boolean DEBUG = false;
 }

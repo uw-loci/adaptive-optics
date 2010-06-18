@@ -122,7 +122,9 @@ public class OutputWriter {
         try {
             openFile(true);
             String txtLine = region + "\t" + refVal + "\t" + varVal + "\t" + roiInt + "\n";
-            System.out.println("Line: " + txtLine);
+            if (Constants.DEBUG) {
+                System.out.println("Line: " + txtLine);
+            }
             fStream.write(txtLine);
             closeFile();
         } catch (IOException ex) {

@@ -36,6 +36,7 @@ public class CCDCamera {
     private int[] frame;
     private int width = 1024;
     private int height = 768;
+    private BufferedImage img;
 
 
     public CCDCamera() {
@@ -57,6 +58,8 @@ public class CCDCamera {
     }
 
     public synchronized BufferedImage getImage() {
+        return img;
+        /*
         BufferedImage img =
                 new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
@@ -71,7 +74,7 @@ public class CCDCamera {
             }
         }
 
-        return img;
+        return img;*/
     }
 
     private synchronized void waitAndTryAgain() {
@@ -89,10 +92,7 @@ public class CCDCamera {
      * @return -1 on error, otherwise the width*height of the image (in pixels).
      */
     public synchronized int captureFrame(int averages) {
-        // Clean up frame.
-        for (int i = 0; i < width*height; i++) {
-           frame[i] = 0;
-        }
+        img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
         int retVal = 0;
         for (int j = 0; j < averages; j++) {
@@ -103,15 +103,38 @@ public class CCDCamera {
             }
 
             for (int i = 0; i < width*height; i++) {
-                frame[i] += CCDCamWrapper.get_frame_at_pos(i) / averages;
-            }
+                if (j == 0) {
+                    frame[i] = 0; // Clean up frame beforehand (first image in averaging).
+                }
+                frame[i] += CCDCamWrapper.get_frame_at_pos(i);
 
-            // Give it a little time to prepare for next.
-            // Experimental.
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ex) {
+                int m = i % width;
+                int n = i / width;
+
+                int byteVal = (int)frame[i];
+                byteVal &= 0xff;
+                int rgbVal = (byteVal << 16) | (byteVal << 8) | byteVal;
+                img.setRGB(m, n, rgbVal);
             }
+            // Indicate that memory can be released in the C program:
+            CCDCamWrapper.get_frame_at_pos(-1);
+
+            if ((averages > 0) && (j < (averages-1))) {
+                // Give it a little time to prepare for next.
+                // Experimental.
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ex) {
+                }
+            }
+        }
+
+        // Average it out.
+        for (int i = 0; i < width*height; i++) {
+           frame[i] = Math.round(frame[i]/averages);
+
+           if (frame[i] > 255) frame[i] = 255;
+           if (frame[i] < 0) frame[i] = 0;
         }
 
         return retVal;

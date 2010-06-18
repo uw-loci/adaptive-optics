@@ -26,6 +26,8 @@ public class GratingImagePanel extends ImagePanel {
         super();
         image = new BufferedImage(SLM_DIM, SLM_DIM,
                 BufferedImage.TYPE_BYTE_GRAY);
+        int slmSize = SLM_DIM;
+        dataMatrix = new double[slmSize * slmSize];
     }
 
     /**
@@ -37,7 +39,7 @@ public class GratingImagePanel extends ImagePanel {
      * @param region The selected region (0-max).
      * @param numberOfRegions The number of regions.
      */
-    public void setParams(
+    public synchronized void setParams(
             int numberOfBlocks,
             double refValue,
             double secondValue,
@@ -65,7 +67,7 @@ public class GratingImagePanel extends ImagePanel {
      *
      * @return The last (most recently) generated data matrix.
      */
-    public double[] getDataMatrix()
+    public synchronized double[] getDataMatrix()
     {
         return dataMatrix;
     }
@@ -81,7 +83,7 @@ public class GratingImagePanel extends ImagePanel {
      * 
      * @return The output image matrix (SLM_DIM x SLM_DIM).
      */
-    private double[] fGrating(
+    private synchronized double[] fGrating(
             int numberOfBlocks,
             double refValue,
             double secondValue,
@@ -93,11 +95,10 @@ public class GratingImagePanel extends ImagePanel {
         int sqrtReg, xdim, ydim;
         int xreg, yreg;
 
+        
         slmSize = SLM_DIM;
-
         int blockWidth = (int)(slmSize / numberOfBlocks);
 
-        dataMatrix = new double[slmSize * slmSize];
         double total;
 
         // Get the set slm size (specified in the window).
