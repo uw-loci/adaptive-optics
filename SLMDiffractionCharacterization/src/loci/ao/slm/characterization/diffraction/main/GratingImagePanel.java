@@ -127,15 +127,16 @@ public class GratingImagePanel extends ImagePanel {
         yreg = (int)(region / sqrtReg);
         y1 = yreg * ydim; y2 = y1 + ydim;
 
+
         // Set the surface by polynomia parameters, pixel by pixel.
         // GH: row=0; row < 512; row++
-        for (int row = start; row < end; row++) {
+        for (int row = 0; row < 512; row++) {
             //reset x
 
             // GH: col=0; col < 512; col++
-            for (int col = start; col < end; col++) {
+            for (int col = 0; col < 512; col++) {
                 // Build some terms that are repeated through the equations.
-                int blockNumber = (int)(col / blockWidth);
+                int blockNumber = (int)((col) / blockWidth);
                 int blockType = (blockNumber + 1) % 2;
 
                 if (row >= y1 && row < y2 && col >= x1 && col < x2) {
@@ -151,6 +152,7 @@ public class GratingImagePanel extends ImagePanel {
                 dataMatrix[row * slmSize + col] = (total);
             }
         }
+
 
         return dataMatrix;
     }

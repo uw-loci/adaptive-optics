@@ -27,6 +27,7 @@ import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -103,6 +104,36 @@ public class Main extends JFrame implements Observer, WindowListener {
      * A button that triggers the folder chooser dialog to appear.
      */
     private JButton browseButton;
+
+    /**
+     * Textfield used to show/modify the lut folder path.
+     */
+    private JTextField lutPathEdit;
+
+    /**
+     * Checkbox to enable/disable use of LUTs.
+     */
+    private JCheckBox lutUsageCheckBox;
+
+    /**
+     * A button that triggers the folder chooser dialog to appear.
+     */
+    private JButton lutBrowseButton;
+
+    /**
+     * A button that triggers the loading of the LUT location folder.
+     */
+    private JButton lutLoadButton;
+
+    /**
+     * FileChooser widget used to select output file location.
+     */
+    private JFileChooser lutFileChooser;
+
+    /**
+     * LUT status label.
+     */
+    private JLabel lutStatusLabel;
 
     /**
      * Specifies the number of gratings.
@@ -343,12 +374,11 @@ public class Main extends JFrame implements Observer, WindowListener {
      */
     private JPanel buildRightPanel() {
         String rightColSpec = "fill:p"; // 1
-        String rightRowSpec   = "p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p"; // 11
+        String rightRowSpec   = "p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p"; // 13
 
         CellConstraints cc = new CellConstraints();
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
         PanelBuilder rightBuilder = new PanelBuilder(rightLayout);
-
 
         /* 1. Grating Settings Panel. */
         String calibColSpecs = "p, 4dlu, 30dlu, 8dlu, p, 4dlu, 30dlu, 4dlu:grow"; // 8
@@ -357,11 +387,11 @@ public class Main extends JFrame implements Observer, WindowListener {
         PanelBuilder calibBuilder = new PanelBuilder(calibLayout);
 
         // Prepare contents.
-        gratingsEdit = new JTextField("100");
+        gratingsEdit = new JTextField("256");
         regionsEdit = new JTextField("16");
         regionEdit = new JTextField("0");
-        refValueEdit = new JTextField("0");
-        varValueEdit = new JTextField("255");
+        refValueEdit = new JTextField("255");
+        varValueEdit = new JTextField("0");
 
         JButton calApplyButton = new JButton("Apply");
         calApplyButton.addActionListener(new ActionListener() {
@@ -458,7 +488,58 @@ public class Main extends JFrame implements Observer, WindowListener {
         rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, 3));
 
 
-        /* 3. Status panel. */
+        /* 3. LUT panel */
+        String lutColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
+        String lutRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 10
+        FormLayout lutLayout = new FormLayout(lutColSpecs, lutRowSpecs);
+        PanelBuilder lutBuilder = new PanelBuilder(lutLayout);
+
+        // Prepare contents.
+        lutFileChooser = new JFileChooser();
+        lutStatusLabel = new JLabel("");
+        lutPathEdit = new JTextField("");
+        lutUsageCheckBox = new JCheckBox("Enable use of LUTs");
+        lutBrowseButton = new JButton("Browse");
+        lutBrowseButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                lutFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                int retVal = lutFileChooser.showOpenDialog(browseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = lutFileChooser.getSelectedFile();
+                    lutPathEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+        lutLoadButton = new JButton("Load LUT Folder");
+        lutLoadButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Loading the lut folder");
+                LookupTable.getInstance().loadFolder(lutPathEdit.getText());
+                updateLutStatus();
+            }
+        });
+        updateLutStatus();
+
+        // Arrange contents.
+        row = 1;
+        lutBuilder.addSeparator("Look-up tables (LUTs)",  cc.xyw(1, row, 6));
+        row += 2;
+        lutBuilder.add(lutUsageCheckBox,                  cc.xyw(1, row, 6));
+        row += 2;
+        lutBuilder.addLabel("Folder:",                    cc.xy(1, row));
+        lutBuilder.add(lutPathEdit,                       cc.xy(3, row));
+        lutBuilder.add(lutBrowseButton,                   cc.xy(5, row));
+        row += 2;
+        lutBuilder.addLabel("Status:",                    cc.xy(1, row));
+        lutBuilder.add(lutStatusLabel,                    cc.xy(3, row));
+        row += 2;
+        lutBuilder.add(lutLoadButton,                     cc.xy(1, row));
+
+        rightBuilder.add(lutBuilder.getPanel(),           cc.xy(1, 5));
+
+
+
+        /* 4. Status panel. */
         String statColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
         String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 13
         FormLayout statLayout = new FormLayout(statColSpecs, statRowSpecs);
@@ -490,10 +571,10 @@ public class Main extends JFrame implements Observer, WindowListener {
         statBuilder.addLabel("ROI saturated pixels:",      cc.xy(1, row));
         statBuilder.add(roiSatPixelsLabel,                 cc.xy(3, row));
 
-        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 5));
+        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 7));
         
 
-        /* 4. Manual Output Panel. */
+        /* 5. Manual Output Panel. */
         String outpColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
         String outpRowSpecs = "p, 4dlu, p, 4dlu, p"; // 5
         FormLayout outpLayout = new FormLayout(outpColSpecs, outpRowSpecs);
@@ -578,10 +659,10 @@ public class Main extends JFrame implements Observer, WindowListener {
         outpBuilder.add(manualUpdateButton,               cc.xy(1, row));
         outpBuilder.add(manualRecordButton,               cc.xy(3, row));
 
-        rightBuilder.add(outpBuilder.getPanel(),          cc.xy(1, 7));
+        rightBuilder.add(outpBuilder.getPanel(),          cc.xy(1, 9));
 
 
-        /* 5. Series Output Panel. */
+        /* 6. Series Output Panel. */
         String opColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 14
         String opRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
         FormLayout opLayout = new FormLayout(opColSpecs, opRowSpecs);
@@ -675,11 +756,11 @@ public class Main extends JFrame implements Observer, WindowListener {
         outSeriesBuilder.add(seriesRunButton,             cc.xyw(1, row, 5));
         outSeriesBuilder.add(seriesCancelButton,          cc.xyw(7, row, 5));
 
-        rightBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, 9));
+        rightBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, 11));
 
-        /* 6. CCD zoom panel. */
-        String ccdZoomColSpecs = "200dlu"; // 1
-        String ccdZoomRowSpecs = "200dlu"; // 1
+        /* 7. CCD zoom panel. */
+        String ccdZoomColSpecs = "100dlu"; // 1
+        String ccdZoomRowSpecs = "100dlu"; // 1
         FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
         PanelBuilder ccdZoomBuilder = new PanelBuilder(ccdZoomLayout);
 
@@ -690,9 +771,25 @@ public class Main extends JFrame implements Observer, WindowListener {
         row = 1;
         ccdZoomBuilder.add(ccdZoomRegion,                     cc.xy(1, row));
 
-        rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, 11));
+        rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, 13));
 
         return rightBuilder.getPanel();
+    }
+
+    /**
+     * Updates the status of the LUT panel.
+     */
+    private void updateLutStatus()
+    {
+        String statusMsg = "";
+
+        if (lutUsageCheckBox.isSelected()) {
+            statusMsg += "enabled";
+        } else {
+            statusMsg += "disabled";
+        }
+
+        lutStatusLabel.setText(statusMsg);
     }
 
     /**
