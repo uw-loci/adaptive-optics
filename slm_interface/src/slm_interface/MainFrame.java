@@ -35,6 +35,8 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 
@@ -55,8 +57,8 @@ public class MainFrame
      * Indicates whether the device is being used, or whether it is running
      * in graphics only mode.
      */
-    final boolean USE_DEVICE = true;
-    final boolean ENABLE_PLOTTING = true;
+    final boolean USE_DEVICE = false;
+    final boolean ENABLE_PLOTTING = false;
 
     /**
      * Location of default LUT file.
@@ -94,12 +96,43 @@ public class MainFrame
      * dRad?
      */
     private double dRad;
-    private double[] dlut;
+    //private double[] dlut;
 
     /**
      * Remember the focus correction?.
-     */
+     */    
     private double rememberfocus;
+
+    /**
+     * Textfield used to show/modify the lut folder path.
+     */
+    private JTextField lutPathEdit;
+
+    /**
+     * Checkbox to enable/disable use of LUTs.
+     */
+    private JCheckBox lutUsageCheckBox;
+
+    /**
+     * A button that triggers the folder chooser dialog to appear.
+     */
+    private JButton lutBrowseButton;
+
+    /**
+     * A button that triggers the loading of the LUT location folder.
+     */
+    private JButton lutLoadButton;
+
+    /**
+     * FileChooser widget used to select output file location.
+     */
+    private JFileChooser lutFileChooser;
+
+    /**
+     * LUT status label.
+     */
+    private JLabel lutStatusLabel;
+
 
     /**
      * Constructor.
@@ -125,10 +158,10 @@ public class MainFrame
 
         ZCoef = new double[numCoef];
         samples = new double[1][WIDTH * HEIGHT];
-        dlut = new double[256];
+        /*dlut = new double[256];
         for (int i = 0; i < 256; i++) {
             dlut[i] = i;
-        }
+        }*/
     }
 
     public void windowActivated(WindowEvent e) { }
@@ -160,7 +193,7 @@ public class MainFrame
     private JPanel buildLeftPanel()
     {
         String leftColSpec = "p"; //1
-        String leftRowSpec = "p, 4dlu:grow, p, 4dlu:grow, p"; //5 incl 3p
+        String leftRowSpec = "p, 4dlu:grow, p, 4dlu:grow,p, 4dlu:grow, p"; //5 incl 3p
 
         CellConstraints cc = new CellConstraints();
         FormLayout leftLayout = new FormLayout(leftColSpec, leftRowSpec);
@@ -317,10 +350,79 @@ public class MainFrame
         zButtonPanel.add(resetCoefficientsButton);
         zBuilder.add(zButtonPanel,  cc.xyw(1, row, 7));
 
+        /* LUT folder panel */
+        /* 3. LUT panel */
+        String lutColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
+        String lutRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 10
+        FormLayout lutLayout = new FormLayout(lutColSpecs, lutRowSpecs);
+        PanelBuilder lutBuilder = new PanelBuilder(lutLayout);
+
+        // Prepare contents.
+        lutFileChooser = new JFileChooser();
+        lutStatusLabel = new JLabel("");
+        lutPathEdit = new JTextField("");
+        lutUsageCheckBox = new JCheckBox("Enable use of LUTs");
+        lutUsageCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (lutUsageCheckBox.isSelected()) {
+                    System.out.println("isSelected");
+                    LookupTable.getInstance().setEnabled(true);
+                } else {
+                    System.out.println("is nicht selected");
+                    LookupTable.getInstance().setEnabled(false);
+                }
+                updateLutStatus();
+            }
+        });
+
+        lutBrowseButton = new JButton("Browse");
+        lutBrowseButton.addActionListener(new ActionListener() {
+            @Override
+            public synchronized void actionPerformed(ActionEvent e) {
+                lutFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                int retVal = lutFileChooser.showOpenDialog(lutBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = lutFileChooser.getSelectedFile();
+                    lutPathEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+        lutLoadButton = new JButton("Load LUT Folder");
+        lutLoadButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Loading the lut folder");
+                LookupTable.getInstance().loadFolder(lutPathEdit.getText());
+                updateLutStatus();
+            }
+        });
+        updateLutStatus();
+
+        // Arrange contents.
+        row = 1;
+        lutBuilder.addSeparator("Look-up tables (LUTs)",  cc.xyw(1, row, 6));
+        row += 2;
+        lutBuilder.add(lutUsageCheckBox,                  cc.xyw(1, row, 6));
+        row += 2;
+        lutBuilder.addLabel("Folder:",                    cc.xy(1, row));
+        lutBuilder.add(lutPathEdit,                       cc.xy(3, row));
+        lutBuilder.add(lutBrowseButton,                   cc.xy(5, row));
+        row += 2;
+        lutBuilder.addLabel("Status:",                    cc.xy(1, row));
+        lutBuilder.add(lutStatusLabel,                    cc.xy(3, row));
+        row += 2;
+        lutBuilder.add(lutLoadButton,                     cc.xy(1, row));
+
+        leftBuilder.add(lutBuilder.getPanel(),           cc.xy(1, 3));
+        
+
+
+        /*******************/
         /* LUT file panel. */
         //String LUTColSpecs = "left:max(100dlu;p), 4dlu, p"; // 3
         String LUTColSpecs = "p, p:grow, 4dlu, p"; // 4
-        String LUTRowSpecs = "p, 2dlu, p, 2dlu, p"; // 5
+        String LUTRowSpecs = "p, 2dlu, p, 2dlu, p, 2dlu, p"; // 7
         FormLayout LUTLayout = new FormLayout(LUTColSpecs, LUTRowSpecs);
         PanelBuilder LUTBuilder = new PanelBuilder(LUTLayout);
         //LUTBuilder.setDefaultDialogBorder();
@@ -340,6 +442,18 @@ public class MainFrame
 
         row += 2;
 
+        /* Load lut file button */
+        JButton loadLutFileButton = new JButton("Load LUT file");
+        loadLutFileButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                LookupTable.getInstance().loadGlobalFile(LUTpathField.getText());
+                updateLutStatus();
+            }
+        });
+        LUTBuilder.add(loadLutFileButton,                cc.xy(1, row));
+        row += 2;
+
         /* Show image, send SLM. */
         showImageButton.setText("Show image");
         showImageButton.addMouseListener(new MouseAdapter() {
@@ -349,6 +463,8 @@ public class MainFrame
         });
         LUTBuilder.add(showImageButton,                cc.xy(1, row));
 
+
+
         sendSLMButton.setText("Send SLM");
         sendSLMButton.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
@@ -356,7 +472,7 @@ public class MainFrame
             }
         });
         LUTBuilder.add(sendSLMButton,                  cc.xy(4, row));
-        leftBuilder.add(LUTBuilder.getPanel(),          cc.xy(1, 3));
+        leftBuilder.add(LUTBuilder.getPanel(),          cc.xy(1, 5));
 
 
         /* Pattern panel. */
@@ -409,7 +525,7 @@ public class MainFrame
         });
         patternBuilder.add(powerOffButton,             cc.xyw(1, row, 4));
 
-        leftBuilder.add(patternBuilder.getPanel(),     cc.xy(1, 5));
+        leftBuilder.add(patternBuilder.getPanel(),     cc.xy(1, 7));
 
         return leftBuilder.getPanel();
     }
@@ -571,6 +687,24 @@ public class MainFrame
         setLocationRelativeTo(null);
         setTitle("SLM BeamShaper - Zernike Plotter");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
+
+    /**
+     * Updates the status of the LUT panel.
+     */
+    private void updateLutStatus()
+    {
+        String statusMsg = "";
+
+        if (LookupTable.getInstance().isEnabled()) {
+            statusMsg += "enabled";
+            statusMsg += "/";
+            statusMsg += LookupTable.getInstance().getNumberOfRegions() + " regs";
+        } else {
+            statusMsg += "disabled";
+        }
+
+        lutStatusLabel.setText(statusMsg);
     }
 
     private void updateCalculations() {
@@ -870,6 +1004,9 @@ public class MainFrame
         patternTextField.setText("");
     }
 
+    /**
+     * Read an image from a file and send to SLM.
+     */
     private void jBut_patten_SendMouseClicked(MouseEvent evt) {
         File f = new File(Pattern_AbsolutePath);
         //String[] formatNames = new String[50];
@@ -889,7 +1026,7 @@ public class MainFrame
             JOptionPane.showMessageDialog(this, "I/O exception occurred: " + e.getMessage(), "slm2", JOptionPane.ERROR_MESSAGE);
         }
 
-        dlut = readLUT();
+        //dlut = readLUT();
 
         if (ENABLE_PLOTTING) {
             try {
@@ -901,10 +1038,25 @@ public class MainFrame
             }
         }
 
+        int totRegions = LookupTable.getInstance().getNumberOfRegions();
+        int sqrtRegions = (int)Math.sqrt(totRegions);
+        int xWidth = WIDTH / sqrtRegions;
+        int yWidth = HEIGHT / sqrtRegions;
+
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
             // add the lut process at here.
             // limit the data to 0 - 255, 8 bits data
-            samples[0][i] = (int) dlut[(int) Math.round(samples[0][i]) % 256];
+
+            int x = i % xWidth;
+            int y = i / yWidth;
+            int xi = x/xWidth;
+            int yi = y/yWidth;
+            int region = yi*sqrtRegions + yi;
+            
+            int val = (int) Math.round(samples[0][i]) % 256;
+
+            //samples[0][i] = (int) dlut[val];
+            samples[0][i] = (int) LookupTable.getInstance().lookup(val, region);
         }
 
 
@@ -941,7 +1093,7 @@ public class MainFrame
         String spec4, spec5, spec6, spec7, spec8, spec9;
 
         //read the look up table
-        dlut = readLUT();
+        //dlut = readLUT();
 
         // Generate wavefront data by zernike polynomials parameters.
         samples[0] = generateZernikeWavefrontFromCurrentSettings(true);
@@ -968,9 +1120,30 @@ public class MainFrame
             //System.out.println("startVal: " + startVal + " -> val is: " + val);
         }
 
+        int totRegions = LookupTable.getInstance().getNumberOfRegions();
+        int sqrtRegions = (int)Math.sqrt(totRegions);
+
+        System.out.println("sqrtRegions: " + sqrtRegions);
+
+        // 00 01 02 03
+        // 04 05 06 07
+        // 08 09 10 11
+        // 12 13 14 15
+        int xWidth = WIDTH / sqrtRegions;
+        int yWidth = HEIGHT / sqrtRegions;
+
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            int x = i % xWidth;
+            int y = i / yWidth;
+            int xi = x/xWidth;
+            int yi = y/yWidth;
+            int region = yi*sqrtRegions + yi;
+            
+            //System.out.println("Aregion: " + region);
             int index = (int) (samples[0][i]);
-            samples[0][i] = dlut[index];
+            //samples[0][i] = dlut[index];
+            //System.out.println("Aregion: " + region + " index: " + index);
+            samples[0][i] = LookupTable.getInstance().lookup(index, region);
         }
 
         
@@ -1163,8 +1336,6 @@ public class MainFrame
         double[] comaxterm = new double[SLMSIZE * SLMSIZE];
         double[] comayterm = new double[SLMSIZE * SLMSIZE];
         double[] speriterm = new double[SLMSIZE * SLMSIZE];
-
-
 
         /*
         for (int i = 0; i < SLMSIZE; i++)
