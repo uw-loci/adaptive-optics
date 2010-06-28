@@ -100,6 +100,7 @@ public class GratingImagePanel extends ImagePanel {
         int blockWidth = (int)(slmSize / numberOfBlocks);
 
         double total;
+        int val;
 
         // Get the set slm size (specified in the window).
         actSize = slmSize;
@@ -127,6 +128,7 @@ public class GratingImagePanel extends ImagePanel {
         yreg = (int)(region / sqrtReg);
         y1 = yreg * ydim; y2 = y1 + ydim;
 
+        System.out.println("Grating, region: " + region);
 
         // Set the surface by polynomia parameters, pixel by pixel.
         // GH: row=0; row < 512; row++
@@ -149,11 +151,11 @@ public class GratingImagePanel extends ImagePanel {
                     total = refValue;
                 }
 
-                dataMatrix[row * slmSize + col] = (total);
+                val = LookupTable.getInstance().lookup((int)total, region);
+                dataMatrix[row * slmSize + col] = val;
             }
         }
-
-
+        
         return dataMatrix;
     }
 

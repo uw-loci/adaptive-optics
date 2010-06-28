@@ -479,8 +479,6 @@ public class Main extends JFrame implements Observer, WindowListener {
         roiBuilder.addLabel("# Averages:",                  cc.xy(1, row));
         roiBuilder.add(ccdAveragesField,                    cc.xy(5, row));
 
-
-
         row += 2;
         roiBuilder.add(ccdCaptureButton,                    cc.xy(1, row));
         roiBuilder.add(ROIApplyButton,                      cc.xyw(3, row, 7));
@@ -499,6 +497,18 @@ public class Main extends JFrame implements Observer, WindowListener {
         lutStatusLabel = new JLabel("");
         lutPathEdit = new JTextField("");
         lutUsageCheckBox = new JCheckBox("Enable use of LUTs");
+        lutUsageCheckBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (lutUsageCheckBox.isSelected()) {
+                    System.out.println("isSelected");
+                    LookupTable.getInstance().setEnabled(true);
+                } else {
+                    System.out.println("is nicht selected");
+                    LookupTable.getInstance().setEnabled(false);
+                }
+                updateLutStatus();
+            }
+        });
         lutBrowseButton = new JButton("Browse");
         lutBrowseButton.addActionListener(new ActionListener() {
             public synchronized void actionPerformed(ActionEvent e) {
@@ -536,7 +546,6 @@ public class Main extends JFrame implements Observer, WindowListener {
         lutBuilder.add(lutLoadButton,                     cc.xy(1, row));
 
         rightBuilder.add(lutBuilder.getPanel(),           cc.xy(1, 5));
-
 
 
         /* 4. Status panel. */
@@ -783,7 +792,7 @@ public class Main extends JFrame implements Observer, WindowListener {
     {
         String statusMsg = "";
 
-        if (lutUsageCheckBox.isSelected()) {
+        if (LookupTable.getInstance().isEnabled()) {
             statusMsg += "enabled";
         } else {
             statusMsg += "disabled";
@@ -863,7 +872,6 @@ public class Main extends JFrame implements Observer, WindowListener {
             System.out.println("frameLength: " + frameLen);
         }
     }
-
     
     /**
      * Starts the application.
