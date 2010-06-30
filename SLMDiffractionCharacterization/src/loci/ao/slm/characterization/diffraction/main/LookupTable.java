@@ -103,10 +103,21 @@ public class LookupTable {
                     if (!loadLutFile(listOfFiles[i].getPath(), region)) {
                         System.out.println("Error in loading lut file");
                         isLoaded = false;
+                    } else {
+                        noRegions++;
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Get the number of loaded regions.
+     *
+     * @return The number of regions.
+     */
+    public int getNumberOfRegions() {
+        return noRegions;
     }
 
     /**

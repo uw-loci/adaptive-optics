@@ -39,7 +39,7 @@ public class GratingImagePanel extends ImagePanel {
      * @param region The selected region (0-max).
      * @param numberOfRegions The number of regions.
      */
-    public synchronized void setParams(
+    public synchronized void setGratingParams(
             int numberOfBlocks,
             double refValue,
             double secondValue,
@@ -49,6 +49,28 @@ public class GratingImagePanel extends ImagePanel {
         dataMatrix = fGrating(
                 numberOfBlocks, refValue, secondValue, region, numberOfRegions);
 
+        setDataMatrix(dataMatrix);
+
+    }
+
+    /**
+     * Sets and loads the data matrix that is given as an input argument.
+     *
+     * @param dataMatrix The datamatrix (phase image) to be loaded.
+     */
+    public synchronized void setDataMatrix(double[] dataMatrix)
+    {
+        this.dataMatrix = dataMatrix;
+
+        for (int i = 0; i < SLM_DIM; i++) {
+            for (int j = 0; j < SLM_DIM; j++) {
+                int byteVal = (int)dataMatrix[j*SLM_DIM + i];
+                byteVal &= 0xff;
+                int rgbVal = (byteVal << 16) | (byteVal << 8) | byteVal;
+                image.setRGB(i, j, rgbVal);
+            }
+        }
+        
         for (int i = 0; i < SLM_DIM; i++) {
             for (int j = 0; j < SLM_DIM; j++) {
                 int byteVal = (int)dataMatrix[j*SLM_DIM + i];
@@ -61,6 +83,7 @@ public class GratingImagePanel extends ImagePanel {
         setImage(image);
         repaint();
     }
+
 
     /**
      * Returns the last (most recently) generated data matrix.

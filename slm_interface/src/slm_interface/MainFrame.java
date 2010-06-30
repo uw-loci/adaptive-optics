@@ -654,7 +654,6 @@ public class MainFrame
      * Note: Code initially generated with the NetBeans forms designer.
      */
     private void initComponents() {
-
         patternPanel = new JPanel();
         patternHeadingLabel = new JLabel();
         patternBrowseButton = new JButton();
@@ -1051,7 +1050,7 @@ public class MainFrame
             int y = i / yWidth;
             int xi = x/xWidth;
             int yi = y/yWidth;
-            int region = yi*sqrtRegions + yi;
+            int region = yi*sqrtRegions + xi;
             
             int val = (int) Math.round(samples[0][i]) % 256;
 
@@ -1137,7 +1136,7 @@ public class MainFrame
             int y = i / yWidth;
             int xi = x/xWidth;
             int yi = y/yWidth;
-            int region = yi*sqrtRegions + yi;
+            int region = yi*sqrtRegions + xi;
             
             //System.out.println("Aregion: " + region);
             int index = (int) (samples[0][i]);
@@ -1680,7 +1679,7 @@ public class MainFrame
      *
      * @param evt The mouse event object.
      */
-    private void jBut_patten_brwMouseClicked(MouseEvent evt) {
+private void jBut_patten_brwMouseClicked(MouseEvent evt) {
         fileChooserDialog.setVisible(true);
         fileChooserDialog.showDialog(this, "Browse");
         PatternFile = fileChooserDialog.getSelectedFile();

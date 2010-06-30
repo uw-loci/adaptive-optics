@@ -175,7 +175,7 @@ public class SerieRunner
         GratingImagePanel calibImagePanel
                 = Main.getInstance().getGratingImagePanel();
 
-        calibImagePanel.setParams(
+        calibImagePanel.setGratingParams(
                 new Integer(fixedGratings),
                 new Integer(fixedRefValue),
                 new Integer(currentVar),

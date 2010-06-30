@@ -116,6 +116,15 @@ class ImagePanel extends JPanel implements MouseListener {
     }
 
     /**
+     * Returns the currently displayed CCD image.
+     *
+     * @return The currently displayed CCD image.
+     */
+    public synchronized BufferedImage getImage() {
+        return img;
+    }
+
+    /**
      * Add an observer to monitor the object.
      * 
      * @param obs The observer to be added.
