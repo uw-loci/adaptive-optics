@@ -31,13 +31,16 @@ public class ImageUtils {
             for (int col = 0; col < image.getWidth(); col++) {
                 int index = row * image.getWidth() + col;
 
-                int x = index % xWidth;
-                int y = index / yWidth;
+                int x = index % image.getWidth();
+                int y = index / image.getHeight();
                 int xi = x/xWidth;
                 int yi = y/yWidth;
                 int region = yi*sqrtRegions + xi;
 
                 int val = (int)dataMatrix[index];
+                val %= 256;
+
+                //System.out.println("Val: " + val + " Region: " + region);
                 dataMatrix[index] = LookupTable.getInstance().lookup(val, region);
             }
         }

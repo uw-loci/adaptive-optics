@@ -1021,8 +1021,14 @@ public class Main extends JFrame implements Observer, WindowListener {
             System.out.println("Err: " + ccdCamera.getNote());
         } else {
             BufferedImage camImage = ccdCamera.getImage();
-            ccdImagePanel.setImage(camImage);
-            ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
+            if (camImage != null) {
+                ccdImagePanel.setImage(camImage);
+            }
+            
+            BufferedImage roiImage = ccdImagePanel.getROIImage();
+            if (roiImage != null) {
+                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
+            }
         }
         if (Constants.DEBUG) {
             System.out.println("frameLength: " + frameLen);
