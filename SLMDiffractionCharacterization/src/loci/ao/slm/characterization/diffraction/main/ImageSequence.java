@@ -94,6 +94,10 @@ public class ImageSequence {
         return pathList;
     }
 
+    public File getImageFileByIndex(int index) {
+        return imageFileList.get(index);
+    }
+
     public BufferedImage getImageByIndex(int index) {
         BufferedImage bi = null;
         Raster rasterdata = null;

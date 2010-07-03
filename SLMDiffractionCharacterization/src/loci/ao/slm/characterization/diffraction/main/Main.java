@@ -36,6 +36,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -81,7 +82,7 @@ public class Main extends JFrame implements Observer, WindowListener {
     /**
      * Used to display the current calibration pattern.
      */
-    private GratingImagePanel calibImagePanel;
+    private GratingImagePanel phaseImagePanel;
    
     /**
      * Used to isplay an image from a CCD camera.  Also used in showing and
@@ -183,14 +184,34 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JTextField varValueEdit;
 
     /**
-     * Series - Output path text field.
+     * Grating Series - Output path text field.
      */
-    private JTextField seriesOutPathEdit;
+    private JTextField gratingSeriesOutPathEdit;
 
     /**
-     * Series - Output file browse button.
+     * Grating Series - Output file browse button.
      */
-    private JButton seriesBrowseButton;
+    private JButton gratingSeriesBrowseButton;
+
+    /**
+     * For running grating series.
+     */
+    private GratingSerieRunner gratingSerieRunner;
+
+    /**
+     * Image Sequence Series - Output path text field.
+     */
+    private JTextField isSeriesOutPathEdit;
+
+    /**
+     * Image Sequence Series - Output file browse button.
+     */
+    private JButton isSeriesBrowseButton;
+
+    /**
+     * For running image sequence series.
+     */
+    private ImageSequenceSerieRunner isSerieRunner;
 
     /**
      * Number of averages for the CCD camera.
@@ -200,15 +221,15 @@ public class Main extends JFrame implements Observer, WindowListener {
     /**
      * For the series: variable settings.
      */
-    JTextField varValueFromField;
-    JTextField varValueToField;
-    JTextField varValueStepField;
+    private JTextField varValueFromField;
+    private JTextField varValueToField;
+    private JTextField varValueStepField;
 
     /**
      * For the series: region settings.
      */
-    JTextField regionFromField;
-    JTextField regionToField;
+    private JTextField regionFromField;
+    private JTextField regionToField;
 
     /**
      * Output writer handler.
@@ -223,11 +244,6 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JLabel refValueLabel;
     private JLabel roiSatPixelsLabel;
     private JLabel roiIntensityLabel;
-
-    /**
-     * For running series.
-     */
-    SerieRunner serieRunner;
 
     /**
      * Constructs the Main class.  Sets up and displays the GUI.
@@ -299,13 +315,13 @@ public class Main extends JFrame implements Observer, WindowListener {
         PanelBuilder calibImageBuilder = new PanelBuilder(calibImageLayout);
 
         // Prepare contents.
-        calibImagePanel = new GratingImagePanel();
+        phaseImagePanel = new GratingImagePanel();
 
         // Arrange contents.
         int row = 1;
-        calibImageBuilder.addSeparator("Phase Pattern",      cc.xy(1, row));
+        calibImageBuilder.addSeparator("SLM Phase Pattern",      cc.xy(1, row));
         row += 2;
-        calibImageBuilder.add(calibImagePanel,                     cc.xy(1, row));
+        calibImageBuilder.add(phaseImagePanel,                     cc.xy(1, row));
 
         leftBuilder.add(calibImageBuilder.getPanel(),              cc.xy(1, 1));
 
@@ -331,11 +347,11 @@ public class Main extends JFrame implements Observer, WindowListener {
     }
 
     /**
-     * Get the grating panel.
+     * Get the phase image panel.
      */
-    public synchronized GratingImagePanel getGratingImagePanel()
+    public synchronized GratingImagePanel getPhaseImagePanel()
     {
-        return calibImagePanel;
+        return phaseImagePanel;
     }
 
     /**
@@ -371,22 +387,22 @@ public class Main extends JFrame implements Observer, WindowListener {
     public synchronized void updateStatus()
     {
         // Determine and set the status of the current ROI image.
-        ExperimentStatus.getInstance().setRoiIntensity(
+        GratingExperimentStatus.getInstance().setRoiIntensity(
                 ccdImagePanel.getROIIntensity());
-        ExperimentStatus.getInstance().setRoiSaturatedPixelCount(
+        GratingExperimentStatus.getInstance().setRoiSaturatedPixelCount(
                 ccdImagePanel.getROISaturatedPixelCount());
 
         // Update the status labels.
         regionLabel.setText(
-                "" + ExperimentStatus.getInstance().getRegion());
+                "" + GratingExperimentStatus.getInstance().getRegion());
         curValueLabel.setText(
-                "" + ExperimentStatus.getInstance().getVarValue());
+                "" + GratingExperimentStatus.getInstance().getVarValue());
         refValueLabel.setText(
-                "" + ExperimentStatus.getInstance().getRefValue());
+                "" + GratingExperimentStatus.getInstance().getRefValue());
         roiIntensityLabel.setText(
-                "" + ExperimentStatus.getInstance().getRoiIntensity());
+                "" + GratingExperimentStatus.getInstance().getRoiIntensity());
         roiSatPixelsLabel.setText(
-                "" + ExperimentStatus.getInstance().getRoiSaturatedPixelCount());
+                "" + GratingExperimentStatus.getInstance().getRoiSaturatedPixelCount());
     }
 
     /**
@@ -396,253 +412,16 @@ public class Main extends JFrame implements Observer, WindowListener {
      */
     private JPanel buildRightPanel() {
         String rightColSpec = "fill:p"; // 1
-        String rightRowSpec = "p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p"; // 15
+        String rightRowSpec = "p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu"; // 10
 
         CellConstraints cc = new CellConstraints();
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
         PanelBuilder rightBuilder = new PanelBuilder(rightLayout);
 
-        /* 1. Grating Settings Panel. */
-        String calibColSpecs = "p, 4dlu, 30dlu, 8dlu, p, 4dlu, 30dlu, 4dlu:grow"; // 8
-        String calibRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
-        FormLayout calibLayout = new FormLayout(calibColSpecs, calibRowSpecs);
-        PanelBuilder calibBuilder = new PanelBuilder(calibLayout);
+        int mainRow=1;
+        int row=1;
 
-        // Prepare contents.
-        gratingsEdit = new JTextField("256");
-        regionsEdit = new JTextField("16");
-        regionEdit = new JTextField("0");
-        refValueEdit = new JTextField("255");
-        varValueEdit = new JTextField("0");
-
-        JButton calApplyButton = new JButton("Apply");
-        calApplyButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updateSLM();
-            }
-        });
-        
-        // Arrange contents.
-        int row = 1;
-        calibBuilder.addSeparator("Grating Settings",     cc.xyw(1, row, 8));
-        row += 2;
-        calibBuilder.addLabel("# Gratings:",              cc.xy(1, row));
-        calibBuilder.add(gratingsEdit,                    cc.xy(3, row));
-        calibBuilder.addLabel("Ref. val [0-255]:",        cc.xy(5, row));
-        calibBuilder.add(refValueEdit,                    cc.xy(7, row));
-
-        row += 2;
-        calibBuilder.addLabel("# Regions:",               cc.xy(1, row));
-        calibBuilder.add(regionsEdit,                     cc.xy(3, row));
-        calibBuilder.addLabel("Var. val [0-255]:",        cc.xy(5, row));
-        calibBuilder.add(varValueEdit,                    cc.xy(7, row));
-
-        row += 2;
-        calibBuilder.addLabel("Region:",                  cc.xy(1, row));
-        calibBuilder.add(regionEdit,                      cc.xy(3, row));
-        row += 2;
-        calibBuilder.add(calApplyButton,                  cc.xy(1, row));
-
-        rightBuilder.add(calibBuilder.getPanel(),         cc.xy(1, 1));
-
-        /* 2. Image sequence. */
-        // Image sequence folder:
-        // Load Folder
-        // [combobox:Current image] <prev> <next>
-        // [Apply]
-        String isColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
-        String isRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 8
-        FormLayout isLayout = new FormLayout(isColSpecs, isRowSpecs);
-        PanelBuilder isBuilder = new PanelBuilder(isLayout);
-
-        // Prepare contents.
-        imageSeqFolderEdit = new JTextField();
-        imageSeqComboBox = new JComboBox();
-        imageApplyButton = new JButton("Apply image");
-        imageSeqBrowseButton = new JButton("Browse");
-        imageSeqLoadButton = new JButton("Load");
-        imageSeqPrevButton = new JButton("<");
-        imageSeqNextButton = new JButton(">");
-        imageSeqDirChooser = new JFileChooser();
-
-        // Action handlers.
-        imageSeqBrowseButton.addActionListener(new ActionListener() {
-            public synchronized void actionPerformed(ActionEvent e) {
-                imageSeqDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                int retVal = imageSeqDirChooser.showOpenDialog(imageSeqBrowseButton);
-                if (retVal == JFileChooser.APPROVE_OPTION) {
-                    File chosenFile = imageSeqDirChooser.getSelectedFile();
-                    imageSeqFolderEdit.setText(chosenFile.getPath());
-                }
-            }
-        });
-
-        imageSeqLoadButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                ImageSequence.getInstance().loadFolder(imageSeqFolderEdit.getText());
-                ArrayList<String> imageList = ImageSequence.getInstance().getFileList();
-                imageSeqComboBox.removeAll();
-                for (int i = 0; i < imageList.size(); i++) {
-                    imageSeqComboBox.addItem(imageList.get(i));
-                }
-            }
-        });
-        
-        imageSeqPrevButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int itemIdx = imageSeqComboBox.getSelectedIndex();
-                if (itemIdx > 0) {
-                    imageSeqComboBox.setSelectedIndex(itemIdx-1);
-                }
-            }
-        });
-        
-        imageSeqNextButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int itemIdx = imageSeqComboBox.getSelectedIndex();
-                if (itemIdx < (imageSeqComboBox.getItemCount()-1)) {
-                    imageSeqComboBox.setSelectedIndex(itemIdx+1);
-                }                
-            }
-        });
-
-        imageApplyButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int itemIdx = imageSeqComboBox.getSelectedIndex();
-                BufferedImage image = ImageSequence.getInstance().getImageByIndex(itemIdx);
-                double[] dataMatrix = ImageUtils.imageToDataMatrix(image);
-                calibImagePanel.setDataMatrix(dataMatrix);
-
-                if (Constants.USE_SLM_DEVICE) {
-                    System.out.println("Sending to SLM device");
-                    com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
-                }
-            }
-        });
-        
-        // Arrange items.
-        row = 1;
-        isBuilder.addSeparator("Image sequence",           cc.xyw(1, row, 6));
-        
-        row += 2;
-        isBuilder.addLabel("Image sequence folder",        cc.xy(1, row));
-        isBuilder.add(imageSeqFolderEdit,                  cc.xy(3, row));
-        isBuilder.add(imageSeqBrowseButton,                cc.xy(5, row));
-        isBuilder.add(imageSeqLoadButton,                  cc.xy(7, row));
-        
-        row += 2;        
-        isBuilder.addLabel("Image:",                       cc.xy(1, row));
-        isBuilder.add(imageSeqComboBox,                    cc.xy(3, row));
-        isBuilder.add(imageSeqPrevButton,                  cc.xy(5, row));
-        isBuilder.add(imageSeqNextButton,                  cc.xy(7, row));
-
-        row += 2;
-        isBuilder.add(imageApplyButton,                    cc.xy(1, row)); 
-
-        rightBuilder.add(isBuilder.getPanel(),         cc.xy(1, 3));
-
-        /* 2. CCD Camera Panel. */
-        String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 60dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 16
-        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 11
-        FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
-        PanelBuilder roiBuilder = new PanelBuilder(roiLayout);
-
-        // Prepare contents.
-        upperLeftX = new JTextField();
-        upperLeftY = new JTextField();
-        lowerRightX = new JTextField();
-        lowerRightY = new JTextField();
-        ccdAveragesField = new JTextField("1");
-        JButton ROIApplyButton = new JButton("Set ROI");
-        ROIApplyButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Integer x1 = new Integer(upperLeftX.getText());
-                Integer y1 = new Integer(upperLeftY.getText());
-                Integer x2 = new Integer(lowerRightX.getText());
-                Integer y2 = new Integer(lowerRightY.getText());
-                ccdImagePanel.setRectangle(x1, y1, x2, y2);
-                ccdImagePanel.repaint();
-
-                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
-                updateStatus();
-            }
-        });
-        JButton ccdCaptureButton = new JButton("Capture");
-        ccdCaptureButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Update camera.
-                runCamera();
-                updateStatus();
-            }
-        });
-
-        saveImageEdit = new JTextField();
-        saveImageBrowseButton = new JButton("Browse");
-        saveImageButton = new JButton("Save image");
-        saveImageFileChooser = new JFileChooser();
-
-        // Action handlers.
-        saveImageBrowseButton.addActionListener(new ActionListener() {
-            public synchronized void actionPerformed(ActionEvent e) {
-                saveImageFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int retVal = saveImageFileChooser.showOpenDialog(saveImageBrowseButton);
-                if (retVal == JFileChooser.APPROVE_OPTION) {
-                    File chosenFile = saveImageFileChooser.getSelectedFile();
-                    saveImageEdit.setText(chosenFile.getPath());
-                }
-            }
-        });
-
-        saveImageButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Save the image in the CCD panel to file.
-                BufferedImage image = ccdImagePanel.getImage();
-                File outputFile = new File(saveImageEdit.getText());
-                String formatName = "bmp";
-                
-                try {
-                    ImageIO.write(image, formatName, outputFile);
-                } catch (IOException ex) {
-                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-
-
-        // Arrange items.
-        row = 1;
-        roiBuilder.addSeparator("CCD Camera",               cc.xyw(1, row, 10));
-        row += 2;
-        roiBuilder.addLabel("ROI - Upper left:",            cc.xy(1, row));
-        roiBuilder.addLabel("X:",                           cc.xy(3, row));
-        roiBuilder.add(upperLeftX,                          cc.xy(5, row));
-        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
-        roiBuilder.add(upperLeftY,                          cc.xy(9, row));
-
-        row += 2;
-        roiBuilder.addLabel("ROI - Lower right:",           cc.xy(1, row));
-        roiBuilder.addLabel("X:",                           cc.xy(3, row));
-        roiBuilder.add(lowerRightX,                         cc.xy(5, row));
-        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
-        roiBuilder.add(lowerRightY,                         cc.xy(9, row));
-        row += 2;
-        roiBuilder.addLabel("# Averages:",                  cc.xy(1, row));
-        roiBuilder.add(ccdAveragesField,                    cc.xy(5, row));
-
-        row += 2;
-        roiBuilder.add(ccdCaptureButton,                    cc.xy(1, row));
-        roiBuilder.add(ROIApplyButton,                      cc.xyw(3, row, 7));
-
-        row += 2;
-        roiBuilder.addLabel("Save as",                      cc.xy(1, row));
-        roiBuilder.add(saveImageEdit,                       cc.xyw(3, row, 8));
-        roiBuilder.add(saveImageBrowseButton,               cc.xy(15, row));
-        roiBuilder.add(saveImageButton,                     cc.xy(17, row));
-        
-        rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, 5));
-
-
-        /* 3. LUT panel */
+        /* 1. LUT panel */
         String lutColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
         String lutRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 10
         FormLayout lutLayout = new FormLayout(lutColSpecs, lutRowSpecs);
@@ -701,10 +480,138 @@ public class Main extends JFrame implements Observer, WindowListener {
         row += 2;
         lutBuilder.add(lutLoadButton,                     cc.xy(1, row));
 
-        rightBuilder.add(lutBuilder.getPanel(),           cc.xy(1, 7));
+        rightBuilder.add(lutBuilder.getPanel(),           cc.xy(1, mainRow));
+        mainRow += 2;
 
 
-        /* 4. Status panel. */
+        /* 2. Image sequence panel. */
+        JTabbedPane tPane = new JTabbedPane();
+        tPane.add("Image sequence", buildImageSequencePanel());
+        tPane.add("Ronchi grating", buildRonchiGratingPanel());
+
+        rightBuilder.add(tPane,                           cc.xy(1, mainRow));
+        mainRow += 2;
+
+
+        /* 3. CCD Camera Panel. */
+        String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 60dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 16
+        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 11
+        FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
+        PanelBuilder roiBuilder = new PanelBuilder(roiLayout);
+
+        // Prepare contents.
+        upperLeftX = new JTextField();
+        upperLeftY = new JTextField();
+        lowerRightX = new JTextField();
+        lowerRightY = new JTextField();
+        ccdAveragesField = new JTextField("1");
+        JButton ROIApplyButton = new JButton("Set ROI");
+        ROIApplyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Integer x1 = new Integer(upperLeftX.getText());
+                Integer y1 = new Integer(upperLeftY.getText());
+                Integer x2 = new Integer(lowerRightX.getText());
+                Integer y2 = new Integer(lowerRightY.getText());
+                ccdImagePanel.setRectangle(x1, y1, x2, y2);
+                ccdImagePanel.repaint();
+
+                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
+                updateStatus();
+            }
+        });
+        JButton ccdCaptureButton = new JButton("Capture");
+        ccdCaptureButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Update camera.
+                runCamera();
+                updateStatus();
+            }
+        });
+
+        saveImageEdit = new JTextField();
+        saveImageBrowseButton = new JButton("Browse");
+        saveImageButton = new JButton("Save image");
+        saveImageFileChooser = new JFileChooser();
+
+        // Action handlers.
+        saveImageBrowseButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                saveImageFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                int retVal = saveImageFileChooser.showOpenDialog(saveImageBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = saveImageFileChooser.getSelectedFile();
+                    saveImageEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+
+        saveImageButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Save the image in the CCD panel to file.
+                BufferedImage image = ccdImagePanel.getImage();
+                File outputFile = new File(saveImageEdit.getText());
+                String formatName = "bmp";
+
+                try {
+                    ImageIO.write(image, formatName, outputFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+
+
+        // Arrange items.
+        row = 1;
+        roiBuilder.addSeparator("CCD Camera",               cc.xyw(1, row, 18));
+        row += 2;
+        roiBuilder.addLabel("ROI - Upper left:",            cc.xy(1, row));
+        roiBuilder.addLabel("X:",                           cc.xy(3, row));
+        roiBuilder.add(upperLeftX,                          cc.xy(5, row));
+        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
+        roiBuilder.add(upperLeftY,                          cc.xy(9, row));
+
+        row += 2;
+        roiBuilder.addLabel("ROI - Lower right:",           cc.xy(1, row));
+        roiBuilder.addLabel("X:",                           cc.xy(3, row));
+        roiBuilder.add(lowerRightX,                         cc.xy(5, row));
+        roiBuilder.addLabel("Y:",                           cc.xy(7, row));
+        roiBuilder.add(lowerRightY,                         cc.xy(9, row));
+        row += 2;
+        roiBuilder.addLabel("# Averages:",                  cc.xy(1, row));
+        roiBuilder.add(ccdAveragesField,                    cc.xy(5, row));
+
+        row += 2;
+        roiBuilder.add(ccdCaptureButton,                    cc.xy(1, row));
+        roiBuilder.add(ROIApplyButton,                      cc.xyw(3, row, 7));
+
+        row += 2;
+        roiBuilder.addLabel("Save as",                      cc.xy(1, row));
+        roiBuilder.add(saveImageEdit,                       cc.xyw(3, row, 8));
+        roiBuilder.add(saveImageBrowseButton,               cc.xy(15, row));
+        roiBuilder.add(saveImageButton,                     cc.xy(17, row));
+
+        rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, mainRow));
+        mainRow += 2;
+
+
+        /* 4. CCD zoom panel. */
+        String ccdZoomColSpecs = "50dlu"; // 1
+        String ccdZoomRowSpecs = "50dlu"; // 1
+        FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
+        PanelBuilder ccdZoomBuilder = new PanelBuilder(ccdZoomLayout);
+
+        // Prepare contents.
+        ccdZoomRegion = new ImagePanel(false);
+
+        // Arrange contents.
+        row = 1;
+        ccdZoomBuilder.add(ccdZoomRegion,                     cc.xy(1, row));
+
+        rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, mainRow));
+        mainRow += 2;
+
+        /* 5. Status panel. */
         String statColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
         String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 13
         FormLayout statLayout = new FormLayout(statColSpecs, statRowSpecs);
@@ -715,7 +622,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         curValueLabel = new JLabel("");
         refValueLabel = new JLabel("");
         roiSatPixelsLabel = new JLabel("");
-        roiIntensityLabel = new JLabel("");        
+        roiIntensityLabel = new JLabel("");
 
         // Arrange contents.
         row = 1;
@@ -736,10 +643,242 @@ public class Main extends JFrame implements Observer, WindowListener {
         statBuilder.addLabel("ROI saturated pixels:",      cc.xy(1, row));
         statBuilder.add(roiSatPixelsLabel,                 cc.xy(3, row));
 
-        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, 9));
-        
+        rightBuilder.add(statBuilder.getPanel(),           cc.xy(1, mainRow));
+        mainRow += 2;
 
-        /* 5. Manual Output Panel. */
+        return rightBuilder.getPanel();
+    }
+
+    /**
+     * Build the image sequence tab panel.
+     */
+    private JPanel buildImageSequencePanel() {
+        String isOuterColSpec = "fill:p"; // 1
+        String isOuterRowSpec = "p, 8dlu, p, 8dlu"; // 4
+
+        CellConstraints cc = new CellConstraints();
+        FormLayout isOuterLayout = new FormLayout(isOuterColSpec, isOuterRowSpec);
+        PanelBuilder isOuterBuilder = new PanelBuilder(isOuterLayout);
+
+        int outerRow=1;
+        int row=1;
+
+        /* IS/1. Image sequence. */
+        // Image sequence folder:
+        // Load Folder
+        // [combobox:Current image] <prev> <next>
+        // [Apply]
+        String isColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
+        String isRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 8
+        FormLayout isLayout = new FormLayout(isColSpecs, isRowSpecs);
+        PanelBuilder isBuilder = new PanelBuilder(isLayout);
+
+        // Prepare contents.
+        imageSeqFolderEdit = new JTextField();
+        imageSeqComboBox = new JComboBox();
+        imageApplyButton = new JButton("Apply image");
+        imageSeqBrowseButton = new JButton("Browse");
+        imageSeqLoadButton = new JButton("Load");
+        imageSeqPrevButton = new JButton("<");
+        imageSeqNextButton = new JButton(">");
+        imageSeqDirChooser = new JFileChooser();
+
+        // Action handlers.
+        imageSeqBrowseButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                imageSeqDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                int retVal = imageSeqDirChooser.showOpenDialog(imageSeqBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = imageSeqDirChooser.getSelectedFile();
+                    imageSeqFolderEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+
+        imageSeqLoadButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ImageSequence.getInstance().loadFolder(imageSeqFolderEdit.getText());
+                ArrayList<String> imageList = ImageSequence.getInstance().getFileList();
+                imageSeqComboBox.removeAll();
+                for (int i = 0; i < imageList.size(); i++) {
+                    imageSeqComboBox.addItem(imageList.get(i));
+                }
+            }
+        });
+
+        imageSeqPrevButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int itemIdx = imageSeqComboBox.getSelectedIndex();
+                if (itemIdx > 0) {
+                    imageSeqComboBox.setSelectedIndex(itemIdx-1);
+                }
+            }
+        });
+
+        imageSeqNextButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int itemIdx = imageSeqComboBox.getSelectedIndex();
+                if (itemIdx < (imageSeqComboBox.getItemCount()-1)) {
+                    imageSeqComboBox.setSelectedIndex(itemIdx+1);
+                }
+            }
+        });
+
+        imageApplyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int itemIdx = imageSeqComboBox.getSelectedIndex();
+                BufferedImage image = ImageSequence.getInstance().getImageByIndex(itemIdx);
+                double[] dataMatrix = ImageUtils.imageToDataMatrix(image);
+                phaseImagePanel.setDataMatrix(dataMatrix);
+
+                if (Constants.USE_SLM_DEVICE) {
+                    System.out.println("Sending to SLM device");
+                    com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
+                }
+            }
+        });
+
+        // Arrange items.
+        row = 1;
+        isBuilder.addSeparator("Image sequence",           cc.xyw(1, row, 8));
+
+        row += 2;
+        isBuilder.addLabel("Image sequence folder",        cc.xy(1, row));
+        isBuilder.add(imageSeqFolderEdit,                  cc.xy(3, row));
+        isBuilder.add(imageSeqBrowseButton,                cc.xy(5, row));
+        isBuilder.add(imageSeqLoadButton,                  cc.xy(7, row));
+
+        row += 2;
+        isBuilder.addLabel("Image:",                       cc.xy(1, row));
+        isBuilder.add(imageSeqComboBox,                    cc.xy(3, row));
+        isBuilder.add(imageSeqPrevButton,                  cc.xy(5, row));
+        isBuilder.add(imageSeqNextButton,                  cc.xy(7, row));
+
+        row += 2;
+        isBuilder.add(imageApplyButton,                    cc.xy(1, row));
+        
+        isOuterBuilder.add(isBuilder.getPanel(),     cc.xy(1, outerRow));
+        outerRow += 2;
+
+
+        /* IS/2. Series Output Panel. */
+        String opColSpecs = "p, 4dlu, p, 80dlu, 4dlu, p, 4dlu"; // 7
+        String opRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu"; // 6
+        FormLayout opLayout = new FormLayout(opColSpecs, opRowSpecs);
+        PanelBuilder outSeriesBuilder = new PanelBuilder(opLayout);
+
+        // Prepare items.
+        JButton isSeriesRunButton = new JButton("Run Series");
+        isSeriesRunButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                System.out.println("IS Run Series button pressed");
+
+                // Sets the parameters for the series and starts the job
+                // by initiating the thread.
+                isSerieRunner = ImageSequenceSerieRunner.getInstance();
+                isSerieRunner.start();
+                isSerieRunner.setParams(imageSeqFolderEdit.getText());
+                isSerieRunner.run();
+            }
+        });
+        JButton isSeriesCancelButton = new JButton("Cancel");
+        isSeriesCancelButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                System.out.println("Cancelling");
+                // Stops the image sequence series.
+                isSerieRunner.stop();
+            }
+        });
+
+        isSeriesOutPathEdit = new JTextField("");
+        isSeriesBrowseButton = new JButton("Browse");
+        isSeriesBrowseButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                int retVal = fileChooser.showOpenDialog(isSeriesBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = fileChooser.getSelectedFile();
+                    isSeriesOutPathEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+
+        // Arrange items.
+        row = 1;
+        outSeriesBuilder.addSeparator("Output - Series",  cc.xyw(1, row, 7));
+        row += 2;
+        outSeriesBuilder.addLabel("Output Folder:",       cc.xy(1, row));
+        outSeriesBuilder.add(isSeriesOutPathEdit,           cc.xyw(3, row, 2));
+        outSeriesBuilder.add(isSeriesBrowseButton,          cc.xy(6, row));
+        row += 2;
+        outSeriesBuilder.add(isSeriesRunButton,             cc.xy(1, row));
+        outSeriesBuilder.add(isSeriesCancelButton,          cc.xy(3, row));
+
+        isOuterBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, outerRow));
+        outerRow += 2;
+
+        return isOuterBuilder.getPanel();
+    }
+
+    /**
+     * Build the ronchi grating panel.
+     */
+    private JPanel buildRonchiGratingPanel() {
+        String gratingColSpec = "fill:p"; // 1
+        String gratingRowSpec = "p, 8dlu, p, 8dlu, p, 8dlu"; // 6
+
+        CellConstraints cc = new CellConstraints();
+        FormLayout gratingLayout = new FormLayout(gratingColSpec, gratingRowSpec);
+        PanelBuilder gratingBuilder = new PanelBuilder(gratingLayout);
+
+        int outerRow=1;
+
+        /* 1. Grating Settings Panel. */
+        String calibColSpecs = "p, 4dlu, 30dlu, 8dlu, p, 4dlu, 30dlu, 4dlu:grow"; // 8
+        String calibRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
+        FormLayout calibLayout = new FormLayout(calibColSpecs, calibRowSpecs);
+        PanelBuilder calibBuilder = new PanelBuilder(calibLayout);
+
+        // Prepare contents.
+        gratingsEdit = new JTextField("256");
+        regionsEdit = new JTextField("16");
+        regionEdit = new JTextField("0");
+        refValueEdit = new JTextField("255");
+        varValueEdit = new JTextField("0");
+
+        JButton calApplyButton = new JButton("Apply");
+        calApplyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                updateSLM();
+            }
+        });
+
+        // Arrange contents.
+        int row = 1;
+        calibBuilder.addSeparator("Grating Settings",     cc.xyw(1, row, 8));
+        row += 2;
+        calibBuilder.addLabel("# Gratings:",              cc.xy(1, row));
+        calibBuilder.add(gratingsEdit,                    cc.xy(3, row));
+        calibBuilder.addLabel("Ref. val [0-255]:",        cc.xy(5, row));
+        calibBuilder.add(refValueEdit,                    cc.xy(7, row));
+
+        row += 2;
+        calibBuilder.addLabel("# Regions:",               cc.xy(1, row));
+        calibBuilder.add(regionsEdit,                     cc.xy(3, row));
+        calibBuilder.addLabel("Var. val [0-255]:",        cc.xy(5, row));
+        calibBuilder.add(varValueEdit,                    cc.xy(7, row));
+
+        row += 2;
+        calibBuilder.addLabel("Region:",                  cc.xy(1, row));
+        calibBuilder.add(regionEdit,                      cc.xy(3, row));
+        row += 2;
+        calibBuilder.add(calApplyButton,                  cc.xy(1, row));
+
+        gratingBuilder.add(calibBuilder.getPanel(),       cc.xy(1, outerRow));
+        outerRow += 2;
+
+
+        /* 2. Manual Output Panel. */
         String outpColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
         String outpRowSpecs = "p, 4dlu, p, 4dlu, p"; // 5
         FormLayout outpLayout = new FormLayout(outpColSpecs, outpRowSpecs);
@@ -763,7 +902,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         manualUpdateButton.addActionListener(new ActionListener() {
             public synchronized void actionPerformed(ActionEvent e) {
                 updateSLM();
-                
+
                 try {
                     Thread.sleep(600);
                 } catch (InterruptedException ex) {
@@ -824,10 +963,11 @@ public class Main extends JFrame implements Observer, WindowListener {
         outpBuilder.add(manualUpdateButton,               cc.xy(1, row));
         outpBuilder.add(manualRecordButton,               cc.xy(3, row));
 
-        rightBuilder.add(outpBuilder.getPanel(),          cc.xy(1, 11));
+        gratingBuilder.add(outpBuilder.getPanel(),        cc.xy(1, outerRow));
+        outerRow += 2;
 
 
-        /* 6. Series Output Panel. */
+        /* 3. Series Output Panel. */
         String opColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 4dlu:grow"; // 14
         String opRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 9
         FormLayout opLayout = new FormLayout(opColSpecs, opRowSpecs);
@@ -838,8 +978,8 @@ public class Main extends JFrame implements Observer, WindowListener {
         seriesRunButton.addActionListener(new ActionListener() {
             public synchronized void actionPerformed(ActionEvent e) {
                 System.out.println("Run Series button pressed");
-                serieRunner = SerieRunner.getInstance();
-                serieRunner.start();
+                gratingSerieRunner = GratingSerieRunner.getInstance();
+                gratingSerieRunner.start();
                 Integer numGratings = new Integer(gratingsEdit.getText());
                 Integer refVal = new Integer(refValueEdit.getText());
                 Integer region = new Integer(regionEdit.getText());
@@ -858,13 +998,13 @@ public class Main extends JFrame implements Observer, WindowListener {
                 Integer roiLRCornerY = new Integer(lowerRightY.getText());
 
 
-                serieRunner.setGratingVars(numGratings, refVal, regions);
-                serieRunner.setRange(regionFrom, regionTo,
+                gratingSerieRunner.setGratingVars(numGratings, refVal, regions);
+                gratingSerieRunner.setRange(regionFrom, regionTo,
                         varFrom, varTo, varStepSize);
-                serieRunner.setOutputFileName(seriesOutPathEdit.getText());
-                serieRunner.setROIInformation(roiULCornerX, roiULCornerY,
+                gratingSerieRunner.setOutputFileName(gratingSeriesOutPathEdit.getText());
+                gratingSerieRunner.setROIInformation(roiULCornerX, roiULCornerY,
                         roiLRCornerX, roiLRCornerY);
-                serieRunner.run();
+                gratingSerieRunner.run();
                 //runCamera();
                 //updateStatus();
             }
@@ -873,21 +1013,21 @@ public class Main extends JFrame implements Observer, WindowListener {
         seriesCancelButton.addActionListener(new ActionListener() {
             public synchronized void actionPerformed(ActionEvent e) {
                 System.out.println("Cancelling");
-                serieRunner.stop();
+                gratingSerieRunner.stop();
             }
         });
 
-        seriesOutPathEdit = new JTextField("");
-        seriesBrowseButton = new JButton("Browse");
-        seriesBrowseButton.addActionListener(new ActionListener() {
+        gratingSeriesOutPathEdit = new JTextField("");
+        gratingSeriesBrowseButton = new JButton("Browse");
+        gratingSeriesBrowseButton.addActionListener(new ActionListener() {
             public synchronized void actionPerformed(ActionEvent e) {
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int retVal = fileChooser.showOpenDialog(seriesBrowseButton);
+                int retVal = fileChooser.showOpenDialog(gratingSeriesBrowseButton);
                 if (retVal == JFileChooser.APPROVE_OPTION) {
                     File chosenFile = fileChooser.getSelectedFile();
-                    seriesOutPathEdit.setText(chosenFile.getPath());
+                    gratingSeriesOutPathEdit.setText(chosenFile.getPath());
                 }
-            }        
+            }
         });
         varValueFromField = new JTextField("0");
         varValueToField = new JTextField("255");
@@ -895,14 +1035,14 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         regionFromField = new JTextField("0");
         regionToField = new JTextField("15");
-        
+
         // Arrange items.
         row = 1;
         outSeriesBuilder.addSeparator("Output - Series",  cc.xyw(1, row, 14));
         row += 2;
         outSeriesBuilder.addLabel("Output File:",         cc.xy(1, row));
-        outSeriesBuilder.add(seriesOutPathEdit,           cc.xyw(3, row, 9));
-        outSeriesBuilder.add(seriesBrowseButton,          cc.xyw(13, row, 2));
+        outSeriesBuilder.add(gratingSeriesOutPathEdit,           cc.xyw(3, row, 9));
+        outSeriesBuilder.add(gratingSeriesBrowseButton,          cc.xyw(13, row, 2));
         row += 2;
         outSeriesBuilder.addLabel("Region",               cc.xy(1, row));
         outSeriesBuilder.addLabel("From:",                cc.xy(3, row));
@@ -921,24 +1061,10 @@ public class Main extends JFrame implements Observer, WindowListener {
         outSeriesBuilder.add(seriesRunButton,             cc.xyw(1, row, 5));
         outSeriesBuilder.add(seriesCancelButton,          cc.xyw(7, row, 5));
 
-        rightBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, 13));
+        gratingBuilder.add(outSeriesBuilder.getPanel(),     cc.xy(1, outerRow));
+        outerRow += 2;
 
-        /* 7. CCD zoom panel. */
-        String ccdZoomColSpecs = "50dlu"; // 1
-        String ccdZoomRowSpecs = "50dlu"; // 1
-        FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
-        PanelBuilder ccdZoomBuilder = new PanelBuilder(ccdZoomLayout);
-
-        // Prepare contents.
-        ccdZoomRegion = new ImagePanel(false);
-
-        // Arrange contents.
-        row = 1;
-        ccdZoomBuilder.add(ccdZoomRegion,                     cc.xy(1, row));
-
-        rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, 15));
-
-        return rightBuilder.getPanel();
+        return gratingBuilder.getPanel();
     }
 
     /**
@@ -962,7 +1088,7 @@ public class Main extends JFrame implements Observer, WindowListener {
      * corresponding grating image to the device.
      */
     private synchronized void updateSLM() {
-        calibImagePanel.setGratingParams(
+        phaseImagePanel.setGratingParams(
                 new Integer(gratingsEdit.getText()),
                 new Integer(refValueEdit.getText()),
                 new Integer(varValueEdit.getText()),
@@ -970,7 +1096,7 @@ public class Main extends JFrame implements Observer, WindowListener {
                 new Integer(regionsEdit.getText()));
 
         if (Constants.USE_SLM_DEVICE) {
-            double[] dataMatrix = calibImagePanel.getDataMatrix();
+            double[] dataMatrix = phaseImagePanel.getDataMatrix();
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
         }
 
@@ -978,9 +1104,9 @@ public class Main extends JFrame implements Observer, WindowListener {
         Integer refVal = new Integer(refValueEdit.getText());
         Integer region = new Integer(regionEdit.getText());
         Integer varVal = new Integer(varValueEdit.getText());
-        ExperimentStatus.getInstance().setRefValue(refVal);
-        ExperimentStatus.getInstance().setRegion(region);
-        ExperimentStatus.getInstance().setVarValue(varVal);
+        GratingExperimentStatus.getInstance().setRefValue(refVal);
+        GratingExperimentStatus.getInstance().setRegion(region);
+        GratingExperimentStatus.getInstance().setVarValue(varVal);
     }
 
     /**
@@ -1066,7 +1192,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         if (Constants.USE_SLM_DEVICE) {
             System.out.println("- turning off");
             // Power off the system.
-            double[] dataMatrix = calibImagePanel.getDataMatrix();
+            double[] dataMatrix = phaseImagePanel.getDataMatrix();
             // XXX/FIXME data should not be necessary to turn it off!
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char) 65);
         }

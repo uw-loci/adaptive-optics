@@ -20,19 +20,19 @@ package loci.ao.slm.characterization.diffraction.main;
  *
  * It is a singleton class (only one instance exists).
  */
-public class ExperimentStatus {
+public class GratingExperimentStatus {
     private int region;
     private int varValue;
     private int refValue;
     private double roiIntensity;
     private int roiSaturatedPixelCount;
-    private static ExperimentStatus instance;
+    private static GratingExperimentStatus instance;
 
     /**
      * Initializes the instance of the singleton class, and resets all the
      * values.
      */
-    private ExperimentStatus() {
+    private GratingExperimentStatus() {
         region = 0;
         varValue = -1;
         refValue = -1;
@@ -45,9 +45,9 @@ public class ExperimentStatus {
      *
      * @return The instance of the ExperimentStatus singleton class.
      */
-    public synchronized static ExperimentStatus getInstance() {
+    public synchronized static GratingExperimentStatus getInstance() {
         if (instance == null) {
-            instance = new ExperimentStatus();
+            instance = new GratingExperimentStatus();
         }
         return instance;
     }

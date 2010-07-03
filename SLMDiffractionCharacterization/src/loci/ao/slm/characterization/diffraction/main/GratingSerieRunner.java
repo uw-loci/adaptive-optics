@@ -17,14 +17,14 @@ import java.util.Observable;
 /**
  * Singleton class that defines a running thread for running an experiment.
  */
-public class SerieRunner 
+public class GratingSerieRunner
         extends Observable
         implements Runnable
 {
     /**
      * The singleton class instance object.
      */
-    private static SerieRunner instance = null;
+    private static GratingSerieRunner instance = null;
 
    /**
      * The thread object.  Each data source works within its own thread.
@@ -82,7 +82,7 @@ public class SerieRunner
     /**
      * Constructor.
      */
-    private SerieRunner() {
+    private GratingSerieRunner() {
        super();       
     }
 
@@ -98,9 +98,9 @@ public class SerieRunner
     /**
      * Get the instance of the class.
      */
-    public synchronized static SerieRunner getInstance() {
+    public synchronized static GratingSerieRunner getInstance() {
         if (instance == null) {
-            instance = new SerieRunner();
+            instance = new GratingSerieRunner();
         }
         return instance;
     }
@@ -173,7 +173,7 @@ public class SerieRunner
     public synchronized void updateSLMGrating()
     {
         GratingImagePanel calibImagePanel
-                = Main.getInstance().getGratingImagePanel();
+                = Main.getInstance().getPhaseImagePanel();
 
         calibImagePanel.setGratingParams(
                 new Integer(fixedGratings),
@@ -239,9 +239,9 @@ public class SerieRunner
                 //long duration = durEnd - durStart;
                 //System.out.println("SLM upgrade duration: " + duration);
 
-                ExperimentStatus.getInstance().setRefValue(fixedRefValue);
-                ExperimentStatus.getInstance().setRegion(currentRegion);
-                ExperimentStatus.getInstance().setVarValue(currentVar);
+                GratingExperimentStatus.getInstance().setRefValue(fixedRefValue);
+                GratingExperimentStatus.getInstance().setRegion(currentRegion);
+                GratingExperimentStatus.getInstance().setVarValue(currentVar);
 
                 // This is to make sure that the image has been displayed
                 // appropriately.
