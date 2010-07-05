@@ -58,7 +58,7 @@ public class ImageSequenceSerieRunner
     /**
      * Start the thread.
      */
-    public synchronized void start() {
+    public void start() {
        // Thread the instance.
        thread = new Thread(this);
        thread.start();
@@ -88,7 +88,7 @@ public class ImageSequenceSerieRunner
      *
      * @param outputFolder The path to the output folder.
      */
-    public synchronized void setParams(String outputFolder) {
+    public void setParams(String outputFolder) {
         this.outputFolder = outputFolder;
         currentImageIndex = 0;
     }
@@ -114,7 +114,9 @@ public class ImageSequenceSerieRunner
         Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
 
         if (Constants.USE_SLM_DEVICE) {
-            System.out.println("Sending to SLM device");
+            if (Constants.DEBUG) {
+                System.out.println("Sending to SLM device");
+            }
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
         }
     }
@@ -149,7 +151,6 @@ public class ImageSequenceSerieRunner
         BufferedImage image = Main.getInstance().getCameraImagePanel().getImage();
         File outputFile = new File(outFilePath);
         String formatName = "bmp";
-        System.out.println("Saving image to " + outFilePath);
 
         if (image != null) {
             try {
@@ -194,7 +195,8 @@ public class ImageSequenceSerieRunner
             // appropriately and keep the GUI responsive.
             try {
                 //Thread.sleep(200); //100 seems to work.
-                Thread.sleep(500); //100 seems to work.
+                //Thread.sleep(500); //100 seems to work.
+                Thread.sleep(1000); //100 seems to work.
             } catch (InterruptedException ex) {
             }
 

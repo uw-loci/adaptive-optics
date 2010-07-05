@@ -777,7 +777,7 @@ public class Main extends JFrame implements Observer, WindowListener {
                 // by initiating the thread.
                 isSerieRunner = ImageSequenceSerieRunner.getInstance();
                 isSerieRunner.start();
-                isSerieRunner.setParams(imageSeqFolderEdit.getText());
+                isSerieRunner.setParams(isSeriesOutPathEdit.getText());
                 isSerieRunner.run();
             }
         });

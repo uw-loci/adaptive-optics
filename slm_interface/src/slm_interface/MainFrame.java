@@ -57,8 +57,8 @@ public class MainFrame
      * Indicates whether the device is being used, or whether it is running
      * in graphics only mode.
      */
-    final boolean USE_DEVICE = false;
-    final boolean ENABLE_PLOTTING = false;
+    final boolean USE_DEVICE = true;
+    final boolean ENABLE_PLOTTING = true;
 
     /**
      * Location of default LUT file.
@@ -1046,13 +1046,14 @@ public class MainFrame
             // add the lut process at here.
             // limit the data to 0 - 255, 8 bits data
 
-            int x = i % xWidth;
-            int y = i / yWidth;
+            int x = i % WIDTH;
+            int y = i / HEIGHT;
             int xi = x/xWidth;
             int yi = y/yWidth;
             int region = yi*sqrtRegions + xi;
             
-            int val = (int) Math.round(samples[0][i]) % 256;
+            int val = (int) Math.round(samples[0][i]);
+            val %= 256;
 
             //samples[0][i] = (int) dlut[val];
             samples[0][i] = (int) LookupTable.getInstance().lookup(val, region);
@@ -1132,17 +1133,21 @@ public class MainFrame
         int yWidth = HEIGHT / sqrtRegions;
 
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
-            int x = i % xWidth;
-            int y = i / yWidth;
+            int x = i % WIDTH;
+            int y = i / HEIGHT;
             int xi = x/xWidth;
             int yi = y/yWidth;
             int region = yi*sqrtRegions + xi;
             
             //System.out.println("Aregion: " + region);
             int index = (int) (samples[0][i]);
+
+            int val = (int) Math.round(samples[0][i]);
+            val %= 256;
+
             //samples[0][i] = dlut[index];
             //System.out.println("Aregion: " + region + " index: " + index);
-            samples[0][i] = LookupTable.getInstance().lookup(index, region);
+            samples[0][i] = LookupTable.getInstance().lookup(val, region);
         }
 
         
@@ -1479,6 +1484,7 @@ public class MainFrame
 
         
         //Subtract it (the smallest value) everywhere.
+        /* XXX commented to test LUT regionals.*/
         for (int row = 0; row < 512; row++) {
             // GH: col=0; col < 512; col++
             for (int col = 0; col < 512; col++) {
@@ -1572,11 +1578,33 @@ public class MainFrame
             }
         }
 
+        int totRegions = LookupTable.getInstance().getNumberOfRegions();
+        int sqrtRegions = (int)Math.sqrt(totRegions);
+        int xWidth = WIDTH / sqrtRegions;
+        int yWidth = HEIGHT / sqrtRegions;
+
         for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            // add the lut process at here.
+            // limit the data to 0 - 255, 8 bits data
+
+            int x = i % WIDTH;
+            int y = i / HEIGHT;
+            int xi = x/xWidth;
+            int yi = y/yWidth;
+            int region = yi*sqrtRegions + xi;
+
             samples[0][i] = ((samples[0][i] * 256)) % 256;
             if (samples[0][i] < 0) {
                 samples[0][i] = samples[0][i] + 256;
+
             }
+            
+            int val = (int)samples[0][i];
+            if (region > totRegions) {
+                System.out.println("i: " + i + "/" + (WIDTH*HEIGHT) + "; x: " + x + " y: " + y + "; xi: " + xi + " yi: " + yi);
+                System.out.println("val: " + val + " region: " + region);
+            }
+            samples[0][i] = LookupTable.getInstance().lookup(val, region);
         }
 
         if (ENABLE_PLOTTING) {

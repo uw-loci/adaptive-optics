@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -41,7 +42,7 @@ public class LookupTable {
      * Number of regions for the given lookup table.
      */
     private int noRegions;
-    
+
     /**
      * The singleton instance of the class, accessible via getInstance().
      */
@@ -92,6 +93,7 @@ public class LookupTable {
         lutData = new int[listOfFiles.length][256];
 
         isLoaded = true;
+        noRegions = 0;
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 Matcher matcher = p.matcher(listOfFiles[i].getName());
@@ -108,6 +110,24 @@ public class LookupTable {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Load a single global LUT file.
+     */
+    public void loadGlobalFile(String lutPath) {
+        // List all maps, format: "region-X.dat" where X: 0 upto (noRegions-1).
+        // Load each map, into lutData[X][Y] where Y: 0 upto 255.
+        noRegions = 1;
+        isLoaded = true;
+        int region = 0;
+
+        lutData = new int[noRegions][256];
+
+        if (!loadLutFile(lutPath, region)) {
+            System.out.println("Error in loading the lut file");
+            isLoaded = false;
         }
     }
 
@@ -135,15 +155,22 @@ public class LookupTable {
             String line = null; //not declared within while loop
             int i = 0;
             while ((line = input.readLine()) != null) {
-                Double val = new Double(line);                
-                lutData[region][i++] = val.intValue();                
+                StringTokenizer st = new StringTokenizer(line);
+                //System.out.println("tokens: " + st.countTokens());
+                if (st.countTokens() > 1) {
+                    st.nextToken();
+                }
+                String valStr = st.nextToken();
+                //System.out.println("token: " + valStr);
+                Double val = new Double(valStr);
+                lutData[region][i++] = val.intValue();
             }
             input.close();
         } catch (IOException ex) {
             Logger.getLogger(LookupTable.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-        
+
         return true;
     }
 
@@ -174,7 +201,7 @@ public class LookupTable {
      *
      * @param value The value to look up in the table.
      * @param region The region whose LUT is to be used.
-     * 
+     *
      * @return The mapped value.
      */
     public int lookup(int value, int region) {
