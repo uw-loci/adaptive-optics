@@ -196,7 +196,7 @@ public class ImageSequenceSerieRunner
             try {
                 //Thread.sleep(200); //100 seems to work.
                 //Thread.sleep(500); //100 seems to work.
-                Thread.sleep(1000); //100 seems to work.
+                Thread.sleep(500); //100 seems to work.
             } catch (InterruptedException ex) {
             }
 

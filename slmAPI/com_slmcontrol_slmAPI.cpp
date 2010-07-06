@@ -7,12 +7,19 @@ slmAPI *Java_com_slmcontrol_slmAPI = new slmAPI;
 JNIEXPORT void JNICALL Java_com_slmcontrol_slmAPI_sendData
   (JNIEnv *env, jobject obj, jdoubleArray dArray, jchar frame)
 {
-	jdouble* da = (jdouble *) malloc(SLMSIZE*SLMSIZE*sizeof(jdouble)); 
-	env->GetDoubleArrayRegion(dArray, 0, SLMSIZE*SLMSIZE, da);
-	if (frame == 64)
+	//jdouble* da = (jdouble *) malloc(SLMSIZE*SLMSIZE*sizeof(jdouble)); 
+	//env->GetDoubleArrayRegion(dArray, 0, SLMSIZE*SLMSIZE, da);
+
+  if (frame == 64) {
 		Java_com_slmcontrol_slmAPI->powerOn();
-	else if (frame == 65)
+  } else if (frame == 65) {
 		Java_com_slmcontrol_slmAPI->powerOff();
-	else
-        Java_com_slmcontrol_slmAPI->sendData(da);
+  } else {
+    jdouble *da = env->GetDoubleArrayElements(dArray, 0);
+
+    Java_com_slmcontrol_slmAPI->sendData(da);
+
+    env->ReleaseDoubleArrayElements(dArray, da, 0);
+    env->DeleteLocalRef(dArray);
+  }
 }

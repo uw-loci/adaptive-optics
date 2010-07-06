@@ -74,6 +74,10 @@ public class ImageSequence {
 
         // Sort by mode, phase.
         Collections.sort(imageFileList, new ByModeAndPhaseComparator());
+
+        /*for (int i = 0; i < listOfFiles.length; i++) {
+            System.out.println(i + ": " +listOfFiles[i].getName());
+        }*/
     }
 
     public ArrayList<String> getFileList()
@@ -126,18 +130,36 @@ public class ImageSequence {
             Pattern p = Pattern.compile("([0-9]+)p([0-9]+).bmp$");
             Matcher matcher1 = p.matcher(imageFile1.getName());
             Matcher matcher2 = p.matcher(imageFile2.getName());
-            matcher1.find(); matcher2.find();
+            boolean matchFound1 = matcher1.find();
+            boolean matchFound2 = matcher2.find();
 
-            Integer mode1 = new Integer(matcher1.group(1));
-            Integer phaseSlice1 = new Integer(matcher1.group(2));
-            Integer mode2 = new Integer(matcher2.group(1));
-            Integer phaseSlice2 = new Integer(matcher2.group(2));
+            int retVal = 0;
 
-            if (mode1 != mode2) {
-                return mode1 - mode2;
+            if (matchFound1 && matchFound2) {
+                Integer mode1 = new Integer(matcher1.group(1));
+                Integer phaseSlice1 = new Integer(matcher1.group(2));
+                Integer mode2 = new Integer(matcher2.group(1));
+                Integer phaseSlice2 = new Integer(matcher2.group(2));
+
+                /*System.out.println(imageFile1.getName() + "/m1: " + mode1 + " p: " + phaseSlice1
+                        + " " + imageFile2.getName() + "/m2: " + mode2 + " p: " + phaseSlice2);*/
+                if (mode1.intValue() != mode2.intValue()) {
+                    int mDiff = mode1.intValue() - mode2.intValue();
+                    retVal = mDiff;
+                } else {
+                    int pDiff = phaseSlice1.intValue() - phaseSlice2.intValue();
+                    retVal = pDiff;
+                }
+            } else if (matchFound1 && !matchFound2) {
+                retVal = 1;
+            } else if (!matchFound1 && matchFound2) {
+                retVal = -1;
             } else {
-                return phaseSlice1 - phaseSlice2;
+                // Compare as strings.
+                retVal = imageFile1.getName().compareToIgnoreCase(imageFile2.getName());
             }
+            
+            return retVal;
         }
     }
 }

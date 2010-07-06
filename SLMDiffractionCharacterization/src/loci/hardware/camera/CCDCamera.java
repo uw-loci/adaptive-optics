@@ -92,7 +92,8 @@ public class CCDCamera {
      * @return -1 on error, otherwise the width*height of the image (in pixels).
      */
     public synchronized int captureFrame(int averages) {
-        img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+        //img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+        img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
         int retVal = 0;
         for (int j = 0; j < averages; j++) {
@@ -103,10 +104,10 @@ public class CCDCamera {
             }
 
             for (int i = 0; i < width*height; i++) {
-                if (j == 0) {
+                /*if (j == 0) {
                     frame[i] = 0; // Clean up frame beforehand (first image in averaging).
-                }
-                frame[i] += CCDCamWrapper.get_frame_at_pos(i);
+                }*/
+                frame[i] = CCDCamWrapper.get_frame_at_pos(i);
 
                 int m = i % width;
                 int n = i / width;
@@ -130,12 +131,13 @@ public class CCDCamera {
         }
 
         // Average it out.
+        /*
         for (int i = 0; i < width*height; i++) {
            frame[i] = Math.round(frame[i]/averages);
 
            if (frame[i] > 255) frame[i] = 255;
            if (frame[i] < 0) frame[i] = 0;
-        }
+        }*/
 
         return retVal;
     }

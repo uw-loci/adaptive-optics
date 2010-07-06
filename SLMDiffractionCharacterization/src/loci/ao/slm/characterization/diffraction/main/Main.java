@@ -308,7 +308,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         PanelBuilder leftBuilder = new PanelBuilder(leftLayout);
 
         /* Calibration Pattern Panel. */
-        String calibImageColSpecs = "550dlu";
+        String calibImageColSpecs = "650dlu";
         String calibImageRowSpecs = "p, 4dlu, 200dlu";
         FormLayout calibImageLayout =
                 new FormLayout(calibImageColSpecs, calibImageRowSpecs);
@@ -326,8 +326,8 @@ public class Main extends JFrame implements Observer, WindowListener {
         leftBuilder.add(calibImageBuilder.getPanel(),              cc.xy(1, 1));
 
         /* CCD Image Panel. */
-        String ccdColSpecs = "550dlu";
-        String ccdRowSpecs = "p, 4dlu, 200dlu";
+        String ccdColSpecs = "650dlu";
+        String ccdRowSpecs = "p, 4dlu, 350dlu";
         FormLayout ccdLayout = new FormLayout(ccdColSpecs, ccdRowSpecs);
         PanelBuilder ccdBuilder = new PanelBuilder(ccdLayout);
 
@@ -699,7 +699,7 @@ public class Main extends JFrame implements Observer, WindowListener {
             public void actionPerformed(ActionEvent e) {
                 ImageSequence.getInstance().loadFolder(imageSeqFolderEdit.getText());
                 ArrayList<String> imageList = ImageSequence.getInstance().getFileList();
-                imageSeqComboBox.removeAll();
+                imageSeqComboBox.removeAllItems();
                 for (int i = 0; i < imageList.size(); i++) {
                     imageSeqComboBox.addItem(imageList.get(i));
                 }

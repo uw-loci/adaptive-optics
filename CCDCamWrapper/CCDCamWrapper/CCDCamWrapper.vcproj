@@ -25,7 +25,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;C:\swigwin-1.3.40\swig.exe&quot; -c++ -module CCDCamWrapper -java -package loci.hardware.camera.swig &quot;C:\Users\ghall\Documents\AdaptiveOptics\CCDCamWrapper\CCDCamWrapper\CCDCamWrapper.i&quot;"
+				CommandLine="&quot;C:\swigwin-1.3.40\swig.exe&quot; -c++ -module CCDCamWrapper -java -package loci.hardware.camera.swig &quot;C:\gunnsteinn\AdaptiveOptics\CCDCamWrapper\CCDCamWrapper\CCDCamWrapper.i&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files (x86)\CMU\1394Camera\include&quot;;&quot;C:\Program Files (x86)\Java\jdk1.6.0_18\include\win32&quot;;&quot;C:\Program Files (x86)\Java\jdk1.6.0_18\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\CMU\1394Camera\include&quot;;&quot;C:\Program Files (x86)\Java\jdk1.6.0_18\include\win32&quot;;&quot;C:\Program Files (x86)\Java\jdk1.6.0_18\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CCDCAMWRAPPER_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -66,7 +66,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="1394camerad.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Program Files (x86)\CMU\1394Camera\lib&quot;"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\CMU\1394Camera\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -91,7 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="echo &quot;Copying the resulting DLL to the Commons directory&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)CCDCamWrapper.dll&quot; &quot;C:\Users\ghall\Documents\AdaptiveOptics\SWIG\CCDCamWrapper.dll&quot;&#x0D;&#x0A;del C:\Users\ghall\Documents\AdaptiveOptics\SWIG\SwingJavaOutput\*.java&#x0D;&#x0A;move &quot;$(ProjectDir)/*.java&quot; &quot;C:\Users\ghall\Documents\AdaptiveOptics\SWIG\SwingJavaOutput&quot;&#x0D;&#x0A;"
+				CommandLine="echo &quot;Copying the resulting DLL to the SWIG directory&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)CCDCamWrapper.dll&quot; &quot;C:\gunnsteinn\AdaptiveOptics\SWIG\CCDCamWrapper.dll&quot;&#x0D;&#x0A;del C:\gunnsteinn\AdaptiveOptics\SWIG\SwingJavaOutput\*.java&#x0D;&#x0A;move &quot;$(ProjectDir)/*.java&quot; &quot;C:\gunnsteinn\AdaptiveOptics\SWIG\SwingJavaOutput&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration

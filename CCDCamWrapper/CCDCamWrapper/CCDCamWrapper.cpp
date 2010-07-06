@@ -21,9 +21,9 @@ bool init_camera()
 {
 	char vendor[256],model[256];
 	LARGE_INTEGER ID;
-
 	int ret = theCamera.RefreshCameraList();
 	int type;
+
 	if(ret >= 0)
 	{
 		sprintf(note_buf, "CheckLink: Found %d Camera%s\n",ret,ret == 1 ? "" : "s");
@@ -57,10 +57,6 @@ bool init_camera()
 	sprintf(note_buf, "Vendor: %s\r\nModel: %s\r\nUniqueID: %08X%08X; width: %d, height: %d",
 		vendor,model,ID.HighPart,ID.LowPart, width, height);
 
-
-
-	 
-
 	return true;
 }
 
@@ -72,12 +68,14 @@ char *get_note()
 int capture_frame()
 {
 	int buffersAllocated = 1;
-	int maxTimeout = 200; // ms.
+	int maxTimeout = 1000; // ms. //30fps: 200ms works well, //7.5fps: 500ms seems to work //3.5fps: 1000ms?
+
 	if (theCamera.StartImageAcquisitionEx(buffersAllocated, maxTimeout, ACQ_START_VIDEO_STREAM)) {
+	//if (theCamera.StartImageAcquisitionEx(buffersAllocated, maxTimeout, ACQ_SUBSCRIBE_ONLY)) {
 		sprintf(note_buf, "Error starting image acquisition");
 		return -1;
 	}
-
+	
 	int ret = theCamera.AcquireImageEx(TRUE, NULL);
 	if (ret != CAM_SUCCESS) {
 		sprintf(note_buf, "Error in acquiring an image, ret: %d", ret);
@@ -104,9 +102,14 @@ int capture_frame()
 	return buffer_length;
 }
 
-unsigned char get_frame_at_pos(int index)
+unsigned int get_frame_at_pos(int index)
 {
-	return frame_buffer[index];
+	int ch = frame_buffer[index];
+	if (index < 0) {
+		// Clean up memory. (already at end).
+		free(frame_buffer);
+	}
+	return ch;
 }
 
 
