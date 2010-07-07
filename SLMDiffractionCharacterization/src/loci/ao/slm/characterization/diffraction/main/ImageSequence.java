@@ -118,7 +118,6 @@ public class ImageSequence {
         return bi;
     }
 
-
     /**
      * Comparator class.  For file names sorting by mode and phase.
      */

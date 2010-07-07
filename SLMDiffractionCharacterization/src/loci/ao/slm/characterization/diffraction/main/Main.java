@@ -41,6 +41,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
+import loci.ao.slm.characterization.diffraction.main.RegionModes.RegionMode;
 
 import loci.hardware.camera.CCDCamera;
 
@@ -244,6 +245,17 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JLabel refValueLabel;
     private JLabel roiSatPixelsLabel;
     private JLabel roiIntensityLabel;
+
+    /**
+     * Region modes.
+     */
+    private JTextField rmRegionEdit;
+    private JTextField modeRegionEdit;
+    private JComboBox rmModeComboBox;
+    private JTextField modeBiasEdit;
+    private JTextField modeTiltXEdit;
+    private JTextField modeTiltYEdit;
+
 
     /**
      * Constructs the Main class.  Sets up and displays the GUI.
@@ -488,6 +500,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         JTabbedPane tPane = new JTabbedPane();
         tPane.add("Image sequence", buildImageSequencePanel());
         tPane.add("Ronchi grating", buildRonchiGratingPanel());
+        tPane.add("Region modes", buildRegionModePanel());
 
         rightBuilder.add(tPane,                           cc.xy(1, mainRow));
         mainRow += 2;
@@ -805,9 +818,9 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         // Arrange items.
         row = 1;
-        outSeriesBuilder.addSeparator("Output - Series",  cc.xyw(1, row, 7));
+        outSeriesBuilder.addSeparator("Output - Series",    cc.xyw(1, row, 7));
         row += 2;
-        outSeriesBuilder.addLabel("Output Folder:",       cc.xy(1, row));
+        outSeriesBuilder.addLabel("Output Folder:",         cc.xy(1, row));
         outSeriesBuilder.add(isSeriesOutPathEdit,           cc.xyw(3, row, 2));
         outSeriesBuilder.add(isSeriesBrowseButton,          cc.xy(6, row));
         row += 2;
@@ -876,7 +889,6 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         gratingBuilder.add(calibBuilder.getPanel(),       cc.xy(1, outerRow));
         outerRow += 2;
-
 
         /* 2. Manual Output Panel. */
         String outpColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
@@ -997,7 +1009,6 @@ public class Main extends JFrame implements Observer, WindowListener {
                 Integer roiLRCornerX = new Integer(lowerRightX.getText());
                 Integer roiLRCornerY = new Integer(lowerRightY.getText());
 
-
                 gratingSerieRunner.setGratingVars(numGratings, refVal, regions);
                 gratingSerieRunner.setRange(regionFrom, regionTo,
                         varFrom, varTo, varStepSize);
@@ -1065,6 +1076,187 @@ public class Main extends JFrame implements Observer, WindowListener {
         outerRow += 2;
 
         return gratingBuilder.getPanel();
+    }
+
+    /**
+     * Build the region mode tab panel.
+     */
+    private JPanel buildRegionModePanel() {
+        /*String rmOuterColSpec = "fill:p"; // 1
+        String rmOuterRowSpec = "p, 8dlu, p, 8dlu"; // 4
+
+        CellConstraints cc = new CellConstraints();
+        FormLayout rmOuterLayout = new FormLayout(rmOuterColSpec, rmOuterRowSpec);
+        PanelBuilder rmOuterBuilder = new PanelBuilder(rmOuterLayout);
+
+        int outerRow=1;*/
+        CellConstraints cc = new CellConstraints();
+        int row=1;
+
+        /* IS/1. Image sequence. */
+        // Image sequence folder:
+        // Load Folder
+        // [combobox:Current image] <prev> <next>
+        // [Apply]
+        String rmColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
+        String rmRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 18
+        FormLayout rmLayout = new FormLayout(rmColSpecs, rmRowSpecs);
+        PanelBuilder rmBuilder = new PanelBuilder(rmLayout);
+
+        // Prepare contents.
+        rmRegionEdit = new JTextField();
+        modeRegionEdit = new JTextField();
+        rmModeComboBox = new JComboBox();
+        modeBiasEdit = new JTextField();
+        modeTiltXEdit = new JTextField();
+        modeTiltYEdit = new JTextField();
+
+        JButton rmRegionApplyButton = new JButton("Apply");
+        rmRegionApplyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Integer numRegions = new Integer(rmRegionEdit.getText());
+                RegionModes.getInstance().setNumberOfRegions(numRegions.intValue());
+                updateModeSettings();
+            }
+        });
+
+        JButton rmAddModeButton = new JButton("Add mode");
+        rmAddModeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                RegionModes.getInstance().addMode();
+                updateModeSettings();
+            }
+        });
+
+        JButton rmDelModeButton = new JButton("Remove mode");
+        rmDelModeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int modeIdx = rmModeComboBox.getSelectedIndex();
+                if (modeIdx >= 0) {
+                    RegionModes.getInstance().removeModeByIndex(modeIdx);
+                }
+                updateModeSettings();
+            }
+        });
+
+        rmModeComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                updateModeSettings();
+            }
+        });
+
+        JButton modeApplyButton = new JButton("Apply");
+        modeApplyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int modeIdx = rmModeComboBox.getSelectedIndex();
+                if (modeIdx >= 0) {
+                    RegionMode mode =
+                            RegionModes.getInstance().getModeByIndex(modeIdx);
+                    Integer mRegion = new Integer(modeRegionEdit.getText());
+                    Double mBias = new Double(modeBiasEdit.getText());
+                    Double mTiltX = new Double(modeTiltXEdit.getText());
+                    Double mTiltY = new Double(modeTiltYEdit.getText());
+                    mode.setRegion(mRegion.intValue());
+                    mode.setBias(mBias.doubleValue());
+                    mode.setTiltX(mTiltX.doubleValue());
+                    mode.setTiltY(mTiltY.doubleValue());
+                }
+                updateModeSettings();
+            }
+        });
+        JButton rmSendSLMButton = new JButton("Send to SLM");
+        rmSendSLMButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
+                phaseImagePanel.setDataMatrix(dataMatrix);
+
+                if (Constants.USE_SLM_DEVICE) {
+                    System.out.println("Sending to SLM device");
+                    com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
+                }
+            }
+        });
+
+
+        // Arrange contents.
+        rmBuilder.addSeparator("Regions Definition",            cc.xyw(1, row, 8));
+        row += 2;
+
+        rmBuilder.addLabel("#Regions:",                         cc.xy(1, row));
+        rmBuilder.add(rmRegionEdit,                             cc.xy(3, row));
+        rmBuilder.add(rmRegionApplyButton,                            cc.xy(5, row));
+        row += 2;
+
+        rmBuilder.addSeparator("Modes",                         cc.xyw(1, row, 8));
+        row += 2;
+
+        rmBuilder.addLabel("Mode "    ,                         cc.xy(1, row));
+        rmBuilder.add(rmModeComboBox,                           cc.xy(3, row));
+        rmBuilder.add(rmAddModeButton,                          cc.xy(5, row));
+        row += 2;
+
+        rmBuilder.addLabel("Mode region:",                      cc.xy(1, row));
+        rmBuilder.add(modeRegionEdit,                           cc.xy(3, row));
+        row += 2;
+
+        rmBuilder.addLabel("1. Bias:",                          cc.xy(1, row));
+        rmBuilder.add(modeBiasEdit,                             cc.xy(3, row));
+        row += 2;
+
+        rmBuilder.addLabel("2. Tilt-X:",                        cc.xy(1, row));
+        rmBuilder.add(modeTiltXEdit,                            cc.xy(3, row));
+        row += 2;
+
+        rmBuilder.addLabel("3. Tilt-Y:",                        cc.xy(1, row));
+        rmBuilder.add(modeTiltYEdit,                            cc.xy(3, row));
+        row += 2;
+
+        rmBuilder.add(modeApplyButton,                          cc.xy(1, row));
+        rmBuilder.add(rmSendSLMButton,                          cc.xy(3, row));
+        row += 2;
+
+
+        return rmBuilder.getPanel();
+    }
+
+
+    /**
+     *
+     */
+    private void updateModeSettings()
+    {
+        int modeCount = RegionModes.getInstance().countModes();
+        if (modeCount == 0) {
+            modeRegionEdit.setText("");
+            modeBiasEdit.setText("");
+            modeTiltXEdit.setText("");
+            modeTiltYEdit.setText("");
+            rmModeComboBox.removeAllItems();
+            rmModeComboBox.setSelectedIndex(-1);
+            return;
+        }
+
+        // Update combobox.
+        int selModeIdx = rmModeComboBox.getSelectedIndex();
+        rmModeComboBox.removeAllItems();
+        for (int i = 0; i < modeCount; i++) {
+            rmModeComboBox.addItem("Mode " + i);
+        }
+
+        if (selModeIdx >= modeCount || selModeIdx < 0) {
+            selModeIdx = 0;
+        }
+        rmModeComboBox.setSelectedIndex(selModeIdx);
+
+        // Setup information for selected item.
+        if (modeCount > 0 && selModeIdx >= 0) {
+            RegionMode selMode =
+                    RegionModes.getInstance().getModeByIndex(selModeIdx);
+            modeRegionEdit.setText("" + selMode.getRegion());
+            modeBiasEdit.setText("" + selMode.getBias());
+            modeTiltXEdit.setText("" + selMode.getTiltX());
+            modeTiltYEdit.setText("" + selMode.getTiltY());
+        }
     }
 
     /**
