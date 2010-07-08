@@ -255,6 +255,20 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JTextField modeBiasEdit;
     private JTextField modeTiltXEdit;
     private JTextField modeTiltYEdit;
+    private JTextField rmSeriesBiasFromEdit;
+    private JTextField rmSeriesBiasToEdit;
+    private JTextField rmSeriesBiasStepSizeEdit;
+    private JTextField rmSeriesOutputFolderEdit;
+    private JButton rmSeriesBrowseButton;
+    private JFileChooser rmFileChooser;
+    private JButton rmSeriesRunButton;
+    private JComboBox rmSeriesRmModeComboBox;
+
+    /**
+     * For running region mode series.
+     */
+    private RegionModeSerieRunner rmSerieRunner;
+
 
 
     /**
@@ -1099,7 +1113,9 @@ public class Main extends JFrame implements Observer, WindowListener {
         // [combobox:Current image] <prev> <next>
         // [Apply]
         String rmColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
-        String rmRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 18
+        String rmRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p,"
+                          + "4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu,"
+                          + "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 32
         FormLayout rmLayout = new FormLayout(rmColSpecs, rmRowSpecs);
         PanelBuilder rmBuilder = new PanelBuilder(rmLayout);
 
@@ -1177,6 +1193,55 @@ public class Main extends JFrame implements Observer, WindowListener {
             }
         });
 
+        rmSeriesBiasFromEdit = new JTextField();
+        rmSeriesBiasToEdit = new JTextField();
+        rmSeriesBiasStepSizeEdit = new JTextField();
+        rmSeriesOutputFolderEdit = new JTextField();
+        rmSeriesBrowseButton = new JButton("Browse");
+        rmFileChooser = new JFileChooser();
+        rmSeriesRmModeComboBox = new JComboBox();
+
+        rmSeriesBrowseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                rmFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                int retVal = rmFileChooser.showOpenDialog(rmSeriesBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = rmFileChooser.getSelectedFile();
+                    rmSeriesOutputFolderEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+        rmSeriesRunButton = new JButton("Run Series");
+        rmSeriesRunButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Running series");
+
+                // Sets the parameters for the series and starts the job
+                // by initiating the thread.
+                rmSerieRunner = RegionModeSerieRunner.getInstance();
+                rmSerieRunner.start();
+                int modeIndex = rmSeriesRmModeComboBox.getSelectedIndex();
+                Double biasFromVal = new Double(rmSeriesBiasFromEdit.getText());
+                Double biasToVal = new Double(rmSeriesBiasToEdit.getText());
+                Double biasStepSizeVal = new Double(rmSeriesBiasStepSizeEdit.getText());
+
+                rmSerieRunner.setParams(
+                        modeIndex, rmSeriesOutputFolderEdit.getText(),
+                        biasFromVal.doubleValue(), biasToVal.doubleValue(),
+                        biasStepSizeVal.doubleValue());
+                rmSerieRunner.run();
+            }
+        });
+        JButton rmSeriesCancelButton = new JButton("Cancel");
+        rmSeriesCancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (rmSerieRunner != null) {
+                    rmSerieRunner.stop();
+                    rmSerieRunner = null;
+                }
+            }
+        });
+
 
         // Arrange contents.
         rmBuilder.addSeparator("Regions Definition",            cc.xyw(1, row, 8));
@@ -1184,7 +1249,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         rmBuilder.addLabel("#Regions:",                         cc.xy(1, row));
         rmBuilder.add(rmRegionEdit,                             cc.xy(3, row));
-        rmBuilder.add(rmRegionApplyButton,                            cc.xy(5, row));
+        rmBuilder.add(rmRegionApplyButton,                      cc.xy(5, row));
         row += 2;
 
         rmBuilder.addSeparator("Modes",                         cc.xyw(1, row, 8));
@@ -1197,6 +1262,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         rmBuilder.addLabel("Mode region:",                      cc.xy(1, row));
         rmBuilder.add(modeRegionEdit,                           cc.xy(3, row));
+        rmBuilder.add(rmDelModeButton,                          cc.xy(5, row));
         row += 2;
 
         rmBuilder.addLabel("1. Bias:",                          cc.xy(1, row));
@@ -1213,6 +1279,34 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         rmBuilder.add(modeApplyButton,                          cc.xy(1, row));
         rmBuilder.add(rmSendSLMButton,                          cc.xy(3, row));
+        row += 2;
+
+        rmBuilder.addSeparator("Mode Series",                   cc.xyw(1, row, 8));
+        row += 2;
+        rmBuilder.addLabel("Mode to scan:",                     cc.xy(1, row));
+        rmBuilder.add(rmSeriesRmModeComboBox,                   cc.xy(3, row));
+
+        row += 2;
+
+        rmBuilder.addLabel("Bias",                              cc.xy(1, row));
+        rmBuilder.addLabel("From:",                             cc.xy(3, row));
+        rmBuilder.add(rmSeriesBiasFromEdit,                     cc.xy(5, row));
+        row += 2;
+
+        rmBuilder.addLabel("To:",                               cc.xy(3, row));
+        rmBuilder.add(rmSeriesBiasToEdit,                       cc.xy(5, row));
+        row += 2;
+
+        rmBuilder.addLabel("Step size:",                        cc.xy(3, row));
+        rmBuilder.add(rmSeriesBiasStepSizeEdit,                 cc.xy(5, row));
+        row += 2;
+
+        rmBuilder.addLabel("Output Folder:",                    cc.xy(1, row));
+        rmBuilder.add(rmSeriesOutputFolderEdit,                 cc.xy(3, row));
+        rmBuilder.add(rmSeriesBrowseButton,                     cc.xy(5, row));
+        row += 2;
+
+        rmBuilder.add(rmSeriesRunButton,                        cc.xy(1, row));
         row += 2;
 
 
@@ -1247,6 +1341,20 @@ public class Main extends JFrame implements Observer, WindowListener {
             selModeIdx = 0;
         }
         rmModeComboBox.setSelectedIndex(selModeIdx);
+
+        // Update series combobox.
+
+        int seriesSelModeIdx = rmSeriesRmModeComboBox.getSelectedIndex();
+        rmSeriesRmModeComboBox.removeAllItems();
+        for (int i = 0; i < modeCount; i++) {
+            rmSeriesRmModeComboBox.addItem("Mode " + i);
+        }
+
+        if (selModeIdx >= modeCount || selModeIdx < 0) {
+            selModeIdx = 0;
+        }
+        rmSeriesRmModeComboBox.setSelectedIndex(seriesSelModeIdx);
+
 
         // Setup information for selected item.
         if (modeCount > 0 && selModeIdx >= 0) {
