@@ -122,9 +122,14 @@ public class RegionModes {
                 if (mode != null) {
                     //System.out.println("Region " + region + " bias: " + mode.getBias());
                     val = (int) mode.getPhaseValue(xr,yr);
+
+                    if (val < 0) {
+                        while (val < 0)
+                            val += 256;
+                    }
                     val %= 256;
-                    val = LookupTable.getInstance().lookup(val, lutRegion);
                 }
+                val = LookupTable.getInstance().lookup(val, lutRegion);
                 
                 dataMatrix[index] = val;
             }
