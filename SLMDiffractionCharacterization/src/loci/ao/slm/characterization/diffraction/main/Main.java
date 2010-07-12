@@ -258,6 +258,9 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JTextField rmSeriesBiasFromEdit;
     private JTextField rmSeriesBiasToEdit;
     private JTextField rmSeriesBiasStepSizeEdit;
+    private JTextField rmSeriesRegionFromEdit;
+    private JTextField rmSeriesRegionToEdit;
+    private JTextField rmSeriesRegionStepSizeEdit;
     private JTextField rmSeriesOutputFolderEdit;
     private JButton rmSeriesBrowseButton;
     private JFileChooser rmFileChooser;
@@ -1112,7 +1115,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         // Load Folder
         // [combobox:Current image] <prev> <next>
         // [Apply]
-        String rmColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
+        String rmColSpecs = "p, 4dlu, 50dlu, 4dlu, p, 4dlu, 50dlu, 4dlu, p, 4dlu, 50dlu, 4dlu:grow"; // 12
         String rmRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p,"
                           + "4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu,"
                           + "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 32
@@ -1193,9 +1196,12 @@ public class Main extends JFrame implements Observer, WindowListener {
             }
         });
 
-        rmSeriesBiasFromEdit = new JTextField();
-        rmSeriesBiasToEdit = new JTextField();
-        rmSeriesBiasStepSizeEdit = new JTextField();
+        rmSeriesBiasFromEdit = new JTextField("0");
+        rmSeriesBiasToEdit = new JTextField("255");
+        rmSeriesBiasStepSizeEdit = new JTextField("5");
+        rmSeriesRegionFromEdit = new JTextField("0");
+        rmSeriesRegionToEdit = new JTextField("0");
+        rmSeriesRegionStepSizeEdit = new JTextField("1");
         rmSeriesOutputFolderEdit = new JTextField();
         rmSeriesBrowseButton = new JButton("Browse");
         rmFileChooser = new JFileChooser();
@@ -1224,11 +1230,16 @@ public class Main extends JFrame implements Observer, WindowListener {
                 Double biasFromVal = new Double(rmSeriesBiasFromEdit.getText());
                 Double biasToVal = new Double(rmSeriesBiasToEdit.getText());
                 Double biasStepSizeVal = new Double(rmSeriesBiasStepSizeEdit.getText());
+                Integer regionFromVal = new Integer(rmSeriesRegionFromEdit.getText());
+                Integer regionToVal = new Integer(rmSeriesRegionToEdit.getText());
+                Integer regionStepSizeVal = new Integer(rmSeriesRegionStepSizeEdit.getText());
 
                 rmSerieRunner.setParams(
                         modeIndex, rmSeriesOutputFolderEdit.getText(),
                         biasFromVal.doubleValue(), biasToVal.doubleValue(),
-                        biasStepSizeVal.doubleValue());
+                        biasStepSizeVal.doubleValue(),
+                        regionFromVal.intValue(), regionToVal.intValue(),
+                        regionStepSizeVal.intValue());
                 rmSerieRunner.run();
             }
         });
@@ -1244,7 +1255,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
 
         // Arrange contents.
-        rmBuilder.addSeparator("Regions Definition",            cc.xyw(1, row, 8));
+        rmBuilder.addSeparator("Regions Definition",            cc.xyw(1, row, 12));
         row += 2;
 
         rmBuilder.addLabel("#Regions:",                         cc.xy(1, row));
@@ -1252,7 +1263,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         rmBuilder.add(rmRegionApplyButton,                      cc.xy(5, row));
         row += 2;
 
-        rmBuilder.addSeparator("Modes",                         cc.xyw(1, row, 8));
+        rmBuilder.addSeparator("Modes",                         cc.xyw(1, row, 12));
         row += 2;
 
         rmBuilder.addLabel("Mode "    ,                         cc.xy(1, row));
@@ -1281,29 +1292,34 @@ public class Main extends JFrame implements Observer, WindowListener {
         rmBuilder.add(rmSendSLMButton,                          cc.xy(3, row));
         row += 2;
 
-        rmBuilder.addSeparator("Mode Series",                   cc.xyw(1, row, 8));
+        rmBuilder.addSeparator("Mode Series",                   cc.xyw(1, row, 12));
         row += 2;
+
         rmBuilder.addLabel("Mode to scan:",                     cc.xy(1, row));
         rmBuilder.add(rmSeriesRmModeComboBox,                   cc.xy(3, row));
-
         row += 2;
 
-        rmBuilder.addLabel("Bias",                              cc.xy(1, row));
-        rmBuilder.addLabel("From:",                             cc.xy(3, row));
-        rmBuilder.add(rmSeriesBiasFromEdit,                     cc.xy(5, row));
+        rmBuilder.addLabel("Region From:",                      cc.xy(1, row));
+        rmBuilder.add(rmSeriesRegionFromEdit,                   cc.xy(3, row));
+        rmBuilder.addLabel("To:",                               cc.xy(5, row));
+        rmBuilder.add(rmSeriesRegionToEdit,                     cc.xy(7, row));
+        rmBuilder.addLabel("Step size:",                        cc.xy(9, row));
+        rmBuilder.add(rmSeriesRegionStepSizeEdit,               cc.xy(11, row));
         row += 2;
 
-        rmBuilder.addLabel("To:",                               cc.xy(3, row));
-        rmBuilder.add(rmSeriesBiasToEdit,                       cc.xy(5, row));
+        rmBuilder.addLabel("Bias From:",                        cc.xy(1, row));
+        rmBuilder.add(rmSeriesBiasFromEdit,                     cc.xy(3, row));
+        rmBuilder.addLabel("To:",                               cc.xy(5, row));
+        rmBuilder.add(rmSeriesBiasToEdit,                       cc.xy(7, row));
+        rmBuilder.addLabel("Step size:",                        cc.xy(9, row));
+        rmBuilder.add(rmSeriesBiasStepSizeEdit,                 cc.xy(11, row));
         row += 2;
 
-        rmBuilder.addLabel("Step size:",                        cc.xy(3, row));
-        rmBuilder.add(rmSeriesBiasStepSizeEdit,                 cc.xy(5, row));
-        row += 2;
+
 
         rmBuilder.addLabel("Output Folder:",                    cc.xy(1, row));
-        rmBuilder.add(rmSeriesOutputFolderEdit,                 cc.xy(3, row));
-        rmBuilder.add(rmSeriesBrowseButton,                     cc.xy(5, row));
+        rmBuilder.add(rmSeriesOutputFolderEdit,                 cc.xyw(3, row, 7));
+        rmBuilder.add(rmSeriesBrowseButton,                     cc.xy(11, row));
         row += 2;
 
         rmBuilder.add(rmSeriesRunButton,                        cc.xy(1, row));

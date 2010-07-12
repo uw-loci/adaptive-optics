@@ -45,12 +45,21 @@ public class RegionModeSerieRunner
     private String outputFolder;
 
     /**
-     * Variable: The range to scan over.
+     * Bias Variable: The range to scan over.
      */
-    private double fromVar;
-    private double toVar;
-    private double stepSize;
-    private double currentVar;
+    private double biasFromVar;
+    private double biasToVar;
+    private double biasStepSize;
+    private double biasCurrentVar;
+
+    /**
+     * Region Variable: The regions to scan over.
+     */
+    private int regionFromVar;
+    private int regionToVar;
+    private int regionStepSize;
+    private int regionCurrentVar;
+
     private int modeIndex;
     private int iteration;
 
@@ -96,12 +105,16 @@ public class RegionModeSerieRunner
      */
     public void setParams(
             int modeIndex, String outputFolder,
-            double fromVar, double toVar, double stepSize) {
+            double biasFromVar, double biasToVar, double biasStepSize,
+            int regionFromVar, int regionToVar, int regionStepSize) {
         this.modeIndex = modeIndex;
         this.outputFolder = outputFolder;
-        this.fromVar = fromVar;
-        this.toVar = toVar;
-        this.stepSize = stepSize;
+        this.biasFromVar = biasFromVar;
+        this.biasToVar = biasToVar;
+        this.biasStepSize = biasStepSize;
+        this.regionFromVar = regionFromVar;
+        this.regionToVar = regionToVar;
+        this.regionStepSize = regionStepSize;
     }
 
     /**
@@ -118,7 +131,7 @@ public class RegionModeSerieRunner
     public synchronized void nextSLMImage()
     {
         RegionMode mode = RegionModes.getInstance().getModeByIndex(modeIndex);
-        mode.setBias(currentVar);
+        mode.setBias(biasCurrentVar);
 
 
         double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
@@ -149,7 +162,9 @@ public class RegionModeSerieRunner
     private synchronized void recordImage()
     {
         String prefix = "out_";
-        String outFilePath = outputFolder + "\\" + prefix + "out" + iteration + ".bmp" ;
+        String outFilePath = outputFolder + "\\";
+        outFilePath += prefix + "R" + regionCurrentVar + "_" + iteration + ".bmp" ;
+        System.out.println("output: " + outFilePath);
 
         BufferedImage image = Main.getInstance().getCameraImagePanel().getImage();
         File outputFile = new File(outFilePath);
@@ -183,34 +198,43 @@ public class RegionModeSerieRunner
 
         Thread thisThread = Thread.currentThread();
 
-        iteration = 0;
-        for (currentVar = fromVar; (currentVar <= toVar) && (thread == thisThread); currentVar+=stepSize) {
-            System.out.println("Iteration running");
-            upgradeParams();
+        
+        for (regionCurrentVar = regionFromVar; (regionCurrentVar <= regionToVar) && (thread == thisThread); regionCurrentVar+=regionStepSize) {
+            // Set the region of the mode.
+            RegionMode mode = RegionModes.getInstance().getModeByIndex(modeIndex);
+            mode.setRegion(regionCurrentVar);
+            iteration = 0;
+            System.out.println("Region: " + regionCurrentVar);
+            
+            
+            for (biasCurrentVar = biasFromVar; (biasCurrentVar <= biasToVar) && (thread == thisThread); biasCurrentVar+=biasStepSize) {
+                System.out.println("Iteration running");
+                upgradeParams();
 
-            nextSLMImage();
+                nextSLMImage();
 
-            // This is to make sure that the image has been displayed
-            // appropriately and keep the GUI responsive.
-            try {
-                Thread.sleep(500); //100 seems to work.
-            } catch (InterruptedException ex) {
+                // This is to make sure that the image has been displayed
+                // appropriately and keep the GUI responsive.
+                try {
+                    Thread.sleep(500); //100 seems to work.
+                } catch (InterruptedException ex) {
+                }
+
+                // Run the camera.
+                upgradeCamera();
+
+                // Record results.
+                recordImage();
+
+                // Update the status.
+                updateStatus();
+
+                iteration++;
             }
 
-            // Run the camera.
-            upgradeCamera();
-
-            // Record results.
-            recordImage();
-
-            // Update the status.
-            updateStatus();
-
-            iteration++;
-        }
-
-        if (Constants.DEBUG) {
-            System.out.println("Serial Thread exiting loop.");
+            if (Constants.DEBUG) {
+                System.out.println("Serial Thread exiting loop.");
+            }
         }
     }
 }
