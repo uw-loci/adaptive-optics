@@ -13,6 +13,23 @@ import java.awt.image.Raster;
  * @author ghall
  */
 public class ImageUtils {
+    public static void addTilt(double[] dataMatrix, int tiltX, int tiltY) {
+        int xWidth = 512;
+        int yWidth = 512;
+
+        for (int xm = 0; xm < 512; xm++) {
+            for (int ym = 0; ym < 512; ym++) {
+
+                int index = ym * xWidth + xm;
+
+                int xr = xm - xWidth/2;
+                int yr = ym - yWidth/2;
+
+                dataMatrix[index] += tiltX * xr + tiltY * yr;
+            }
+        }
+    }
+
     public static double[] imageToDataMatrix(BufferedImage image) {
         double[] dataMatrix = new double[image.getWidth()*image.getHeight()];
 

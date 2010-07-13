@@ -115,6 +115,9 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JButton imageSeqPrevButton;
     private JButton imageSeqNextButton;
     private JFileChooser imageSeqDirChooser;
+    private JTextField isTiltXEdit;
+    private JTextField isTiltYEdit;
+
 
     // CCD save as.
     private JTextField saveImageEdit;
@@ -699,7 +702,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         // [combobox:Current image] <prev> <next>
         // [Apply]
         String isColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
-        String isRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 8
+        String isRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 12
         FormLayout isLayout = new FormLayout(isColSpecs, isRowSpecs);
         PanelBuilder isBuilder = new PanelBuilder(isLayout);
 
@@ -757,8 +760,13 @@ public class Main extends JFrame implements Observer, WindowListener {
         imageApplyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int itemIdx = imageSeqComboBox.getSelectedIndex();
-                BufferedImage image = ImageSequence.getInstance().getImageByIndex(itemIdx);
+                Integer isTiltX = new Integer(isTiltXEdit.getText());
+                Integer isTiltY = new Integer(isTiltYEdit.getText());
+
+                BufferedImage image = ImageSequence.getInstance().getImageByIndex(itemIdx);               
+
                 double[] dataMatrix = ImageUtils.imageToDataMatrix(image);
+                ImageUtils.addTilt(dataMatrix, isTiltX.intValue(), isTiltY.intValue());
                 phaseImagePanel.setDataMatrix(dataMatrix);
 
                 if (Constants.USE_SLM_DEVICE) {
@@ -767,6 +775,9 @@ public class Main extends JFrame implements Observer, WindowListener {
                 }
             }
         });
+
+        isTiltXEdit = new JTextField("0.0");
+        isTiltYEdit = new JTextField("0.0");
 
         // Arrange items.
         row = 1;
@@ -785,9 +796,17 @@ public class Main extends JFrame implements Observer, WindowListener {
         isBuilder.add(imageSeqNextButton,                  cc.xy(7, row));
 
         row += 2;
+        isBuilder.addLabel("Tilt X:",                      cc.xy(1, row));
+        isBuilder.add(isTiltXEdit,                         cc.xyw(3, row, 1));
+        
+        row += 2;
+        isBuilder.addLabel("Tilt Y:",                      cc.xy(1, row));
+        isBuilder.add(isTiltYEdit,                         cc.xyw(3, row, 1));
+
+        row += 2;
         isBuilder.add(imageApplyButton,                    cc.xy(1, row));
         
-        isOuterBuilder.add(isBuilder.getPanel(),     cc.xy(1, outerRow));
+        isOuterBuilder.add(isBuilder.getPanel(),           cc.xy(1, outerRow));
         outerRow += 2;
 
 
@@ -803,11 +822,17 @@ public class Main extends JFrame implements Observer, WindowListener {
             public synchronized void actionPerformed(ActionEvent e) {
                 System.out.println("IS Run Series button pressed");
 
+                Integer isTiltX = new Integer(isTiltXEdit.getText());
+                Integer isTiltY = new Integer(isTiltYEdit.getText());
+
                 // Sets the parameters for the series and starts the job
                 // by initiating the thread.
                 isSerieRunner = ImageSequenceSerieRunner.getInstance();
                 isSerieRunner.start();
-                isSerieRunner.setParams(isSeriesOutPathEdit.getText());
+                isSerieRunner.setParams(
+                        isSeriesOutPathEdit.getText(),
+                        isTiltX.intValue(),
+                        isTiltY.intValue());
                 isSerieRunner.run();
             }
         });

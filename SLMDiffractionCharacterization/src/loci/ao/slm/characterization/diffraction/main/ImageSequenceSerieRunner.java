@@ -47,6 +47,8 @@ public class ImageSequenceSerieRunner
      * Current image in the image sequences.
      */
     private int currentImageIndex;
+    private int tiltX;
+    private int tiltY;
 
     /**
      * Constructor.
@@ -88,8 +90,10 @@ public class ImageSequenceSerieRunner
      *
      * @param outputFolder The path to the output folder.
      */
-    public void setParams(String outputFolder) {
+    public void setParams(String outputFolder, int tiltX, int tiltY) {
         this.outputFolder = outputFolder;
+        this.tiltX = tiltX;
+        this.tiltY = tiltY;
         currentImageIndex = 0;
     }
 
@@ -111,6 +115,7 @@ public class ImageSequenceSerieRunner
             ImageSequence.getInstance().getImageByIndex(currentImageIndex);        
 
         double[] dataMatrix = ImageUtils.imageToDataMatrix(slmImage);
+        ImageUtils.addTilt(dataMatrix, tiltX, tiltY);
         Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
 
         if (Constants.USE_SLM_DEVICE) {
