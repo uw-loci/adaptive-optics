@@ -116,6 +116,7 @@ public class ImageSequenceSerieRunner
 
         double[] dataMatrix = ImageUtils.imageToDataMatrix(slmImage);
         ImageUtils.addTilt(dataMatrix, tiltX, tiltY);
+        ImageUtils.translateThroughLUT(dataMatrix);
         Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
 
         if (Constants.USE_SLM_DEVICE) {

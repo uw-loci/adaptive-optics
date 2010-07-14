@@ -767,6 +767,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
                 double[] dataMatrix = ImageUtils.imageToDataMatrix(image);
                 ImageUtils.addTilt(dataMatrix, isTiltX.intValue(), isTiltY.intValue());
+                ImageUtils.translateThroughLUT(dataMatrix);
                 phaseImagePanel.setDataMatrix(dataMatrix);
 
                 if (Constants.USE_SLM_DEVICE) {
@@ -776,8 +777,8 @@ public class Main extends JFrame implements Observer, WindowListener {
             }
         });
 
-        isTiltXEdit = new JTextField("0.0");
-        isTiltYEdit = new JTextField("0.0");
+        isTiltXEdit = new JTextField("0");
+        isTiltYEdit = new JTextField("0");
 
         // Arrange items.
         row = 1;
