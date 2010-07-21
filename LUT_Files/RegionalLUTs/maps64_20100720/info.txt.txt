@@ -1,0 +1,5 @@
+This one was generated with more uniform incoming illumination, and the beam expander 
+at a high expansion setting, overfilling the SLM.
+
+Longer FL lens, showed nice PSF.  (The shorter one gave bad aberrated PSFs).
+
