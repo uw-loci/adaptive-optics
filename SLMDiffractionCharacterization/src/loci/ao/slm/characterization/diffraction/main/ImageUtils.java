@@ -30,6 +30,19 @@ public class ImageUtils {
         }
     }
 
+    public static void addImages(double[] inputDataMatrix, double[] addDataMatrix) {
+        int xWidth = 512;
+        int yWidth = 512;
+        for (int xm = 0; xm < xWidth; xm++) {
+            for (int ym = 0; ym < yWidth; ym++) {
+
+                int index = ym * xWidth + xm;
+                inputDataMatrix[index] += addDataMatrix[index];
+            }
+        }
+    }
+
+
     public static double[] imageToDataMatrix(BufferedImage image) {
         double[] dataMatrix = new double[image.getWidth()*image.getHeight()];
 

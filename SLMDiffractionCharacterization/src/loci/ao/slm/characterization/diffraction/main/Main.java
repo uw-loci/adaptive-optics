@@ -36,6 +36,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
@@ -161,6 +162,20 @@ public class Main extends JFrame implements Observer, WindowListener {
      * LUT status label.
      */
     private JLabel lutStatusLabel;
+
+    /**
+     * System abberration image controls.
+     */
+    private JLabel sysAbbStatusLabel;
+    private JCheckBox sysAbbEnabledCheckBox;
+    private JTextField sysAbbPathEdit;
+    private JButton sysAbbBrowseButton;
+    private JFileChooser sysAbbFileChooser;
+    private JButton sysAbbLoadButton;
+
+    private boolean sysAbbCorrectionisEnabled;
+    private double[] sysAbbCorrectionDataMatrix;
+    private boolean sysAbbImageLoaded;
 
     /**
      * Specifies the number of gratings.
@@ -341,7 +356,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         /* Calibration Pattern Panel. */
         String calibImageColSpecs = "650dlu";
-        String calibImageRowSpecs = "p, 4dlu, 200dlu";
+        String calibImageRowSpecs = "p, 4dlu, 150dlu";
         FormLayout calibImageLayout =
                 new FormLayout(calibImageColSpecs, calibImageRowSpecs);
         PanelBuilder calibImageBuilder = new PanelBuilder(calibImageLayout);
@@ -359,7 +374,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         /* CCD Image Panel. */
         String ccdColSpecs = "650dlu";
-        String ccdRowSpecs = "p, 4dlu, 350dlu";
+        String ccdRowSpecs = "p, 4dlu, 300dlu";
         FormLayout ccdLayout = new FormLayout(ccdColSpecs, ccdRowSpecs);
         PanelBuilder ccdBuilder = new PanelBuilder(ccdLayout);
 
@@ -444,7 +459,7 @@ public class Main extends JFrame implements Observer, WindowListener {
      */
     private JPanel buildRightPanel() {
         String rightColSpec = "fill:p"; // 1
-        String rightRowSpec = "p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu"; // 10
+        String rightRowSpec = "p, 8dlu, p, 8dlu, 200dlu, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu"; // 12
 
         CellConstraints cc = new CellConstraints();
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
@@ -454,8 +469,8 @@ public class Main extends JFrame implements Observer, WindowListener {
         int row=1;
 
         /* 1. LUT panel */
-        String lutColSpecs = "p, 4dlu, 120dlu, 4dlu, p, 4dlu:grow"; // 6
-        String lutRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 10
+        String lutColSpecs = "p, 4dlu, 180dlu, 4dlu, p, 4dlu:grow"; // 6
+        String lutRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 8
         FormLayout lutLayout = new FormLayout(lutColSpecs, lutRowSpecs);
         PanelBuilder lutBuilder = new PanelBuilder(lutLayout);
 
@@ -509,24 +524,105 @@ public class Main extends JFrame implements Observer, WindowListener {
         row += 2;
         lutBuilder.addLabel("Status:",                    cc.xy(1, row));
         lutBuilder.add(lutStatusLabel,                    cc.xy(3, row));
-        row += 2;
-        lutBuilder.add(lutLoadButton,                     cc.xy(1, row));
+        //row += 2;
+        lutBuilder.add(lutLoadButton,                     cc.xy(5, row));
 
         rightBuilder.add(lutBuilder.getPanel(),           cc.xy(1, mainRow));
         mainRow += 2;
 
+        /* 2. System aberration correction. */
+        String sysAbbColSpecs = "p, 4dlu, 180dlu, 4dlu, p, 4dlu, p, 4dlu:grow"; // 8
+        String sybAbbRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 8
+        FormLayout sysAbbLayout = new FormLayout(sysAbbColSpecs, sybAbbRowSpecs);
+        PanelBuilder sysAbbBuilder = new PanelBuilder(sysAbbLayout);
 
-        /* 2. Image sequence panel. */
+        // Prepare contents.
+        sysAbbStatusLabel = new JLabel("");
+        sysAbbEnabledCheckBox = new JCheckBox("Enable");
+        sysAbbEnabledCheckBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (sysAbbEnabledCheckBox.isSelected()) {
+                    System.out.println("System correction enabled.");
+                    //LookupTable.getInstance().setEnabled(true);
+                } else {
+                    System.out.println("System correction disabled.");
+                    //LookupTable.getInstance().setEnabled(false);
+                }
+                updateSysAbbStatus();
+            }
+        });
+
+        sysAbbPathEdit = new JTextField("");
+        sysAbbBrowseButton = new JButton("Browse");
+        sysAbbFileChooser = new JFileChooser();
+        sysAbbBrowseButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                sysAbbFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                int retVal = sysAbbFileChooser.showOpenDialog(browseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = sysAbbFileChooser.getSelectedFile();
+                    sysAbbPathEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+        sysAbbLoadButton = new JButton("Load");
+        sysAbbLoadButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    System.out.println("Loading the system aberration image");
+                    File sysAbbImageFile = new File(sysAbbPathEdit.getText());
+                    BufferedImage sysAbbImage = ImageIO.read(sysAbbImageFile);
+                    if (sysAbbImage != null) {
+                        sysAbbCorrectionDataMatrix = ImageUtils.imageToDataMatrix(sysAbbImage);
+                        sysAbbImageLoaded = true;
+                    } else {
+                        sysAbbCorrectionDataMatrix = null;
+                        sysAbbImageLoaded = false;
+                    }
+
+                } catch (IOException ex) {
+                    sysAbbCorrectionDataMatrix = null;
+                    sysAbbImageLoaded = false;
+                }
+                updateSysAbbStatus();
+            }
+        });
+        updateSysAbbStatus();
+
+
+        // Arrange contents.
+        row = 1;
+        sysAbbBuilder.addSeparator("System aberration correction",  cc.xyw(1, row, 8));
+        row += 2;
+        sysAbbBuilder.add(sysAbbEnabledCheckBox,                    cc.xyw(1, row, 6));
+        row += 2;
+        sysAbbBuilder.addLabel("Image:",                            cc.xy(1, row));
+        sysAbbBuilder.add(sysAbbPathEdit,                           cc.xy(3, row));
+        sysAbbBuilder.add(sysAbbBrowseButton,                       cc.xy(5, row));
+        row += 2;
+        sysAbbBuilder.addLabel("Status:",                           cc.xy(1, row));
+        sysAbbBuilder.add(sysAbbStatusLabel,                        cc.xy(3, row));
+
+        sysAbbBuilder.add(sysAbbLoadButton,                         cc.xy(5, row));
+
+        rightBuilder.add(sysAbbBuilder.getPanel(),                  cc.xy(1, mainRow));
+        mainRow += 2;
+
+
+        /* 3. Image sequence panel. */
         JTabbedPane tPane = new JTabbedPane();
-        tPane.add("Image sequence", buildImageSequencePanel());
-        tPane.add("Ronchi grating", buildRonchiGratingPanel());
-        tPane.add("Region modes", buildRegionModePanel());
+        tPane.add("Image sequence", new JScrollPane(buildImageSequencePanel()));
+        tPane.add("Ronchi grating", new JScrollPane(buildRonchiGratingPanel()));
+        tPane.add("Region modes", new JScrollPane(buildRegionModePanel()));
+
+        // Configure the tabs to scroll.
+        //tPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
         rightBuilder.add(tPane,                           cc.xy(1, mainRow));
         mainRow += 2;
 
 
-        /* 3. CCD Camera Panel. */
+        /* 4. CCD Camera Panel. */
         String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 60dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 16
         String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 11
         FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
@@ -628,7 +724,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         mainRow += 2;
 
 
-        /* 4. CCD zoom panel. */
+        /* 5. CCD zoom panel. */
         String ccdZoomColSpecs = "50dlu"; // 1
         String ccdZoomRowSpecs = "50dlu"; // 1
         FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
@@ -644,7 +740,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, mainRow));
         mainRow += 2;
 
-        /* 5. Status panel. */
+        /* 6. Status panel. */
         String statColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
         String statRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 13
         FormLayout statLayout = new FormLayout(statColSpecs, statRowSpecs);
@@ -767,6 +863,10 @@ public class Main extends JFrame implements Observer, WindowListener {
 
                 double[] dataMatrix = ImageUtils.imageToDataMatrix(image);
                 ImageUtils.addTilt(dataMatrix, isTiltX.intValue(), isTiltY.intValue());
+                if (sysAbbCorrectionisEnabled) {
+                    ImageUtils.addImages(dataMatrix, sysAbbCorrectionDataMatrix);
+                }
+
                 ImageUtils.translateThroughLUT(dataMatrix);
                 phaseImagePanel.setDataMatrix(dataMatrix);
 
@@ -1213,6 +1313,10 @@ public class Main extends JFrame implements Observer, WindowListener {
         rmSendSLMButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
+                if (sysAbbCorrectionisEnabled) {
+                    ImageUtils.addImages(dataMatrix, sysAbbCorrectionDataMatrix);
+                }
+
                 phaseImagePanel.setDataMatrix(dataMatrix);
 
                 if (Constants.USE_SLM_DEVICE) {
@@ -1357,7 +1461,8 @@ public class Main extends JFrame implements Observer, WindowListener {
 
 
     /**
-     *
+     * Generates the Region mode selection interface, depending on how
+     * many regions were selected.
      */
     private void updateModeSettings()
     {
@@ -1423,6 +1528,24 @@ public class Main extends JFrame implements Observer, WindowListener {
         }
 
         lutStatusLabel.setText(statusMsg);
+    }
+
+    /**
+     * Updates the status of the System aberration correction image panel.
+     */
+    private void updateSysAbbStatus()
+    {
+        String statusMsg = "";
+
+        if (sysAbbEnabledCheckBox.isSelected() && sysAbbImageLoaded) {
+            sysAbbCorrectionisEnabled = true;
+            statusMsg += "enabled";
+        } else {
+            sysAbbCorrectionisEnabled = false;
+            statusMsg += "disabled";
+        }
+
+        sysAbbStatusLabel.setText(statusMsg);
     }
 
     /**
