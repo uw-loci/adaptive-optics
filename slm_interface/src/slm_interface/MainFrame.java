@@ -530,10 +530,10 @@ public class MainFrame
         return leftBuilder.getPanel();
     }
 
-    private JPanel buildPanel()
+    /*private JPanel buildPanel()
     {
 
-    }
+    }*/
 
     /**
      * Builds the right panel.

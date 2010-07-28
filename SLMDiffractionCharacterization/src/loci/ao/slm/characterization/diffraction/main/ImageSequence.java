@@ -64,11 +64,11 @@ public class ImageSequence {
                 Matcher matcher = p.matcher(listOfFiles[i].getName());
                 boolean matchFound = matcher.find();
 
-                if (matchFound) {
-                    Integer mode = new Integer(matcher.group(1));
-                    Integer phaseSlice = new Integer(matcher.group(2));
-                    imageFileList.add(listOfFiles[i]);
-                }
+                //if (matchFound) {
+                //                    Integer mode = new Integer(matcher.group(1));
+                //    Integer phaseSlice = new Integer(matcher.group(2));
+                imageFileList.add(listOfFiles[i]);
+                //}
             }
         }
 

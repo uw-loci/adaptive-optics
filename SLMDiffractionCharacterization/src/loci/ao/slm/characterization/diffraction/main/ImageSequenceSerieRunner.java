@@ -116,6 +116,11 @@ public class ImageSequenceSerieRunner
 
         double[] dataMatrix = ImageUtils.imageToDataMatrix(slmImage);
         ImageUtils.addTilt(dataMatrix, tiltX, tiltY);
+        if (Main.getInstance().sysAbbCorrectionisEnabled) {
+            ImageUtils.addImages(
+                dataMatrix, Main.getInstance().sysAbbCorrectionDataMatrix);
+        }
+
         ImageUtils.translateThroughLUT(dataMatrix);
         Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
 

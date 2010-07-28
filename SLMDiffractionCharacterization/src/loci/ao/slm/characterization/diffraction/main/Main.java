@@ -173,9 +173,9 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JFileChooser sysAbbFileChooser;
     private JButton sysAbbLoadButton;
 
-    private boolean sysAbbCorrectionisEnabled;
-    private double[] sysAbbCorrectionDataMatrix;
-    private boolean sysAbbImageLoaded;
+    public boolean sysAbbCorrectionisEnabled;
+    public double[] sysAbbCorrectionDataMatrix;
+    public boolean sysAbbImageLoaded;
 
     /**
      * Specifies the number of gratings.
