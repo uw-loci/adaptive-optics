@@ -121,10 +121,17 @@ public class Main extends JFrame implements Observer, WindowListener {
 
 
     // CCD save as.
-    private JTextField saveImageEdit;
-    private JButton saveImageBrowseButton;
-    private JButton saveImageButton;
+    private JTextField saveCcdImageEdit;
+    private JButton saveCcdImageBrowseButton;
+    private JButton saveCcdImageButton;
     private JFileChooser saveImageFileChooser;
+
+    // SLM save as.
+    private JTextField saveSLMImageEdit;
+    private JButton saveSLMImageBrowseButton;
+    private JButton saveSLMImageButton;
+    private JFileChooser saveSLMImageFileChooser;
+
 
     // LUT
 
@@ -624,7 +631,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         /* 4. CCD Camera Panel. */
         String roiColSpecs = "p, 4dlu, p, 4dlu, 20dlu, 4dlu, p, 4dlu, 20dlu, 60dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu:grow"; // 16
-        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 11
+        String roiRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p"; // 13
         FormLayout roiLayout = new FormLayout(roiColSpecs, roiRowSpecs);
         PanelBuilder roiBuilder = new PanelBuilder(roiLayout);
 
@@ -657,28 +664,28 @@ public class Main extends JFrame implements Observer, WindowListener {
             }
         });
 
-        saveImageEdit = new JTextField();
-        saveImageBrowseButton = new JButton("Browse");
-        saveImageButton = new JButton("Save image");
+        saveCcdImageEdit = new JTextField();
+        saveCcdImageBrowseButton = new JButton("Browse");
+        saveCcdImageButton = new JButton("Save image");
         saveImageFileChooser = new JFileChooser();
 
         // Action handlers.
-        saveImageBrowseButton.addActionListener(new ActionListener() {
+        saveCcdImageBrowseButton.addActionListener(new ActionListener() {
             public synchronized void actionPerformed(ActionEvent e) {
                 saveImageFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int retVal = saveImageFileChooser.showOpenDialog(saveImageBrowseButton);
+                int retVal = saveImageFileChooser.showOpenDialog(saveCcdImageBrowseButton);
                 if (retVal == JFileChooser.APPROVE_OPTION) {
                     File chosenFile = saveImageFileChooser.getSelectedFile();
-                    saveImageEdit.setText(chosenFile.getPath());
+                    saveCcdImageEdit.setText(chosenFile.getPath());
                 }
             }
         });
 
-        saveImageButton.addActionListener(new ActionListener() {
+        saveCcdImageButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Save the image in the CCD panel to file.
                 BufferedImage image = ccdImagePanel.getImage();
-                File outputFile = new File(saveImageEdit.getText());
+                File outputFile = new File(saveCcdImageEdit.getText());
                 String formatName = "bmp";
 
                 try {
@@ -688,6 +695,40 @@ public class Main extends JFrame implements Observer, WindowListener {
                 }
             }
         });
+
+        //SLM.
+        saveSLMImageEdit = new JTextField();
+        saveSLMImageBrowseButton = new JButton("Browse");
+        saveSLMImageButton = new JButton("Save image");
+        saveSLMImageFileChooser = new JFileChooser();
+
+        // Action handlers.
+        saveSLMImageBrowseButton.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                saveImageFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                int retVal = saveImageFileChooser.showOpenDialog(saveSLMImageBrowseButton);
+                if (retVal == JFileChooser.APPROVE_OPTION) {
+                    File chosenFile = saveImageFileChooser.getSelectedFile();
+                    saveSLMImageEdit.setText(chosenFile.getPath());
+                }
+            }
+        });
+
+        saveSLMImageButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Save the image in the SLM panel to file.
+                BufferedImage image = phaseImagePanel.getImage();
+                File outputFile = new File(saveSLMImageEdit.getText());
+                String formatName = "bmp";
+
+                try {
+                    ImageIO.write(image, formatName, outputFile);
+                } catch (IOException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+
 
 
         // Arrange items.
@@ -715,10 +756,16 @@ public class Main extends JFrame implements Observer, WindowListener {
         roiBuilder.add(ROIApplyButton,                      cc.xyw(3, row, 7));
 
         row += 2;
-        roiBuilder.addLabel("Save as",                      cc.xy(1, row));
-        roiBuilder.add(saveImageEdit,                       cc.xyw(3, row, 8));
-        roiBuilder.add(saveImageBrowseButton,               cc.xy(15, row));
-        roiBuilder.add(saveImageButton,                     cc.xy(17, row));
+        roiBuilder.addLabel("Save CCD as",                      cc.xy(1, row));
+        roiBuilder.add(saveCcdImageEdit,                       cc.xyw(3, row, 8));
+        roiBuilder.add(saveCcdImageBrowseButton,               cc.xy(15, row));
+        roiBuilder.add(saveCcdImageButton,                     cc.xy(17, row));
+
+        row += 2;
+        roiBuilder.addLabel("Save SLM as",                      cc.xy(1, row));
+        roiBuilder.add(saveSLMImageEdit,                       cc.xyw(3, row, 8));
+        roiBuilder.add(saveSLMImageBrowseButton,               cc.xy(15, row));
+        roiBuilder.add(saveSLMImageButton,                     cc.xy(17, row));
 
         rightBuilder.add(roiBuilder.getPanel(),             cc.xy(1, mainRow));
         mainRow += 2;

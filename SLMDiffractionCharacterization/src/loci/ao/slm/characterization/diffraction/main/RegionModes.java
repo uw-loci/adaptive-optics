@@ -102,7 +102,15 @@ public class RegionModes {
                 int x = index % 512;
                 int y = index / 512;
                 int xi = x/xWidth;
+                if (x > sqrtRegions*xWidth) {
+                    xi = sqrtRegions*xWidth;
+                }
                 int yi = y/yWidth;
+                if (y > sqrtRegions*xWidth) {
+                    yi = sqrtRegions*xWidth;
+                }
+
+                
                 int region = yi*sqrtRegions + xi;
 
                 int lutXi = x/lutXWidth;
