@@ -154,14 +154,16 @@ public class ImageSequenceSerieRunner
         File slmImage =
                 ImageSequence.getInstance().getImageFileByIndex(currentImageIndex);
 
-        //
+        String nameWithoutExtension =
+                ImageUtils.getFileNameWithoutExtension(slmImage.getName());
         String prefix = "out_";
-        String outFilePath = outputFolder + "\\" + prefix + slmImage.getName();
+        String outFilePath = 
+                outputFolder + "\\" + prefix + nameWithoutExtension + ".png" ;
 
 
         BufferedImage image = Main.getInstance().getCameraImagePanel().getImage();
         File outputFile = new File(outFilePath);
-        String formatName = "bmp";
+        String formatName = "png";
 
         if (image != null) {
             try {

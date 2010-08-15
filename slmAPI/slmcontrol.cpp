@@ -108,35 +108,32 @@ void SlmCom::readlut(unsigned char *LUT, CString lutfilename)
 
 
 void SlmCom::receiveData(unsigned char *Data)
-{
-
+{  
 	ImageData = (unsigned char *) malloc(ImgWidth*ImgHeight);
 
 	for(int i = 0; i< ImgWidth*ImgHeight; i++)
-	{
-	      /*     
-      	ImageData[i] = LUTBuf[(Data[i])%256];
-            */
-            ImageData[i] = Data[i];
+	{    
+    // ImageData[i] = LUTBuf[(Data[i])%256];
+    ImageData[i] = Data[i];
 	}
 
-    return;
+  return;
 }
 
 bool SlmCom::SendtoDlm(bool FrameNumchange)
 {
-	if (!theBoard->WriteFrameBuffer(FrameNum, ImageData))
-	{
-	    free(ImageData);
-		return false;
-	}
+  if (!theBoard->WriteFrameBuffer(FrameNum, ImageData))
+  {
+    free(ImageData);
+    return false;
+  }
 
 
 #ifdef DEBUG_OUTPUT
-    int tp, tp2;
-    FILE *pfold;
-	pfold = fopen("c:/slmcontrol/dumpout/JAVA_output.txt","wt");
-    for (tp = 0; tp < 512; tp ++)
+  int tp, tp2;
+  FILE *pfold;
+  pfold = fopen("c:/slmcontrol/dumpout/JAVA_output.txt","wt");
+  for (tp = 0; tp < 512; tp ++)
 	{
 		fprintf(pfold, "\n");
 		for (tp2 = 0; tp2 < 512; tp2++)
@@ -146,14 +143,15 @@ bool SlmCom::SendtoDlm(bool FrameNumchange)
 #endif
 
 
-    if (FrameNumchange == true)
+  if (FrameNumchange == true)
 	{
 	    FrameNum ++;
 	}
+
 	free(ImageData);
 	theBoard->SelectImage(FrameNum);
 
-    return true;
+  return true;
 }
 
 void SlmCom::CloseSlm()
@@ -177,14 +175,14 @@ void SlmCom::OpenSlm()
 
 void SlmCom::GetFramNum(int *frnum)
 {
-   *frnum = FrameNum;
-   return;
+  *frnum = FrameNum;
+  return;
 }
 
 
 void SlmCom::GetWH(int *Wid, int *Height)
 {
-    *Wid = ImgWidth;
+  *Wid = ImgWidth;
 	*Height = ImgHeight;
 	return;
 }

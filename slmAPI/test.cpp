@@ -349,8 +349,8 @@ bool ReadAndInvertBitmap(unsigned char *InvertedImage, CString fileName)
 
 slmAPI::slmAPI()
 {
-	phasedata = (unsigned char *) malloc(SLMSIZE*SLMSIZE*sizeof(char));
-	imagedata = (double *) malloc(SLMSIZE*SLMSIZE*sizeof(double));   
+	
+	//imagedata = (double *) malloc(SLMSIZE*SLMSIZE*sizeof(double));   
 	fftcl = new fft2dTrans;
 	slm = new SlmCom;
 	slm->InitSlm();
@@ -415,9 +415,11 @@ void slmAPI::sendData(double *Data)
 	slm->receiveData(phasedata);
 */
 
+  phasedata = (unsigned char *) malloc(SLMSIZE*SLMSIZE*sizeof(char));
 	DtoI(Data, SLMSIZE*SLMSIZE);
-
 	slm->receiveData(phasedata);
+  free(phasedata);
+
 	slm->SendtoDlm(framechange);
 	return;
 }

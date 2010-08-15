@@ -13,7 +13,7 @@ class slmAPI
 {
 private:
 	unsigned char *phasedata;
-	double *imagedata;
+	//double *imagedata;
 	fft2dTrans *fftcl;
 	SlmCom *slm;
 public:

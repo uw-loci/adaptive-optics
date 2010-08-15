@@ -163,12 +163,14 @@ public class RegionModeSerieRunner
     {
         String prefix = "out_";
         String outFilePath = outputFolder + "\\";
-        outFilePath += prefix + "R" + regionCurrentVar + "_" + iteration + ".bmp" ;
+        outFilePath += prefix + "R" + regionCurrentVar + "_" + iteration + ".png" ;
         System.out.println("output: " + outFilePath);
 
-        BufferedImage image = Main.getInstance().getCameraImagePanel().getImage();
+        BufferedImage image = Main.getInstance().getCameraImagePanel().getROIImage();
+                //Main.getInstance().getCameraImagePanel().getImage();
+
         File outputFile = new File(outFilePath);
-        String formatName = "bmp";
+        String formatName = "png";
 
         if (image != null) {
             try {
@@ -198,6 +200,14 @@ public class RegionModeSerieRunner
 
         Thread thisThread = Thread.currentThread();
 
+        long timer1=0;
+        long timer2=0;
+        long timer3=0;
+        long timer4=0;
+        long timer5=0;
+        long beforeTime=0;
+        long afterTime=0;
+        int iterations = 0;
         
         for (regionCurrentVar = regionFromVar; (regionCurrentVar <= regionToVar) && (thread == thisThread); regionCurrentVar+=regionStepSize) {
             // Set the region of the mode.
@@ -208,33 +218,58 @@ public class RegionModeSerieRunner
             
             
             for (biasCurrentVar = biasFromVar; (biasCurrentVar <= biasToVar) && (thread == thisThread); biasCurrentVar+=biasStepSize) {
-                System.out.println("Iteration running");
+                //System.out.println("Iteration running");
+                beforeTime = System.currentTimeMillis();
                 upgradeParams();
+                afterTime = System.currentTimeMillis();
+                timer1 += afterTime - beforeTime;
 
+                beforeTime = System.currentTimeMillis();
                 nextSLMImage();
 
                 // This is to make sure that the image has been displayed
                 // appropriately and keep the GUI responsive.
+                /*
                 try {
-                    Thread.sleep(500); //100 seems to work.
+                    //Thread.sleep(500); //100 seems to work.
+                    Thread.sleep(100);
                 } catch (InterruptedException ex) {
-                }
+                }*/
+                afterTime = System.currentTimeMillis();
+                timer2 += afterTime - beforeTime;
 
                 // Run the camera.
+                beforeTime = System.currentTimeMillis();
                 upgradeCamera();
+                afterTime = System.currentTimeMillis();
+                timer3 += afterTime - beforeTime;
 
                 // Record results.
+                beforeTime = System.currentTimeMillis();
                 recordImage();
+                afterTime = System.currentTimeMillis();
+                timer4 += afterTime - beforeTime;
 
                 // Update the status.
+                beforeTime = System.currentTimeMillis();
                 updateStatus();
+                afterTime = System.currentTimeMillis();
+                timer5 += afterTime - beforeTime;
 
                 iteration++;
+                iterations++;
             }
+
 
             if (Constants.DEBUG) {
                 System.out.println("Serial Thread exiting loop.");
             }
         }
+        System.out.println("timer1 (upgradeParams): " + timer1/1000 + " sec");
+        System.out.println("timer2 (nextSLM+100ms): " + timer2/1000 + " sec");
+        System.out.println("timer3 (upgradeCamera): " + timer3/1000 + " sec");
+        System.out.println("timer4 (recordImage): " + timer4/1000 + " sec");
+        System.out.println("timer5 (updateStatus): " + timer5/1000 + " sec");
+        System.out.println("Total iterations: " + iterations);
     }
 }

@@ -80,7 +80,6 @@ public class RegionModes {
 
         for (int i = 0; i < countModes(); i++) {
             RegionMode mode = modes.get(i);
-
         }
         
         int sqrtRegions = (int)Math.sqrt(1.0*numberOfRegions);
@@ -102,16 +101,18 @@ public class RegionModes {
                 int x = index % 512;
                 int y = index / 512;
                 int xi = x/xWidth;
-                if (x > sqrtRegions*xWidth) {
-                    xi = sqrtRegions*xWidth;
-                }
                 int yi = y/yWidth;
-                if (y > sqrtRegions*xWidth) {
-                    yi = sqrtRegions*xWidth;
-                }
-
                 
                 int region = yi*sqrtRegions + xi;
+                if (x >= sqrtRegions*xWidth && y >= sqrtRegions*yWidth) {
+                    xi = sqrtRegions*xWidth;
+                    region = sqrtRegions*sqrtRegions - 1;
+                } else if (x >= sqrtRegions*xWidth) {
+                    region = yi*sqrtRegions + sqrtRegions - 1;
+                } else if (y >= sqrtRegions*yWidth) {
+                    region = (sqrtRegions-1)*sqrtRegions + xi;
+                }
+                
 
                 int lutXi = x/lutXWidth;
                 int lutYi = y/lutYWidth;
@@ -138,7 +139,7 @@ public class RegionModes {
                     val %= 256;
                 }
                 val = LookupTable.getInstance().lookup(val, lutRegion);
-                
+
                 dataMatrix[index] = val;
             }
         }
