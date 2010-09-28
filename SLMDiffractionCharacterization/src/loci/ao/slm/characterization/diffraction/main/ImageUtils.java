@@ -26,7 +26,8 @@ public class ImageUtils {
                 int xr = xm - xWidth/2;
                 int yr = ym - yWidth/2;
 
-                dataMatrix[index] += tiltX * xr + tiltY * yr;
+                //dataMatrix[index] += tiltX * xr + tiltY * yr;
+                dataMatrix[index] += tiltX * xm + tiltY * ym;
             }
         }
     }

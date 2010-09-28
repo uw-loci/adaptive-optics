@@ -130,7 +130,8 @@ public class RegionModes {
                 int val = 0;
                 if (mode != null) {
                     //System.out.println("Region " + region + " bias: " + mode.getBias());
-                    val = (int) mode.getPhaseValue(xr,yr);
+                    //val = (int) mode.getPhaseValue(xr,yr);
+                    val = (int) mode.getPhaseValue(x,y);
 
                     if (val < 0) {
                         while (val < 0)
