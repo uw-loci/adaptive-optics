@@ -139,7 +139,8 @@ public class RegionModes {
                     }
                     val %= 256;
                 }
-                val = LookupTable.getInstance().lookup(val, lutRegion);
+                //val = LookupTable.getInstance().lookup(val, lutRegion);
+                //xXX 10/21/2010 : NEW
 
                 dataMatrix[index] = val;
             }

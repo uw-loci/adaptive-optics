@@ -1366,6 +1366,8 @@ public class Main extends JFrame implements Observer, WindowListener {
 
                 phaseImagePanel.setDataMatrix(dataMatrix);
 
+                ImageUtils.translateThroughLUT(dataMatrix);
+
                 if (Constants.USE_SLM_DEVICE) {
                     System.out.println("Sending to SLM device");
                     com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);

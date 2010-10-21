@@ -44,8 +44,15 @@ public class slmAPI {
     private synchronized native void sendData(double[] arr1, char flag1);
 
     public synchronized static void slmjava(double[] arr, char flag) {
+        if (Constants.DEBUG) {
+            System.out.println("SLM: About to send data");
+        }
         slmAPI.getInstance().sendData(arr, flag);
         arr = null; //release for gc. (not sure if needed)
+        if (Constants.DEBUG) {
+            System.out.println("SLM: Finished to send data");
+        }
+
     }
     /*
     static {
