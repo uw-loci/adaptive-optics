@@ -23,10 +23,10 @@ public class ImageUtils {
 
                 int index = ym * xWidth + xm;
 
-                int xr = xm - xWidth/2;
-                int yr = ym - yWidth/2;
-
+                //int xr = xm - xWidth/2;
+                //int yr = ym - yWidth/2;
                 //dataMatrix[index] += tiltX * xr + tiltY * yr;
+                
                 dataMatrix[index] += tiltX * xm + tiltY * ym;
             }
         }

@@ -90,57 +90,34 @@ public class RegionModes {
         if (sqrtLutRegions == 0) {
             sqrtLutRegions = 1;
         }
-        int lutXWidth = 512 / sqrtLutRegions;
-        int lutYWidth = 512 / sqrtLutRegions;
+        //int lutXWidth = 512 / sqrtLutRegions;
+        //int lutYWidth = 512 / sqrtLutRegions;
 
 
         for (int xm = 0; xm < 512; xm++) {
             for (int ym = 0; ym < 512; ym++) {
                 int index = ym * 512 + xm;
 
-                int x = index % 512;
-                int y = index / 512;
-                int xi = x/xWidth;
-                int yi = y/yWidth;
-                
+                //int x = index % 512;
+                //int y = index / 512;
+                int xi = xm/xWidth;
+                int yi = ym/yWidth;
                 int region = yi*sqrtRegions + xi;
-                if (x >= sqrtRegions*xWidth && y >= sqrtRegions*yWidth) {
+                if (xm >= sqrtRegions*xWidth && ym >= sqrtRegions*yWidth) {
                     xi = sqrtRegions*xWidth;
                     region = sqrtRegions*sqrtRegions - 1;
-                } else if (x >= sqrtRegions*xWidth) {
+                } else if (xm >= sqrtRegions*xWidth) {
                     region = yi*sqrtRegions + sqrtRegions - 1;
-                } else if (y >= sqrtRegions*yWidth) {
+                } else if (ym >= sqrtRegions*yWidth) {
                     region = (sqrtRegions-1)*sqrtRegions + xi;
                 }
                 
-
-                int lutXi = x/lutXWidth;
-                int lutYi = y/lutYWidth;
-                int lutRegion = lutXi*sqrtLutRegions + lutYi;
-
-
-                // Coordinates of the region are w.r.t. to region center.
-                int xregCenter = (int) ((xi + 0.5) * xWidth);
-                int yregCenter = (int) ((yi + 0.5) * yWidth);
-                int xr = x - xregCenter;
-                int yr = y - yregCenter;
-
                 RegionMode mode = getModeByRegion(region);
                 
                 int val = 0;
                 if (mode != null) {
-                    //System.out.println("Region " + region + " bias: " + mode.getBias());
-                    //val = (int) mode.getPhaseValue(xr,yr);
-                    val = (int) mode.getPhaseValue(x,y);
-
-                    if (val < 0) {
-                        while (val < 0)
-                            val += 256;
-                    }
-                    val %= 256;
+                    val = (int) mode.getPhaseValue(xm,ym);
                 }
-                //val = LookupTable.getInstance().lookup(val, lutRegion);
-                //xXX 10/21/2010 : NEW
 
                 dataMatrix[index] = val;
             }

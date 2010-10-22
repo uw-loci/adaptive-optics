@@ -135,6 +135,12 @@ public class RegionModeSerieRunner
 
 
         double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
+        
+        if (Main.getInstance().sysAbbCorrectionisEnabled) {
+            ImageUtils.addImages(
+                dataMatrix, Main.getInstance().sysAbbCorrectionDataMatrix);
+        }
+
         Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
 
         if (Constants.USE_SLM_DEVICE) {
