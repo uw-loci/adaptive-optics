@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\CMU\1394Camera\include&quot;;&quot;C:\Program Files (x86)\Java\jdk1.6.0_18\include\win32&quot;;&quot;C:\Program Files (x86)\Java\jdk1.6.0_18\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\CMU\1394Camera\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_21\include\win32&quot;;&quot;C:\Program Files\Java\jdk1.6.0_21\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CCDCAMWRAPPER_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

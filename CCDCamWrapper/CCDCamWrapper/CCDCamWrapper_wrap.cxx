@@ -260,16 +260,16 @@ SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_capture_
 }
 
 
-SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_get_1frame_1at_1pos(JNIEnv *jenv, jclass jcls, jint jarg1) {
-  jint jresult = 0 ;
+SWIGEXPORT jshort JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_get_1frame_1at_1pos(JNIEnv *jenv, jclass jcls, jint jarg1) {
+  jshort jresult = 0 ;
   int arg1 ;
-  int result;
+  unsigned char result;
   
   (void)jenv;
   (void)jcls;
   arg1 = (int)jarg1; 
-  result = (int)get_frame_at_pos(arg1);
-  jresult = (jint)result; 
+  result = (unsigned char)get_frame_at_pos(arg1);
+  jresult = (jshort)result; 
   return jresult;
 }
 

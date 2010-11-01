@@ -102,7 +102,7 @@ int capture_frame()
 	return buffer_length;
 }
 
-unsigned int get_frame_at_pos(int index)
+unsigned char get_frame_at_pos(int index)
 {
 	int ch = frame_buffer[index];
 	if (index < 0) {
