@@ -44,6 +44,24 @@ public class ImageUtils {
         }
     }
 
+    public static void wrapImage(double[] dataMatrix) {
+        int xWidth = 512;
+        int yWidth = 512;
+        for (int xm = 0; xm < xWidth; xm++) {
+            for (int ym = 0; ym < yWidth; ym++) {
+
+                int index = ym * xWidth + xm;
+                double val = dataMatrix[index];
+                if (val < 0) {
+                    while (val < 0) val += 256;
+                }
+                val %= 256;
+                dataMatrix[index] = val;
+            }
+        }
+    }
+
+
 
     public static double[] imageToDataMatrix(BufferedImage image) {
         double[] dataMatrix = new double[image.getWidth()*image.getHeight()];
@@ -82,6 +100,9 @@ public class ImageUtils {
     }
 
     public static void translateThroughLUT(double[] dataMatrix) {
+        if (LookupTable.getInstance().isEnabled() == false)
+            return;
+        
         int slmWidth = 512;
         int slmHeight =  512;
 
@@ -93,16 +114,17 @@ public class ImageUtils {
         int xWidth = slmWidth / sqrtRegions;
         int yWidth =  slmHeight / sqrtRegions;
 
-
+        LookupTable lutInstance = LookupTable.getInstance();
+        
         for (int row = 0; row < slmHeight; row++) {
             for (int col = 0; col < slmWidth; col++) {
                 int index = row * slmWidth + col;
 
-                int x = index % slmWidth;
-                int y = index / slmHeight;
+                //int x = index % slmWidth;
+                //int y = index / slmHeight;
 
-                int xi = x/xWidth;
-                int yi = y/yWidth;
+                int xi = col/xWidth;
+                int yi = row/yWidth;
                 int region = yi*sqrtRegions + xi;
 
                 int val = (int)dataMatrix[index];
@@ -111,7 +133,9 @@ public class ImageUtils {
                 }
                 val %= 256;
 
-                dataMatrix[index] = LookupTable.getInstance().lookup(val, region);
+                dataMatrix[index] = lutInstance.lutData[region][val];
+                // Speeded up by direct access to lut table.
+                //LookupTable.getInstance().lookup(val, region);
             }
         }
     }

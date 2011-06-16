@@ -184,13 +184,22 @@ public class GratingSerieRunner
 
         if (Constants.USE_SLM_DEVICE) {
             double[] dataMatrix = calibImagePanel.getDataMatrix();
+
+           if (Main.getInstance().sysAbbCorrectionisEnabled) {
+                double[] corrMatrix = Main.getInstance().sysAbbCorrectionDataMatrix.clone();
+                ImageUtils.translateThroughLUT(corrMatrix);
+
+                ImageUtils.addImages(dataMatrix, corrMatrix);
+                ImageUtils.wrapImage(dataMatrix);
+            }
+
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
         }
     }
 
     public synchronized void upgradeCamera()
     {
-        Main.getInstance().runCamera();
+        Main.getInstance().runCamera(true);
         Main.getInstance().updateStatus();
     }
 

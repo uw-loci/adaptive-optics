@@ -6,6 +6,7 @@
     <property file="build.properties" />
     
     <import file="nbproject/build-impl.xml"/>
+    <import file="nbproject/profiler-build-impl.xml"/>
 
     <!-- Customized pre-compile command. -->
     <target name="-pre-compile">

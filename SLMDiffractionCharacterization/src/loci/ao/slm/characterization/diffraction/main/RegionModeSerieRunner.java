@@ -45,6 +45,11 @@ public class RegionModeSerieRunner
     private String outputFolder;
 
     /**
+     * Will the screen be updated while the regions are scanned?
+     */
+    private boolean updateScreen;
+
+    /**
      * Bias Variable: The range to scan over.
      */
     private double biasFromVar;
@@ -60,8 +65,24 @@ public class RegionModeSerieRunner
     private int regionStepSize;
     private int regionCurrentVar;
 
+    private int regionNextIterVar;
+    private double biasNextIterVar;
+
     private int modeIndex;
-    private int iteration;
+    private int iteration; // iterations within one region
+    private int iterations; // total iterations
+    private int slmFrame;
+
+    private int printint = 0;
+
+    private RegionMode scanMode;
+
+    private boolean preloadMode;
+    private boolean isPreloaded;
+
+    public enum RunModes {RUN_MODE, PRELOAD_MODE };
+    private RunModes runMode;
+
 
     /**
      * Constructor.
@@ -106,7 +127,8 @@ public class RegionModeSerieRunner
     public void setParams(
             int modeIndex, String outputFolder,
             double biasFromVar, double biasToVar, double biasStepSize,
-            int regionFromVar, int regionToVar, int regionStepSize) {
+            int regionFromVar, int regionToVar, int regionStepSize,
+            boolean updateScreen) {
         this.modeIndex = modeIndex;
         this.outputFolder = outputFolder;
         this.biasFromVar = biasFromVar;
@@ -115,6 +137,7 @@ public class RegionModeSerieRunner
         this.regionFromVar = regionFromVar;
         this.regionToVar = regionToVar;
         this.regionStepSize = regionStepSize;
+        this.updateScreen = updateScreen;
     }
 
     /**
@@ -130,24 +153,107 @@ public class RegionModeSerieRunner
      */
     public synchronized void nextSLMImage()
     {
-        RegionMode mode = RegionModes.getInstance().getModeByIndex(modeIndex);
-        mode.setBias(biasCurrentVar);
+        //RegionMode mode = RegionModes.getInstance().getModeByIndex(modeIndex);
+        if (iterations == 0) {
+            System.out.println("Loading and displaying first region mode");
+            slmFrame=0;
 
+            if (!isPreloaded) {
+                // the first one, load and display.
+                scanMode.setRegion(regionCurrentVar);
+                scanMode.setBias(biasCurrentVar);
+                double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
+                if (Main.getInstance().sysAbbCorrectionisEnabled) {
+                    ImageUtils.addImages(
+                        dataMatrix, Main.getInstance().sysAbbCorrectionDataMatrix);
+                }
 
-        double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
-        if (Main.getInstance().sysAbbCorrectionisEnabled) {
-            ImageUtils.addImages(
-                dataMatrix, Main.getInstance().sysAbbCorrectionDataMatrix);
+                Main.getInstance().getPhaseImagePanel().setEnableScreenUpdates(updateScreen);
+                if (updateScreen) {
+                    Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
+                }
+
+                ImageUtils.translateThroughLUT(dataMatrix);
+                if (Constants.USE_SLM_DEVICE) {
+                    //System.out.println("Writing and loading display frame " + slmFrame);
+                    com.slmcontrol.slmAPI.writeDataFrame(dataMatrix, slmFrame);
+                    com.slmcontrol.slmAPI.selectDisplayFrame(slmFrame);
+                    //slmFrame = (slmFrame == 1) ? 0 : 1;
+                    slmFrame++;
+                }
+            } else {
+                // Already pre-loaded.
+                com.slmcontrol.slmAPI.selectDisplayFrame(slmFrame);
+            }
+        } else {
+            // Not the first, one.  Select the next frame use time in between to write
+            // next frame.
+            if (!preloadMode) {
+                //System.out.println("SElecting display frame " + slmFrame);
+                com.slmcontrol.slmAPI.selectDisplayFrame(slmFrame);
+            }
+
+            slmFrame++;
+            if (slmFrame > 63) {
+                slmFrame = 0;
+            }
         }
 
-        Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
-        ImageUtils.translateThroughLUT(dataMatrix);
-
-        if (Constants.USE_SLM_DEVICE) {
-            if (Constants.DEBUG) {
-                System.out.println("Sending to SLM device");
+        long durStart = System.currentTimeMillis();
+        if (!isPreloaded) {            
+            //LOAD NEXT REGION
+            scanMode.setRegion(regionNextIterVar);
+            scanMode.setBias(biasNextIterVar);
+            double[] dataMatrix = RegionModes.getInstance().generateDataMatrix();
+            if (Main.getInstance().sysAbbCorrectionisEnabled) {
+                ImageUtils.addImages(
+                    dataMatrix, Main.getInstance().sysAbbCorrectionDataMatrix);
             }
-            com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
+
+            Main.getInstance().getPhaseImagePanel().setEnableScreenUpdates(updateScreen);
+            if (updateScreen) {
+                Main.getInstance().getPhaseImagePanel().setDataMatrix(dataMatrix);
+            }
+            ImageUtils.translateThroughLUT(dataMatrix);
+
+            if (Constants.USE_SLM_DEVICE) {
+                if (Constants.DEBUG) {
+                    System.out.println("Sending to SLM device");
+                }
+
+                //System.out.println("Writing to frame " + slmFrame);
+                com.slmcontrol.slmAPI.writeDataFrame(dataMatrix, slmFrame);
+            }
+        }
+        
+        if (!preloadMode) {
+            long durEnd = System.currentTimeMillis();
+            long duration = durEnd-durStart;
+
+            try {
+                /*
+                 * Delay due to response time of SLM.
+                 *
+                 * OLD SLM:
+                 * We found that 50ms seemed to work for 100 regions.
+                 * However, 20ms did not work and the images were unclear.
+                 * 45ms seems to work, e.g. when switching between mode 200
+                 * and 0 in 900region runs.
+                 * Thus, using 50ms.
+                 *
+                 * NEW SLM:
+                 * Works with 15.  Actually runs at 30ms instead because of time
+                 * it takes to write the data to the buffer.
+                 *
+                 * Duration is the time it took to write the next frame
+                 * to the slm.
+                 */
+                //System.out.println("Dur: " + duration);
+                if (duration < 18) {
+                    Thread.sleep(18-duration);
+                }
+            } catch (InterruptedException ex) {
+            }
         }
     }
 
@@ -156,8 +262,10 @@ public class RegionModeSerieRunner
      */
     public synchronized void upgradeCamera()
     {
-        Main.getInstance().runCamera();
-        Main.getInstance().updateStatus();
+        Main.getInstance().runCamera(updateScreen);
+        if (updateScreen) {
+            Main.getInstance().updateStatus();
+        }
     }
 
     /**
@@ -170,13 +278,15 @@ public class RegionModeSerieRunner
         String prefix = "out_";
         String outFilePath = outputFolder + "\\";
         outFilePath += prefix + "R" + regionCurrentVar + "_" + iteration + ".png" ;
-        System.out.println("output: " + outFilePath);
 
-        BufferedImage image = Main.getInstance().getCameraImagePanel().getROIImage();
-                //Main.getInstance().getCameraImagePanel().getImage();
+        if (Constants.DEBUG) {
+            System.out.println("output: " + outFilePath);
+        }
 
+        BufferedImage image = Main.getInstance().getCameraImagePanel().getImage();
         File outputFile = new File(outFilePath);
         String formatName = "png";
+
 
         if (image != null) {
             try {
@@ -192,17 +302,44 @@ public class RegionModeSerieRunner
      */
     private synchronized void updateStatus()
     {
-        Main.getInstance().updateStatus();
+        if (updateScreen) {
+            Main.getInstance().updateStatus();
+        }
+    }
+    
+    public synchronized void setRunMode(RunModes mode) {
+        runMode = mode;
+    }
+
+     /* Main method of thread.    */
+    public synchronized void run() {
+        Thread thisThread = Thread.currentThread();
+        if (thread != thisThread) {
+            return;
+        }
+
+        if (runMode == RunModes.PRELOAD_MODE) {
+            System.out.println("Run mode: PRELOAD");
+            preloadSeries();
+        } else if (runMode == RunModes.RUN_MODE) {
+            System.out.println("Run mode: RUN");
+            runSeries();
+        }
     }
 
     /**
-     * Main method of thread.
+     * Runs the aberration correction.
      */
-    public synchronized void run() {
+    public synchronized void runSeries() {
+        
+        preloadMode = false;
+        if (isPreloaded) {
+            System.out.println("Using preloaded series.");
+        }
+
         if (Constants.DEBUG) {
             System.out.println("Serial Thread running");
         }
-        System.out.println("Serial Thread running");
 
         Thread thisThread = Thread.currentThread();
 
@@ -213,18 +350,31 @@ public class RegionModeSerieRunner
         long timer5=0;
         long beforeTime=0;
         long afterTime=0;
-        int iterations = 0;
+        iterations = 0;
+        slmFrame=0;
+        printint=0;
         
+        long absStartTime = System.currentTimeMillis();
+
+        scanMode = RegionModes.getInstance().getModeByIndex(modeIndex);
         for (regionCurrentVar = regionFromVar; (regionCurrentVar <= regionToVar) && (thread == thisThread); regionCurrentVar+=regionStepSize) {
-            // Set the region of the mode.
-            RegionMode mode = RegionModes.getInstance().getModeByIndex(modeIndex);
-            mode.setRegion(regionCurrentVar);
             iteration = 0;
-            System.out.println("Region: " + regionCurrentVar);
             
+            // Set the region of the (scan) mode.
+            scanMode.setRegion(regionCurrentVar);
+            if ((regionCurrentVar % 100) == 0) {
+                System.out.println("Region: " + regionCurrentVar);
+            }
             
+            regionNextIterVar = regionCurrentVar;
             for (biasCurrentVar = biasFromVar; (biasCurrentVar <= biasToVar) && (thread == thisThread); biasCurrentVar+=biasStepSize) {
-                //System.out.println("Iteration running");
+                if ((biasCurrentVar + biasStepSize) > biasToVar) {
+                    regionNextIterVar = regionCurrentVar + regionStepSize;
+                    biasNextIterVar = biasFromVar;
+                } else {
+                    biasNextIterVar = biasCurrentVar+biasStepSize;
+                }
+
                 beforeTime = System.currentTimeMillis();
                 upgradeParams();
                 afterTime = System.currentTimeMillis();
@@ -232,15 +382,6 @@ public class RegionModeSerieRunner
 
                 beforeTime = System.currentTimeMillis();
                 nextSLMImage();
-
-                // This is to make sure that the image has been displayed
-                // appropriately and keep the GUI responsive.
-                /*
-                try {
-                    //Thread.sleep(500); //100 seems to work.
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                }*/
                 afterTime = System.currentTimeMillis();
                 timer2 += afterTime - beforeTime;
 
@@ -265,17 +406,99 @@ public class RegionModeSerieRunner
                 iteration++;
                 iterations++;
             }
+        }
+
+        if (thread == thisThread) {
+            long absEndTime = System.currentTimeMillis();
+            long absTime=absEndTime-absStartTime;
+
+            System.out.println("timer1 (upgradeParams): " + timer1/1000 + " sec");
+            System.out.println("timer2 (nextSLM): " + timer2/1000 + " sec");
+            System.out.println("timer3 (upgradeCamera): " + timer3/1000 + " sec");
+            System.out.println("timer4 (recordImage): " + timer4/1000 + " sec");
+            System.out.println("timer5 (updateStatus): " + timer5/1000 + " sec");
+            System.out.println("Total time: " + absTime/1000 + " sec");
+            System.out.println("Total iterations: " + iterations);
+            System.out.println("Total time per iteration: " + (1.0*absTime/iterations) + " msec");
+        }
+    }
+
+    public boolean isPreloadable() {
+        int frameCount = (int)(1.0*(regionToVar - regionFromVar + 1)/regionStepSize*(biasToVar - biasFromVar)/biasStepSize);
+        if (frameCount > 63)
+            return false;
+        return true;
+    }
 
 
-            if (Constants.DEBUG) {
-                System.out.println("Serial Thread exiting loop.");
+
+    public synchronized void preloadSeries() {
+        preloadMode = true;
+        isPreloaded = false;
+        System.out.println("Preload Series running.");
+        if (Constants.DEBUG) {
+            System.out.println("Serial Thread running");
+        }
+
+        Thread thisThread = Thread.currentThread();
+
+        long timer1=0;
+        long timer2=0;
+        long beforeTime=0;
+        long afterTime=0;
+        iterations = 0;
+        slmFrame=0;
+        printint=0;
+
+
+        long absStartTime = System.currentTimeMillis();
+
+        scanMode = RegionModes.getInstance().getModeByIndex(modeIndex);
+        for (regionCurrentVar = regionFromVar; (regionCurrentVar <= regionToVar) && (thread == thisThread); regionCurrentVar+=regionStepSize) {
+            iteration = 0;
+
+            // Set the region of the (scan) mode.
+            scanMode.setRegion(regionCurrentVar);
+            if ((regionCurrentVar % 100) == 0) {
+                System.out.println("Region: " + regionCurrentVar);
+            }
+
+            regionNextIterVar = regionCurrentVar;
+            for (biasCurrentVar = biasFromVar; (biasCurrentVar <= biasToVar) && (thread == thisThread); biasCurrentVar+=biasStepSize) {
+                if ((biasCurrentVar + biasStepSize) > biasToVar) {
+                    regionNextIterVar = regionCurrentVar + regionStepSize;
+                    biasNextIterVar = biasFromVar;
+                } else {
+                    biasNextIterVar = biasCurrentVar+biasStepSize;
+                }
+
+                beforeTime = System.currentTimeMillis();
+                upgradeParams();
+                afterTime = System.currentTimeMillis();
+                timer1 += afterTime - beforeTime;
+
+                beforeTime = System.currentTimeMillis();
+                nextSLMImage();
+                afterTime = System.currentTimeMillis();
+                timer2 += afterTime - beforeTime;
+
+                iteration++;
+                iterations++;
             }
         }
-        System.out.println("timer1 (upgradeParams): " + timer1/1000 + " sec");
-        System.out.println("timer2 (nextSLM+100ms): " + timer2/1000 + " sec");
-        System.out.println("timer3 (upgradeCamera): " + timer3/1000 + " sec");
-        System.out.println("timer4 (recordImage): " + timer4/1000 + " sec");
-        System.out.println("timer5 (updateStatus): " + timer5/1000 + " sec");
-        System.out.println("Total iterations: " + iterations);
+
+        long absEndTime = System.currentTimeMillis();
+        long absTime=absEndTime-absStartTime;
+
+        if (thread == thisThread) {
+            System.out.println("timer1 (upgradeParams): " + timer1/1000 + " sec");
+            System.out.println("timer2 (nextSLM): " + timer2/1000 + " sec");
+            System.out.println("Total time: " + absTime/1000 + " sec");
+            System.out.println("Total iterations: " + iterations);
+            System.out.println("Total time per iteration (preload): " + (1.0*absTime/iterations) + " msec");
+            isPreloaded = true;
+            Main.getInstance().updatePreloadStatus(true);
+        }
     }
+
 }

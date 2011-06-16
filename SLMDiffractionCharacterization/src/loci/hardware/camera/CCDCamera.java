@@ -21,6 +21,11 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import loci.hardware.camera.swig.CCDCamWrapper;
 
 /**
@@ -33,24 +38,61 @@ import loci.hardware.camera.swig.CCDCamWrapper;
  */
 public class CCDCamera {
     private static final String dllPath = "C:\\gunnsteinn\\AdaptiveOptics\\SWIG\\CCDCamWrapper.dll";
-    private int[] frame;
+    //private int[] frame;
     private int width = 1024;
     private int height = 768;
+    private int origWidth, origHeight;
     private BufferedImage img;
-
+    private boolean isInitialized;
+    public final int MAX_WIDTH=1024;
+    public final int MAX_HEIGHT=768;
 
     public CCDCamera() {
         // Load the SWIG C++ bindings DLL.
         System.load(dllPath);
-        frame = new int[width*height];
+        //frame = new int[width*height];
+        isInitialized=false;
+
+        origWidth=width;
+        origHeight=height;
     }
 
+    public void shutdown()
+    {
+        CCDCamWrapper.shutdown();
+    }
+
+    public void setRoi(int roiX, int roiY, int roiWidth, int roiHeight)
+    {
+        this.width=roiWidth;
+        this.height=roiHeight;
+
+        int retVal = CCDCamWrapper.set_roi(roiX, roiY, roiWidth, roiHeight);
+
+        System.out.println("Set roi x: " + roiX + " y: " + roiY + " width: " + roiWidth + " height: " + roiHeight);
+        System.out.println("set_roi return value: " + retVal);
+        if (retVal == -1) {
+            System.out.println("Set ROI failed.");
+            System.out.println("Note: " + getNote());
+        }
+        //frame = new int[width*height];
+    }
+    public void resetRoi()
+    {
+        setRoi(0, 0, origWidth, origHeight);
+    }
+    
     public synchronized int testMe() {
         return CCDCamWrapper.test_me();
     }
 
     public synchronized boolean initialize() {
+        isInitialized=true;
         return CCDCamWrapper.init_camera();
+    }
+    public boolean isInitialized()
+    {
+        return isInitialized;
     }
 
     public synchronized String getNote() {
@@ -98,46 +140,28 @@ public class CCDCamera {
         int retVal = 0;
         for (int j = 0; j < averages; j++) {
             retVal = CCDCamWrapper.capture_frame();
+
             if (retVal != (width * height)) {
-                System.out.println("IMAGE COLLECTION ERROR");
+                String errMsg = getNote();
+                System.out.println("IMAGE COLLECTION ERROR: " + errMsg);
+                System.out.println("Return val: " + retVal);
+                System.out.println("Width x Height: " + (width*height));
                 waitAndTryAgain();
             }
 
-            for (int i = 0; i < width*height; i++) {
-                /*if (j == 0) {
-                    frame[i] = 0; // Clean up frame beforehand (first image in averaging).
-                }*/
-                frame[i] = CCDCamWrapper.get_frame_at_pos(i);
+            //System.out.println("Width: " + width + " height: " + height);
+            
+            for (int n = 0; n < height; n++) {
+                for (int m = 0; m < width; m++) {
+                    int val = CCDCamWrapper.get_frame_at_pos(m, n);
 
-                int m = i % width;
-                int n = i / width;
-
-                int byteVal = (int)frame[i];
-                byteVal &= 0xff;
-                int rgbVal = (byteVal << 16) | (byteVal << 8) | byteVal;
-                img.setRGB(m, n, rgbVal);
-            }
-            // Indicate that memory can be released in the C program:
-            CCDCamWrapper.get_frame_at_pos(-1);
-
-            if ((averages > 0) && (j < (averages-1))) {
-                // Give it a little time to prepare for next.
-                // Experimental.
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException ex) {
+                    int byteVal = (int)val;
+                    byteVal &= 0xff;
+                    int rgbVal = (byteVal << 16) | (byteVal << 8) | byteVal;
+                    img.setRGB(m, n, rgbVal);
                 }
             }
         }
-
-        // Average it out.
-        /*
-        for (int i = 0; i < width*height; i++) {
-           frame[i] = Math.round(frame[i]/averages);
-
-           if (frame[i] > 255) frame[i] = 255;
-           if (frame[i] < 0) frame[i] = 0;
-        }*/
 
         return retVal;
     }

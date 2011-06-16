@@ -41,19 +41,47 @@ public class slmAPI {
         return instance;
     }
     
-    private synchronized native void sendData(double[] arr1, char flag1);
+    private synchronized native void sendData(double[] arr1, char frameNum);
+    private synchronized native void selectFrame(char frameNum);
 
-    public synchronized static void slmjava(double[] arr, char flag) {
+
+    public synchronized static void slmjava(double[] arr, int frameNum) {
         if (Constants.DEBUG) {
-            System.out.println("SLM: About to send data");
+            System.out.println("SLM: About to send data, frame num " + frameNum);
         }
-        slmAPI.getInstance().sendData(arr, flag);
+
+        long durStart = System.currentTimeMillis();
+        slmAPI.getInstance().sendData(arr, (char) frameNum);
+        long durEnd = System.currentTimeMillis();
+        long duration=durEnd-durStart;
+        System.out.println("Send data duration: " + duration);
+
+        if (frameNum != 64 && frameNum != 65) {
+            durStart = System.currentTimeMillis();
+            slmAPI.getInstance().selectFrame((char) frameNum);
+            durEnd = System.currentTimeMillis();
+            duration=durEnd-durStart;
+            System.out.println("Select frame duration: " + duration);
+        }
+
         arr = null; //release for gc. (not sure if needed)
         if (Constants.DEBUG) {
             System.out.println("SLM: Finished to send data");
         }
+    }
+
+    public synchronized static void writeDataFrame(double[] data, int frameNum) {
+        slmAPI.getInstance().sendData(data, (char)frameNum);
+        data = null; //release for gc. (not sure if needed)
 
     }
+
+    public synchronized static void selectDisplayFrame(int frameNum) {
+        slmAPI.getInstance().selectFrame((char) frameNum);
+    }
+
+
+
     /*
     static {
         //System.loadLibrary("slmAPI");

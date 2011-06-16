@@ -58,6 +58,11 @@ public class Main extends JFrame implements Observer, WindowListener {
     private static Main instance = null;
 
     /**
+     * Controls the CCD camera.
+     */
+    private CCDCamera ccdCamera;
+
+    /**
      * Textfield that specifies the x coordinate of the upper left corner of
      * the ROI.
      */
@@ -95,7 +100,7 @@ public class Main extends JFrame implements Observer, WindowListener {
     /**
      * CCD zoom region.
      */
-    private ImagePanel ccdZoomRegion;
+    //private ImagePanel ccdZoomRegion;
 
     /**
      * FileChooser widget used to select output file location.
@@ -289,7 +294,10 @@ public class Main extends JFrame implements Observer, WindowListener {
     private JTextField rmSeriesOutputFolderEdit;
     private JButton rmSeriesBrowseButton;
     private JFileChooser rmFileChooser;
+    private JCheckBox rmSeriesShowOutput;
+    private JButton rmSeriesPreloadButton;
     private JButton rmSeriesRunButton;
+    private JLabel rmSeriesPreloadStatusLabel;
     private JComboBox rmSeriesRmModeComboBox;
 
     /**
@@ -340,6 +348,9 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         // Listen for close operations.
         addWindowListener(this);
+
+        /* Create CCD Camera instance.*/
+        ccdCamera = new CCDCamera();
 
         /* Setup the frame. */
         pack();
@@ -460,13 +471,25 @@ public class Main extends JFrame implements Observer, WindowListener {
     }
 
     /**
+     * Updates the preload status for the region series.
+     */
+    public synchronized void updatePreloadStatus(boolean isPreloaded) {
+        if (isPreloaded) {
+            rmSeriesPreloadStatusLabel.setText("Preloaded: Yes");
+        } else {
+            rmSeriesPreloadStatusLabel.setText("Preloaded: No");
+        }
+    }
+
+    /**
      * Builds and returns the right panel.
      *
      * @return The right content panel.
      */
     private JPanel buildRightPanel() {
         String rightColSpec = "fill:p"; // 1
-        String rightRowSpec = "p, 8dlu, p, 8dlu, 200dlu, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu"; // 12
+        //String rightRowSpec = "p, 8dlu, p, 8dlu, 200dlu, 8dlu, p, 8dlu, p, 8dlu, p, 8dlu"; // 12
+        String rightRowSpec = "p, 8dlu, p, 8dlu, 200dlu, 8dlu, p, 8dlu, p, 8dlu"; // 
 
         CellConstraints cc = new CellConstraints();
         FormLayout rightLayout = new FormLayout(rightColSpec, rightRowSpec);
@@ -648,18 +671,31 @@ public class Main extends JFrame implements Observer, WindowListener {
                 Integer y1 = new Integer(upperLeftY.getText());
                 Integer x2 = new Integer(lowerRightX.getText());
                 Integer y2 = new Integer(lowerRightY.getText());
+
                 ccdImagePanel.setRectangle(x1, y1, x2, y2);
                 ccdImagePanel.repaint();
 
-                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
+                int ccdX1=(int) (1.0 * x1 / ccdImagePanel.getWidth() * ccdCamera.MAX_WIDTH);
+                int ccdY1=(int) (1.0 * y1 / ccdImagePanel.getHeight() * ccdCamera.MAX_HEIGHT);
+                int ccdX2=(int) (1.0 * x2 / ccdImagePanel.getWidth() * ccdCamera.MAX_WIDTH);
+                int ccdY2=(int) (1.0 * y2 / ccdImagePanel.getHeight() * ccdCamera.MAX_HEIGHT);
+
+                ccdCamera.setRoi(ccdX1, ccdY1, ccdX2-ccdX1, ccdY2-ccdY1);
+                //ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
                 updateStatus();
+            }
+        });
+        JButton ROIResetButton = new JButton("Reset");
+        ROIResetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ccdCamera.resetRoi();
             }
         });
         JButton ccdCaptureButton = new JButton("Capture");
         ccdCaptureButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Update camera.
-                runCamera();
+                runCamera(true);
                 updateStatus();
             }
         });
@@ -754,6 +790,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         row += 2;
         roiBuilder.add(ccdCaptureButton,                    cc.xy(1, row));
         roiBuilder.add(ROIApplyButton,                      cc.xyw(3, row, 7));
+        roiBuilder.add(ROIResetButton,                      cc.xyw(11, row, 5));
 
         row += 2;
         roiBuilder.addLabel("Save CCD as",                      cc.xy(1, row));
@@ -772,20 +809,20 @@ public class Main extends JFrame implements Observer, WindowListener {
 
 
         /* 5. CCD zoom panel. */
-        String ccdZoomColSpecs = "50dlu"; // 1
-        String ccdZoomRowSpecs = "50dlu"; // 1
-        FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
-        PanelBuilder ccdZoomBuilder = new PanelBuilder(ccdZoomLayout);
+        //String ccdZoomColSpecs = "50dlu"; // 1
+        //String ccdZoomRowSpecs = "50dlu"; // 1
+        //FormLayout ccdZoomLayout = new FormLayout(ccdZoomColSpecs, ccdZoomRowSpecs);
+        //PanelBuilder ccdZoomBuilder = new PanelBuilder(ccdZoomLayout);
 
         // Prepare contents.
-        ccdZoomRegion = new ImagePanel(false);
+        //ccdZoomRegion = new ImagePanel(false);
 
         // Arrange contents.
-        row = 1;
-        ccdZoomBuilder.add(ccdZoomRegion,                     cc.xy(1, row));
+        //row = 1;
+        //ccdZoomBuilder.add(ccdZoomRegion,                     cc.xy(1, row));
 
-        rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, mainRow));
-        mainRow += 2;
+        //rightBuilder.add(ccdZoomBuilder.getPanel(),           cc.xy(1, mainRow));
+        //mainRow += 2;
 
         /* 6. Status panel. */
         String statColSpecs = "p, 4dlu, p, 4dlu:grow"; // 4
@@ -1105,12 +1142,12 @@ public class Main extends JFrame implements Observer, WindowListener {
             public synchronized void actionPerformed(ActionEvent e) {
                 updateSLM();
 
-                try {
+                /*try {
                     Thread.sleep(600);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                runCamera();
+                }*/
+                runCamera(true);
                 updateStatus();
             }
         });
@@ -1291,7 +1328,7 @@ public class Main extends JFrame implements Observer, WindowListener {
         String rmColSpecs = "p, 4dlu, 50dlu, 4dlu, p, 4dlu, 50dlu, 4dlu, p, 4dlu, 50dlu, 4dlu:grow"; // 12
         String rmRowSpecs = "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p,"
                           + "4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu,"
-                          + "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 32
+                          + "p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu, p, 4dlu"; // 34
         FormLayout rmLayout = new FormLayout(rmColSpecs, rmRowSpecs);
         PanelBuilder rmBuilder = new PanelBuilder(rmLayout);
 
@@ -1364,6 +1401,8 @@ public class Main extends JFrame implements Observer, WindowListener {
                     ImageUtils.addImages(dataMatrix, sysAbbCorrectionDataMatrix);
                 }
 
+                System.out.println("Setting the data matrix");
+                phaseImagePanel.setEnableScreenUpdates(true);
                 phaseImagePanel.setDataMatrix(dataMatrix);
                 ImageUtils.translateThroughLUT(dataMatrix);
 
@@ -1395,10 +1434,48 @@ public class Main extends JFrame implements Observer, WindowListener {
                 }
             }
         });
+
+        rmSeriesShowOutput = new JCheckBox("Show output on screen");
+        rmSeriesShowOutput.setSelected(true);
+
+        rmSeriesPreloadButton = new JButton("Preload");
+        rmSeriesPreloadButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Preload button was hit");
+                // Sets the parameters for the series and starts the job
+                // by initiating the thread.
+                rmSerieRunner = RegionModeSerieRunner.getInstance();
+                rmSerieRunner.start();
+                int modeIndex = rmSeriesRmModeComboBox.getSelectedIndex();
+                Double biasFromVal = new Double(rmSeriesBiasFromEdit.getText());
+                Double biasToVal = new Double(rmSeriesBiasToEdit.getText());
+                Double biasStepSizeVal = new Double(rmSeriesBiasStepSizeEdit.getText());
+                Integer regionFromVal = new Integer(rmSeriesRegionFromEdit.getText());
+                Integer regionToVal = new Integer(rmSeriesRegionToEdit.getText());
+                Integer regionStepSizeVal = new Integer(rmSeriesRegionStepSizeEdit.getText());
+                boolean updateScreen = rmSeriesShowOutput.isSelected();
+
+                rmSerieRunner.setParams(
+                        modeIndex,
+                        rmSeriesOutputFolderEdit.getText(),
+                        biasFromVal.doubleValue(),
+                        biasToVal.doubleValue(),
+                        biasStepSizeVal.doubleValue(),
+                        regionFromVal.intValue(),
+                        regionToVal.intValue(),
+                        regionStepSizeVal.intValue(),
+                        updateScreen);
+                rmSerieRunner.setRunMode(RegionModeSerieRunner.RunModes.PRELOAD_MODE);
+                rmSerieRunner.run();
+            }
+        });
+
+        rmSeriesPreloadStatusLabel = new JLabel("Preloaded: No");
+
         rmSeriesRunButton = new JButton("Run Series");
         rmSeriesRunButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Running series");
+                System.out.println("Run Series selected");
 
                 // Sets the parameters for the series and starts the job
                 // by initiating the thread.
@@ -1411,13 +1488,20 @@ public class Main extends JFrame implements Observer, WindowListener {
                 Integer regionFromVal = new Integer(rmSeriesRegionFromEdit.getText());
                 Integer regionToVal = new Integer(rmSeriesRegionToEdit.getText());
                 Integer regionStepSizeVal = new Integer(rmSeriesRegionStepSizeEdit.getText());
+                boolean updateScreen = rmSeriesShowOutput.isSelected();
 
                 rmSerieRunner.setParams(
-                        modeIndex, rmSeriesOutputFolderEdit.getText(),
-                        biasFromVal.doubleValue(), biasToVal.doubleValue(),
+                        modeIndex,
+                        rmSeriesOutputFolderEdit.getText(),
+                        biasFromVal.doubleValue(),
+                        biasToVal.doubleValue(),
                         biasStepSizeVal.doubleValue(),
-                        regionFromVal.intValue(), regionToVal.intValue(),
-                        regionStepSizeVal.intValue());
+                        regionFromVal.intValue(),
+                        regionToVal.intValue(),
+                        regionStepSizeVal.intValue(),
+                        updateScreen);
+                rmSerieRunner.setRunMode(RegionModeSerieRunner.RunModes.RUN_MODE);
+
                 rmSerieRunner.run();
             }
         });
@@ -1430,7 +1514,6 @@ public class Main extends JFrame implements Observer, WindowListener {
                 }
             }
         });
-
 
         // Arrange contents.
         rmBuilder.addSeparator("Regions Definition",            cc.xyw(1, row, 12));
@@ -1499,8 +1582,17 @@ public class Main extends JFrame implements Observer, WindowListener {
         rmBuilder.add(rmSeriesOutputFolderEdit,                 cc.xyw(3, row, 7));
         rmBuilder.add(rmSeriesBrowseButton,                     cc.xy(11, row));
         row += 2;
+        
+        rmBuilder.add(rmSeriesShowOutput,                    cc.xy(1, row));
+        row += 2;
 
         rmBuilder.add(rmSeriesRunButton,                        cc.xy(1, row));
+        rmBuilder.add(rmSeriesPreloadButton,                    cc.xy(3, row));
+        rmBuilder.add(rmSeriesCancelButton,                     cc.xy(5, row));
+        
+        row += 2;
+        rmBuilder.add(rmSeriesPreloadStatusLabel,               cc.xyw(1, row, 5));
+
         row += 2;
 
 
@@ -1610,6 +1702,17 @@ public class Main extends JFrame implements Observer, WindowListener {
 
         if (Constants.USE_SLM_DEVICE) {
             double[] dataMatrix = phaseImagePanel.getDataMatrix();
+
+            if (sysAbbCorrectionisEnabled) {
+                double[] corrMatrix = sysAbbCorrectionDataMatrix.clone();
+                ImageUtils.translateThroughLUT(corrMatrix);
+                ImageUtils.addImages(dataMatrix, corrMatrix);
+                ImageUtils.wrapImage(dataMatrix);
+            }
+
+            phaseImagePanel.setDataMatrix(dataMatrix);
+            
+
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char)0);
         }
 
@@ -1625,48 +1728,39 @@ public class Main extends JFrame implements Observer, WindowListener {
     /**
      * Runs the camera (for test purposes).
      */
-    public synchronized void runCamera() {
+    public synchronized void runCamera(boolean updateScreen) {
         if (!Constants.USE_CCD) {
             return;
         }
 
-        CCDCamera ccdCamera = new CCDCamera();
-
-        if (Constants.DEBUG) {
-            System.out.println("testMe(): " + ccdCamera.testMe());
-        }
-
-        if (ccdCamera.initialize()) {
-            if (Constants.DEBUG) {
-                System.out.println("Successfully initialized the CCD Camera");
+        if (!ccdCamera.isInitialized()) {
+            if (ccdCamera.initialize()) {
+                if (Constants.DEBUG) {
+                    System.out.println("Successfully initialized the CCD Camera");
+                }
             }
-        } else {
-            System.out.println("Failed to initialize the CCD Camera");
         }
-
-        if (Constants.DEBUG) {
-            System.out.println("Note: " + ccdCamera.getNote());
-        }
-
+        
         Integer imageAverages = new Integer(ccdAveragesField.getText());
 
-        //long durStart = System.currentTimeMillis();
+        long durStart = System.currentTimeMillis();
         int frameLen = ccdCamera.captureFrame(imageAverages);
-        //long durEnd = System.currentTimeMillis();
-        //long duration = durEnd - durStart;
-        //System.out.println("cpature frame duration: " + duration);
+        long durEnd = System.currentTimeMillis();
+        long duration = durEnd - durStart;
+        
+
+        if (Constants.DEBUG) {
+            System.out.println("Capture frame duration: " + duration);
+        }
 
         if (frameLen < 0) {
             System.out.println("Err: " + ccdCamera.getNote());
         } else {
             BufferedImage camImage = ccdCamera.getImage();
+
             if (camImage != null) {
+                ccdImagePanel.setEnableScreenUpdates(updateScreen);
                 ccdImagePanel.setImage(camImage);
-            }
-            
-            BufferedImage roiImage = ccdImagePanel.getROIImage();
-            if (roiImage != null) {
-                ccdZoomRegion.setImage(ccdImagePanel.getROIImage());
             }
         }
         if (Constants.DEBUG) {
@@ -1708,6 +1802,10 @@ public class Main extends JFrame implements Observer, WindowListener {
             double[] dataMatrix = phaseImagePanel.getDataMatrix();
             // XXX/FIXME data should not be necessary to turn it off!
             com.slmcontrol.slmAPI.slmjava(dataMatrix, (char) 65);
+        }
+        
+        if (Constants.USE_CCD) {
+            ccdCamera.shutdown();
         }
     }
 

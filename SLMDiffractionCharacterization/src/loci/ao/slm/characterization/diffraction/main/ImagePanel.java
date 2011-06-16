@@ -54,12 +54,12 @@ class ImagePanel extends JPanel implements MouseListener {
     /**
      * The maximum width of the Image Panel (in pixels).
      */
-    protected final int maxWidth = 1000;
+    protected final int maxWidth = 1024;
 
     /**
      * The maximum height of the Image Panel (in pixels).
      */
-    protected final int maxHeight = 800;
+    protected final int maxHeight = 768;
 
     /**
      * A notifier object used to inform observers when a change has been
@@ -73,12 +73,18 @@ class ImagePanel extends JPanel implements MouseListener {
     private boolean enableROI;
 
     /**
+     * Enables whether screen updates are enabled or not.
+     */
+    private boolean enableScreenUpdates;
+
+    /**
      * Constructs the ImagePanel object.  Initializes and sets up the image.
      *
      * @param enableROI True if the ROI selection is to be used, false otherwise.
      */
     public ImagePanel(boolean enableROI) {
         this.enableROI = enableROI;
+        this.enableScreenUpdates = true;
         if (enableROI) {
             addMouseListener(this);
             x1 = y1 = -1;
@@ -103,6 +109,11 @@ class ImagePanel extends JPanel implements MouseListener {
      */
     public ImagePanel() {
         this(false);
+    }
+
+    public void setEnableScreenUpdates(boolean enableScreenUpdates)
+    {
+        this.enableScreenUpdates = enableScreenUpdates;
     }
 
     /**
@@ -209,6 +220,10 @@ class ImagePanel extends JPanel implements MouseListener {
      */
     @Override
     public synchronized void paintComponent(Graphics g) {
+        if (!enableScreenUpdates) {
+            return;
+        }
+        
         super.paintComponent(g);
 
         g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
@@ -223,13 +238,17 @@ class ImagePanel extends JPanel implements MouseListener {
      * XXX/FIXME: has not been tested properly.
      * @return The mean intensity of the image within the ROI.
      */
+
     public synchronized double getROIIntensity()
     {
         if (!Constants.USE_CCD) {
             return -1;
         }
         
-        BufferedImage roiImage = getROIImage();
+        BufferedImage roiImage = getImage();
+        if (roiImage == null) {
+            return -1;
+        }
 
         double area = roiImage.getWidth() * roiImage.getHeight();
         double mean = 0.0;
@@ -255,7 +274,11 @@ class ImagePanel extends JPanel implements MouseListener {
             return -1;
         }
 
-        BufferedImage roiImage = getROIImage();
+        BufferedImage roiImage = getImage();
+        if (roiImage == null) {
+            return -1;
+        }
+        
         int satPixelCount = 0;
         for (int m = 0; m < roiImage.getWidth(); m++) {
             for (int n = 0; n < roiImage.getHeight(); n++) {
@@ -275,6 +298,7 @@ class ImagePanel extends JPanel implements MouseListener {
     /**
      * Get the ROI image.  Useful for testing.
      */
+    /*
     public synchronized BufferedImage getROIImage()
     {
         if (!enableROI || img == null) {
@@ -290,6 +314,10 @@ class ImagePanel extends JPanel implements MouseListener {
         int roiWidth = (int)Math.abs(imgRoiX2 - imgRoiX1);
         int roiHeight = (int)Math.abs(imgRoiY2 - imgRoiY1);
 
+        if  (roiWidth <= 0 || roiHeight <= 0) {
+            return null;
+        }
+
         BufferedImage roiImage =
                 new BufferedImage(roiWidth, roiHeight, BufferedImage.TYPE_INT_RGB);
         for (int x = imgRoiX1; x < imgRoiX2; x++) {
@@ -300,7 +328,7 @@ class ImagePanel extends JPanel implements MouseListener {
         }
 
         return roiImage;
-    }
+    }*/
 
     /**
      * Acts when the mouse is clicked within the ImagePanel.  Used to specify

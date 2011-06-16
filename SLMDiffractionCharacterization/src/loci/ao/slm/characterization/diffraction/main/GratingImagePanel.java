@@ -174,7 +174,8 @@ public class GratingImagePanel extends ImagePanel {
                     total = refValue;
                 }
 
-                val = LookupTable.getInstance().lookup((int)total, region);
+                //val = LookupTable.getInstance().lookup((int)total, region);
+                val = (int)total;
                 dataMatrix[row * slmSize + col] = val;
             }
         }

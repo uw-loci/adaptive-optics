@@ -137,7 +137,7 @@ public class ImageSequenceSerieRunner
      */
     public synchronized void upgradeCamera()
     {
-        Main.getInstance().runCamera();
+        Main.getInstance().runCamera(true);
         Main.getInstance().updateStatus();
     }
 

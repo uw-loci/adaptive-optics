@@ -72,34 +72,50 @@ public class RegionModes {
 
     public double[] generateDataMatrix() {
         double[] dataMatrix = new double[512*512];
-        BufferedImage image = null;
+        //BufferedImage image = null;
 
         for (int i = 0; i < 512*512; i++) {
-            dataMatrix[i] = 0;
+            dataMatrix[i] = 0; // LookupTable.getInstance().lookup(0, 0);
         }
 
-        for (int i = 0; i < countModes(); i++) {
-            RegionMode mode = modes.get(i);
-        }
-        
         int sqrtRegions = (int)Math.sqrt(1.0*numberOfRegions);
         int xWidth = 512 / sqrtRegions;
         int yWidth = 512 / sqrtRegions;
+        
+        for (int i = 0; i < countModes(); i++) {
+            RegionMode mode = modes.get(i);
 
-        int sqrtLutRegions = (int)Math.sqrt(1.0*LookupTable.getInstance().getNumberOfRegions());
-        if (sqrtLutRegions == 0) {
-            sqrtLutRegions = 1;
+            int region = mode.region;
+            int regX = region % sqrtRegions;
+            int regY = region / sqrtRegions;
+            int regXstart = regX*xWidth;
+            int regXend = Math.min((regX+1)*xWidth, 512);
+            int regYstart = regY*yWidth;
+            int regYend = Math.min((regY+1)*yWidth, 512);
+            for (int x=regXstart; x < regXend; x++) {
+                for (int y=regYstart; y < regYend; y++) {
+                    int index = y * 512 + x;
+
+                    int val = (int) mode.getPhaseValue(x,y);
+                    /*if (val < 0) {
+                        while (val < 0) val += 256;
+                    }
+                    val %= 256;
+
+                    // Translate through lookup table.  Single region lut only.
+                    val = LookupTable.getInstance().lookup(val, 0);*/
+                    dataMatrix[index] = val;
+                }
+            }
         }
-        //int lutXWidth = 512 / sqrtLutRegions;
-        //int lutYWidth = 512 / sqrtLutRegions;
 
-
+        /*
+        int lastRegion = -1;
+        RegionMode mode = null;
         for (int xm = 0; xm < 512; xm++) {
             for (int ym = 0; ym < 512; ym++) {
                 int index = ym * 512 + xm;
 
-                //int x = index % 512;
-                //int y = index / 512;
                 int xi = xm/xWidth;
                 int yi = ym/yWidth;
                 int region = yi*sqrtRegions + xi;
@@ -111,8 +127,11 @@ public class RegionModes {
                 } else if (ym >= sqrtRegions*yWidth) {
                     region = (sqrtRegions-1)*sqrtRegions + xi;
                 }
-                
-                RegionMode mode = getModeByRegion(region);
+
+                if (region != lastRegion) {
+                    mode = getModeByRegion(region);
+                }
+                lastRegion = region;
                 
                 int val = 0;
                 if (mode != null) {
@@ -121,7 +140,7 @@ public class RegionModes {
 
                 dataMatrix[index] = val;
             }
-        }
+        }*/
 
         return dataMatrix;
     }
