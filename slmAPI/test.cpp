@@ -357,6 +357,7 @@ slmAPI::slmAPI()
 }
 
 
+/*
 void slmAPI::DtoI(double * Dbuf, int length)
 {
 	unsigned char temp;
@@ -368,60 +369,44 @@ void slmAPI::DtoI(double * Dbuf, int length)
 		else
             *(phasedata+i) = temp + 1;
 	}
-}
+}*/
 
-void slmAPI::sendData(double *Data)
+void dumpOutput(const char *debugText)
 {
-	bool framechange = 0;
-/*
-    imagedata = Data;
-*/
-
 #ifdef DEBUG_OUTPUT
-    int tp, tp2;
     FILE *pfold;
-	pfold = fopen("c:/slmcontrol/dumpout/beforefft.txt","wt");
-    for (tp = 0; tp < 512; tp ++)
-	{
-		fprintf(pfold, "\n");
-		for (tp2 = 0; tp2 < 512; tp2++)
-		fprintf(pfold, "%f, ", Data[tp*512 + tp2]);
-	}
+
+	pfold = fopen("c:/Gunnsteinn/debug/slmapi.txt","a+");
+    fprintf(pfold, "%s\n", debugText);
 	fclose(pfold);
 #endif
+}
 
-/*
-	fftcl->receivedata(imagedata, SLMSIZE, SLMSIZE);
+void slmAPI::sendData(double *Data, int frameNum)
+{
+	dumpOutput("1. Mallocing");
 
-	fftcl->fft2(SLMSIZE, SLMSIZE, 1);
+	phasedata = (unsigned char *) malloc(SLMSIZE*SLMSIZE*sizeof(char));
+	dumpOutput("2. Converting");
+	//DtoI(Data, SLMSIZE*SLMSIZE);
 
-	memset(imagedata,0,SLMSIZE*SLMSIZE*sizeof(double)); 
-	memset(phasedata, 0, SLMSIZE*SLMSIZE*sizeof(unsigned char));
+	dumpOutput("3. Receive data?");
+	slm->receiveData(Data);
+  
+	dumpOutput("4. Freeing");
+	free(phasedata);
 
-	fftcl->getPhase(imagedata);
 
-    for (int i = 0; i< SLMSIZE*SLMSIZE; i ++)
-	{
-		if (*(imagedata+i) < 0)
-		{
-			*(phasedata+i) = unsigned char ((*(imagedata+i) + 2*pi)*255/(2*pi));
-		}
-		else
-		{
-		    *(phasedata+i) = unsigned char ((*(imagedata+i))*255/(2*pi));
-		}
-	}
+	dumpOutput("5. Sending");
+	slm->SendtoDlm(frameNum);
 
-	slm->receiveData(phasedata);
-*/
-
-  phasedata = (unsigned char *) malloc(SLMSIZE*SLMSIZE*sizeof(char));
-	DtoI(Data, SLMSIZE*SLMSIZE);
-	slm->receiveData(phasedata);
-  free(phasedata);
-
-	slm->SendtoDlm(framechange);
+	dumpOutput("6. Returning");
 	return;
+}
+
+void slmAPI::selectFrame(int frameNum)
+{
+	slm->SelectFrame(frameNum);
 }
 
 

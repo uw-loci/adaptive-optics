@@ -14,12 +14,21 @@ JNIEXPORT void JNICALL Java_com_slmcontrol_slmAPI_sendData
 		Java_com_slmcontrol_slmAPI->powerOn();
   } else if (frame == 65) {
 		Java_com_slmcontrol_slmAPI->powerOff();
-  } else {
+  } else {	
     jdouble *da = env->GetDoubleArrayElements(dArray, 0);
-
-    Java_com_slmcontrol_slmAPI->sendData(da);
+	int frameNum = (int)frame;
+	
+    Java_com_slmcontrol_slmAPI->sendData(da, frameNum);
 
     env->ReleaseDoubleArrayElements(dArray, da, 0);
-    env->DeleteLocalRef(dArray);
+    
+	env->DeleteLocalRef(dArray);
   }
+}
+
+JNIEXPORT void JNICALL Java_com_slmcontrol_slmAPI_selectFrame
+  (JNIEnv *env, jobject obj, jchar frame)
+{
+	int frameNum = (int)frame;
+	Java_com_slmcontrol_slmAPI->selectFrame(frameNum);
 }

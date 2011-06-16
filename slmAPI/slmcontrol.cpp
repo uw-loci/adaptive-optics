@@ -2,10 +2,8 @@
 #include "slmcontrol.h"
 
 
-
 SlmCom::SlmCom()
 {
-	FrameNum = 0;
 	ImgWidth = SLMSIZE;
 	ImgHeight = SLMSIZE;
 }
@@ -107,52 +105,60 @@ void SlmCom::readlut(unsigned char *LUT, CString lutfilename)
 }
 
 
-void SlmCom::receiveData(unsigned char *Data)
+void SlmCom::receiveData(double *Data)
 {  
 	ImageData = (unsigned char *) malloc(ImgWidth*ImgHeight);
 
-	for(int i = 0; i< ImgWidth*ImgHeight; i++)
+	for (int i = 0; i< ImgWidth*ImgHeight; i++)
 	{    
-    // ImageData[i] = LUTBuf[(Data[i])%256];
-    ImageData[i] = Data[i];
+		ImageData[i] = (unsigned char)Data[i];
 	}
 
-  return;
+	return;
 }
 
-bool SlmCom::SendtoDlm(bool FrameNumchange)
+void dumpCtrlOutput(const char *debugText)
 {
-  if (!theBoard->WriteFrameBuffer(FrameNum, ImageData))
-  {
-    free(ImageData);
-    return false;
-  }
-
-
 #ifdef DEBUG_OUTPUT
-  int tp, tp2;
-  FILE *pfold;
-  pfold = fopen("c:/slmcontrol/dumpout/JAVA_output.txt","wt");
-  for (tp = 0; tp < 512; tp ++)
-	{
-		fprintf(pfold, "\n");
-		for (tp2 = 0; tp2 < 512; tp2++)
-		fprintf(pfold, "%d, ", ImageData[tp*512 + tp2]);
-	}
+    FILE *pfold;
+
+	pfold = fopen("c:/Gunnsteinn/debug/slmcontrol.txt","a+");
+    fprintf(pfold, "%s\n", debugText);
 	fclose(pfold);
 #endif
+}
 
-
-  if (FrameNumchange == true)
+// Write data to the selected frame.
+bool SlmCom::SendtoDlm(int frameNum)
+{
+	dumpCtrlOutput("1. Writing frame buffer");
+	if (!theBoard->WriteFrameBuffer(frameNum, ImageData))
 	{
-	    FrameNum ++;
+		free(ImageData);
+		return false;
 	}
+	dumpCtrlOutput("2. Writing debug java output");
+	dumpCtrlOutput("3. Frame number increase?");
+
+
+	dumpCtrlOutput("4. Freeeing data");
 
 	free(ImageData);
-	theBoard->SelectImage(FrameNum);
 
-  return true;
+	//dumpCtrlOutput("5. Selecting the frame");
+	//theBoard->SelectImage(FrameNum);
+
+	dumpCtrlOutput("5. Returning");
+
+
+	return true;
 }
+
+void SlmCom::SelectFrame(int frameNum)
+{
+	theBoard->SelectImage(frameNum);
+}
+
 
 void SlmCom::CloseSlm()
 {
@@ -173,11 +179,11 @@ void SlmCom::OpenSlm()
 }
 
 
-void SlmCom::GetFramNum(int *frnum)
+/*void SlmCom::GetFramNum(int *frnum)
 {
   *frnum = FrameNum;
   return;
-}
+}*/
 
 
 void SlmCom::GetWH(int *Wid, int *Height)

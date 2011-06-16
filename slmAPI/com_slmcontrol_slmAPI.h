@@ -15,6 +15,9 @@ extern "C" {
 JNIEXPORT void JNICALL Java_com_slmcontrol_slmAPI_sendData
   (JNIEnv *, jobject, jdoubleArray, jchar);
 
+JNIEXPORT void JNICALL Java_com_slmcontrol_slmAPI_selectFrame
+  (JNIEnv *, jobject, jchar);
+
 #ifdef __cplusplus
 }
 #endif

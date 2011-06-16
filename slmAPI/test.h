@@ -18,8 +18,9 @@ private:
 	SlmCom *slm;
 public:
 	slmAPI();
-	void sendData(double *Data);
-	void DtoI(double * Dbuf, int length);
+	void sendData(double *Data, int frameNum);
+	void selectFrame(int frameNum);
+	//void DtoI(double * Dbuf, int length);
 	void powerOn();
     void powerOff();
 };
