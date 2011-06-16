@@ -1,120 +1,243 @@
 /**
  * Utility function library for communicating with a CCD camera.
- * Gunnsteinn Hall, 2/19/2010.
+ * Migrated from the CMU CCD library to the NIIMAQdx library which has more options for faster image retrieval.
+ * Gunnsteinn Hall, 2/28/2011.
  * LOCI.
  */
 
 #include "stdafx.h"
 
 #include <windows.h>
-#include <1394Camera.h>
+#include <NIIMAQdx.h>
+#include <nivision.h>
 #include <string>
+#include <ctime>
 
-C1394Camera theCamera;
-unsigned char *frame_buffer = NULL;
-int buffer_length = 0;
+IMAQdxSession session;
 char note_buf[512];
+unsigned long width=-1, height=-1;
+unsigned long roi_x=-1, roi_y=-1;
+Image *img = NULL;
+ImageInfo imgInfo;
 
 using namespace std;
 
+/**
+ * Initialize the camera.
+ */
 bool init_camera()
 {
-	char vendor[256],model[256];
-	LARGE_INTEGER ID;
-	int ret = theCamera.RefreshCameraList();
-	int type;
+	const char *camName = "cam0";
 
-	if(ret >= 0)
-	{
-		sprintf(note_buf, "CheckLink: Found %d Camera%s\n",ret,ret == 1 ? "" : "s");
-	} else {
-		sprintf(note_buf, "CheckLink: Error %08x Refreshing Camera List", GetLastError());
+	IMAQdxError status = IMAQdxOpenCamera(camName, IMAQdxCameraControlModeController, &session);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to open %s: %s", camName, errorMsg);
 		return false;
 	}
 
-	if(theCamera.GetNumberCameras() < 1) {
-		sprintf(note_buf, "No cameras available\n");
+	char vendorName[IMAQDX_MAX_API_STRING_LENGTH], modelName[IMAQDX_MAX_API_STRING_LENGTH];
+	width=-1, height=-1;
+	IMAQdxGetAttribute(session, IMAQdxAttributeVendorName, IMAQdxValueTypeString, &vendorName);
+	IMAQdxGetAttribute(session, IMAQdxAttributeModelName, IMAQdxValueTypeString, &modelName);
+	IMAQdxGetAttribute(session,IMAQdxAttributeWidth, IMAQdxValueTypeU32, &width);
+	IMAQdxGetAttribute(session,IMAQdxAttributeHeight, IMAQdxValueTypeU32, &height);
+
+	sprintf(note_buf, "Vendor: %s\r\nModel: %s\r\nwidth: %d, height: %d",
+		vendorName, modelName, width, height);
+	
+	/*
+	status = IMAQdxConfigureAcquisition(session, 0, 1);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to open configure acquisition: %s", errorMsg);
+		return false;
+	}*/
+	status = IMAQdxConfigureGrab(session);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to open configure grab: %s", errorMsg);
 		return false;
 	}
 
-	// Pick the first camera.
-	theCamera.SelectCamera(0);
-
-	// Initialize.
-	bool reset = FALSE;
-	if(theCamera.InitCamera(reset) != CAM_SUCCESS)
-	{
-		sprintf(note_buf, "Error initializing camera\n");
-		return false;
-	}
-
-	unsigned long width = -1, height = -1;
-	theCamera.GetVideoFrameDimensions(&width, &height);
-
-	theCamera.GetCameraName(model,sizeof(model));
-	theCamera.GetCameraVendor(vendor,sizeof(vendor));
-	theCamera.GetCameraUniqueID(&ID);
-	sprintf(note_buf, "Vendor: %s\r\nModel: %s\r\nUniqueID: %08X%08X; width: %d, height: %d",
-		vendor,model,ID.HighPart,ID.LowPart, width, height);
+	img = imaqCreateImage(IMAQ_IMAGE_U8, 0);
 
 	return true;
 }
 
+/**
+ * Shut down, release memory and close the camera.
+ *
+ * @return 1 on success.
+ */
+int shutdown()
+{
+	IMAQdxStopAcquisition(session);
+	imaqDispose(img);
+	IMAQdxCloseCamera(session);
+	return 1;
+}
+
+/**
+ * Retrieve the note buffer, which typically contains an error message after an error is indicated.
+ *
+ * @return A copy of the note buffer.
+ */
 char *get_note()
 {
 	return strdup(note_buf);
 }
 
+/**
+ * Capture a single frame.
+ *
+ * @return On success, the size of the captured frame.  On failure, -1.
+ */
 int capture_frame()
 {
-	int buffersAllocated = 1;
-	int maxTimeout = 1000; // ms. //30fps: 200ms works well, //7.5fps: 500ms seems to work //3.5fps: 1000ms?
-
-	if (theCamera.StartImageAcquisitionEx(buffersAllocated, maxTimeout, ACQ_START_VIDEO_STREAM)) {
-	//if (theCamera.StartImageAcquisitionEx(buffersAllocated, maxTimeout, ACQ_SUBSCRIBE_ONLY)) {
-		sprintf(note_buf, "Error starting image acquisition");
+	/*
+	IMAQdxError status = IMAQdxStartAcquisition(session);	
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to start acquisition: %s", errorMsg);
 		return -1;
 	}
 	
-	int ret = theCamera.AcquireImageEx(TRUE, NULL);
-	if (ret != CAM_SUCCESS) {
-		sprintf(note_buf, "Error in acquiring an image, ret: %d", ret);
+	
+	uInt32 bufNum;	
+	status = IMAQdxGetImage(session, img, IMAQdxBufferNumberModeLast, -1, &bufNum);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to get image data: %s", errorMsg);
 		return -1;
 	}
 
-	unsigned long framelen = 0;
-	unsigned char *tmp_buf = theCamera.GetRawData(&framelen);
-	if (framelen > 0) {
-		// XXX: add a function to drop this memory, once used.
-		frame_buffer = (unsigned char *)malloc(framelen);
-		memcpy(frame_buffer, tmp_buf, framelen);
-	} else {
-		frame_buffer = NULL;
-	}
+	status = IMAQdxStopAcquisition(session);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to stop acquisition: %s", errorMsg);
+		return -1;
+	}*/
 
-	buffer_length = framelen;
+	uInt32 bufNum;	
+	unsigned int waitForNextBuffer = 1; //use 1 to be 100% guaranteed.
+	IMAQdxError status = IMAQdxGrab(session, img, waitForNextBuffer, &bufNum);
 
-	if (theCamera.StopImageAcquisition()) {
-		sprintf(note_buf, "Problem Stopping Image Acquisition");
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to grab image: %s", errorMsg);
 		return -1;
 	}
+	
+	imaqGetImageInfo(img, &imgInfo);
+	int framelen = imgInfo.yRes * imgInfo.xRes;
 
-	return buffer_length;
+	return framelen;
 }
 
-unsigned char get_frame_at_pos(int index)
-{
-	int ch = frame_buffer[index];
-	if (index < 0) {
-		// Clean up memory. (already at end).
-		free(frame_buffer);
+/**
+ * Set the region of interest.
+ * @param x The x offset of the upper left hand corner.
+ * @param y The y offset of the upper left hand corner.
+ * @param dx The width of the region.
+ * @param dy The height of the region.
+ *
+ * @return On success, 1.  On failure, -1.
+ */
+int set_roi(int x, int y, int dx, int dy) {
+	roi_x=x;
+	roi_y=y;
+	width=dx;
+	height=dy;
+
+	IMAQdxError status = IMAQdxUnconfigureAcquisition(session);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to unconfigure acquisition: %s", errorMsg);
+		return -1;
 	}
+	
+
+	status = IMAQdxSetAttribute(session,IMAQdxAttributeOffsetX, IMAQdxValueTypeU32, roi_x);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed set offset x: ", errorMsg);
+		return -1;
+	}
+
+	status = IMAQdxSetAttribute(session,IMAQdxAttributeOffsetY, IMAQdxValueTypeU32, roi_y);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed set offset y: ", errorMsg);
+		return -1;
+	}
+
+	status = IMAQdxSetAttribute(session,IMAQdxAttributeWidth, IMAQdxValueTypeU32, width);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed set width: ", errorMsg);
+		return -1;
+	}
+
+	status = IMAQdxSetAttribute(session,IMAQdxAttributeHeight, IMAQdxValueTypeU32, height);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed set height: ", errorMsg);
+		return -1;
+	}
+
+	/*
+	status = IMAQdxConfigureAcquisition(session, 0, 1);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to reg configure acquisition: %s", errorMsg);
+		return -1;
+	}*/
+	status = IMAQdxConfigureGrab(session);
+	if (status != IMAQdxErrorSuccess) {
+		char errorMsg[100];
+		IMAQdxGetErrorString(status, errorMsg, 99);
+		sprintf(note_buf, "Failed to open configure grab: %s", errorMsg);
+		return false;
+	}
+
+	return 1;
+}
+
+/**
+ * Return the frame value at location (x,y).
+ *
+ * @return The frame value at location (x,y).
+ */
+unsigned char get_frame_at_pos(int x, int y)
+{
+	unsigned char *pixel_address;
+
+	pixel_address = (unsigned char *)imgInfo.imageStart + y*imgInfo.pixelsPerLine + x;
+	int ch = *pixel_address;
+
 	return ch;
 }
 
 
-
-
+/**
+ * A simple test function to check if SWIG is working.
+ *
+ * @return 3.
+ */
 int test_me()
 {
 	return 3;

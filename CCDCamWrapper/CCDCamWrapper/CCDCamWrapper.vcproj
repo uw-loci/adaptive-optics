@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\CMU\1394Camera\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_21\include\win32&quot;;&quot;C:\Program Files\Java\jdk1.6.0_21\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\CMU\1394Camera\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_21\include\win32&quot;;&quot;C:\Program Files\National Instruments\Vision\Include&quot;;&quot;C:\Program Files\National Instruments\NI-IMAQdx\include&quot;;&quot;C:\Program Files\Java\jdk1.6.0_21\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CCDCAMWRAPPER_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,9 +64,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="1394camerad.lib"
+				AdditionalDependencies="1394camerad.lib niimaqdx.lib nivision.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Program Files\CMU\1394Camera\lib&quot;"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\National Instruments\Vision\Lib\MSVC&quot;;&quot;C:\Program Files\National Instruments\NI-IMAQdx\lib\msvc&quot;;&quot;C:\Program Files\CMU\1394Camera\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"

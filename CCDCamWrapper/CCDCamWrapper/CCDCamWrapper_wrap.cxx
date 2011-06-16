@@ -216,8 +216,10 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern bool init_camera();
 extern char *get_note();
 extern int capture_frame();
-extern unsigned char get_frame_at_pos(int index);
+extern unsigned char get_frame_at_pos(int x, int y);
 extern int test_me();
+extern int set_roi(int x, int y, int dx, int dy);
+extern int shutdown();
 
 
 #ifdef __cplusplus
@@ -260,15 +262,17 @@ SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_capture_
 }
 
 
-SWIGEXPORT jshort JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_get_1frame_1at_1pos(JNIEnv *jenv, jclass jcls, jint jarg1) {
+SWIGEXPORT jshort JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_get_1frame_1at_1pos(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
   jshort jresult = 0 ;
   int arg1 ;
+  int arg2 ;
   unsigned char result;
   
   (void)jenv;
   (void)jcls;
   arg1 = (int)jarg1; 
-  result = (unsigned char)get_frame_at_pos(arg1);
+  arg2 = (int)jarg2; 
+  result = (unsigned char)get_frame_at_pos(arg1,arg2);
   jresult = (jshort)result; 
   return jresult;
 }
@@ -281,6 +285,38 @@ SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_test_1me
   (void)jenv;
   (void)jcls;
   result = (int)test_me();
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_set_1roi(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2, jint jarg3, jint jarg4) {
+  jint jresult = 0 ;
+  int arg1 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = (int)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  result = (int)set_roi(arg1,arg2,arg3,arg4);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_shutdown(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)shutdown();
   jresult = (jint)result; 
   return jresult;
 }
