@@ -213,10 +213,10 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 
 #include <string>
 /* Includes the header in the wrapper code */
-extern bool init_camera();
+extern bool init_camera(int driver);
 extern char *get_note();
 extern int capture_frame();
-extern unsigned char get_frame_at_pos(int x, int y);
+extern unsigned short get_frame_at_pos(int x, int y);
 extern int test_me();
 extern int set_roi(int x, int y, int dx, int dy);
 extern int shutdown();
@@ -226,13 +226,15 @@ extern int shutdown();
 extern "C" {
 #endif
 
-SWIGEXPORT jboolean JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_init_1camera(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jboolean JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_init_1camera(JNIEnv *jenv, jclass jcls, jint jarg1) {
   jboolean jresult = 0 ;
+  int arg1 ;
   bool result;
   
   (void)jenv;
   (void)jcls;
-  result = (bool)init_camera();
+  arg1 = (int)jarg1; 
+  result = (bool)init_camera(arg1);
   jresult = (jboolean)result; 
   return jresult;
 }
@@ -262,18 +264,18 @@ SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_capture_
 }
 
 
-SWIGEXPORT jshort JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_get_1frame_1at_1pos(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
-  jshort jresult = 0 ;
+SWIGEXPORT jint JNICALL Java_loci_hardware_camera_swig_CCDCamWrapperJNI_get_1frame_1at_1pos(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+  jint jresult = 0 ;
   int arg1 ;
   int arg2 ;
-  unsigned char result;
+  unsigned short result;
   
   (void)jenv;
   (void)jcls;
   arg1 = (int)jarg1; 
   arg2 = (int)jarg2; 
-  result = (unsigned char)get_frame_at_pos(arg1,arg2);
-  jresult = (jshort)result; 
+  result = (unsigned short)get_frame_at_pos(arg1,arg2);
+  jresult = (jint)result; 
   return jresult;
 }
 

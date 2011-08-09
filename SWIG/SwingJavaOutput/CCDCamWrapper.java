@@ -9,8 +9,8 @@
 package loci.hardware.camera.swig;
 
 public class CCDCamWrapper {
-  public static boolean init_camera() {
-    return CCDCamWrapperJNI.init_camera();
+  public static boolean init_camera(int driver) {
+    return CCDCamWrapperJNI.init_camera(driver);
   }
 
   public static String get_note() {
@@ -21,12 +21,20 @@ public class CCDCamWrapper {
     return CCDCamWrapperJNI.capture_frame();
   }
 
-  public static short get_frame_at_pos(int index) {
-    return CCDCamWrapperJNI.get_frame_at_pos(index);
+  public static int get_frame_at_pos(int x, int y) {
+    return CCDCamWrapperJNI.get_frame_at_pos(x, y);
   }
 
   public static int test_me() {
     return CCDCamWrapperJNI.test_me();
+  }
+
+  public static int set_roi(int x, int y, int dx, int dy) {
+    return CCDCamWrapperJNI.set_roi(x, y, dx, dy);
+  }
+
+  public static int shutdown() {
+    return CCDCamWrapperJNI.shutdown();
   }
 
 }

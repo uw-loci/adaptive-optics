@@ -14,9 +14,13 @@ package loci.ao.slm.characterization.diffraction.main;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -53,13 +57,15 @@ class ImagePanel extends JPanel implements MouseListener {
 
     /**
      * The maximum width of the Image Panel (in pixels).
+     * Reflects the size of the CCD.
      */
-    protected final int maxWidth = 1024;
+    protected final int maxWidth = Constants.CCD_X_PIXELS;
 
     /**
      * The maximum height of the Image Panel (in pixels).
+     * Reflects the size of the CCD.
      */
-    protected final int maxHeight = 768;
+    protected final int maxHeight = Constants.CCD_Y_PIXELS;
 
     /**
      * A notifier object used to inform observers when a change has been
@@ -94,12 +100,10 @@ class ImagePanel extends JPanel implements MouseListener {
         }
 
         // Load the image.
-        try {
-           img = ImageIO.read(new File("Standby.jpg"));
-        } catch (IOException e) {
-        }
+        img = null;
         setImage(img);
 
+        setSize(getPreferredSize());
         setPreferredSize(getPreferredSize());
     }
 
@@ -226,7 +230,16 @@ class ImagePanel extends JPanel implements MouseListener {
         
         super.paintComponent(g);
 
-        g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
+        //g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
+        if (img != null) {
+            // draw.            
+            Graphics2D g2 = (Graphics2D)g;
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                            RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            
+            g2.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+        }
+        
         if (x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0) {
             g.setColor(Color.RED);
             g.drawRect(x1, y1, x2 - x1, y2 - y1);
@@ -338,14 +351,18 @@ class ImagePanel extends JPanel implements MouseListener {
      */
     public synchronized void mousePressed(MouseEvent e) {
         Point cursor = e.getLocationOnScreen();
-
+        
         if (isFirstPoint) {
-            x1 = cursor.x - getLocationOnScreen().x;
-            y1 = cursor.y - getLocationOnScreen().y;
+            //x1 = cursor.x - getLocationOnScreen().x;
+            //y1 = cursor.y - getLocationOnScreen().y;
+            x1=e.getX();
+            y1=e.getY();
             isFirstPoint = false;
         } else {
-            x2 = cursor.x - getLocationOnScreen().x;
-            y2 = cursor.y - getLocationOnScreen().y;
+            //x2 = cursor.x - getLocationOnScreen().x;
+            //y2 = cursor.y - getLocationOnScreen().y;
+            x2=e.getX();
+            y2=e.getY();
             isFirstPoint = true;
             repaint();
             notifier.notifyChange(this);

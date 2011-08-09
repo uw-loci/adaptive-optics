@@ -9,9 +9,11 @@
 package loci.hardware.camera.swig;
 
 class CCDCamWrapperJNI {
-  public final static native boolean init_camera();
+  public final static native boolean init_camera(int jarg1);
   public final static native String get_note();
   public final static native int capture_frame();
-  public final static native short get_frame_at_pos(int jarg1);
+  public final static native int get_frame_at_pos(int jarg1, int jarg2);
   public final static native int test_me();
+  public final static native int set_roi(int jarg1, int jarg2, int jarg3, int jarg4);
+  public final static native int shutdown();
 }

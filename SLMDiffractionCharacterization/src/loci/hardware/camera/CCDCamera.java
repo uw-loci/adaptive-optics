@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
+import loci.ao.slm.characterization.diffraction.main.Constants;
 import loci.hardware.camera.swig.CCDCamWrapper;
 
 /**
@@ -38,16 +40,21 @@ import loci.hardware.camera.swig.CCDCamWrapper;
  */
 public class CCDCamera {
     private static final String dllPath = "C:\\gunnsteinn\\AdaptiveOptics\\SWIG\\CCDCamWrapper.dll";
+    private static final String spotDLL = "C:\\SpotCamDLL\\SpotCam.dll";
     //private int[] frame;
-    private int width = 1024;
-    private int height = 768;
+    private int width;
+    private int height;
     private int origWidth, origHeight;
     private BufferedImage img;
     private boolean isInitialized;
-    public final int MAX_WIDTH=1024;
-    public final int MAX_HEIGHT=768;
+    public final int MAX_WIDTH=Constants.CCD_X_PIXELS;
+    public final int MAX_HEIGHT=Constants.CCD_Y_PIXELS;
 
     public CCDCamera() {
+        width = MAX_WIDTH;
+        height = MAX_HEIGHT;
+        
+        System.load(spotDLL);
         // Load the SWIG C++ bindings DLL.
         System.load(dllPath);
         //frame = new int[width*height];
@@ -88,7 +95,7 @@ public class CCDCamera {
 
     public synchronized boolean initialize() {
         isInitialized=true;
-        return CCDCamWrapper.init_camera();
+        return CCDCamWrapper.init_camera(Constants.CCD_DRIVER_TYPE);
     }
     public boolean isInitialized()
     {
@@ -135,7 +142,8 @@ public class CCDCamera {
      */
     public synchronized int captureFrame(int averages) {
         //img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-        img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        //img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        img = new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
 
         int retVal = 0;
         for (int j = 0; j < averages; j++) {
@@ -155,10 +163,16 @@ public class CCDCamera {
                 for (int m = 0; m < width; m++) {
                     int val = CCDCamWrapper.get_frame_at_pos(m, n);
 
-                    int byteVal = (int)val;
+                    /*int byteVal = (int)val;
                     byteVal &= 0xff;
                     int rgbVal = (byteVal << 16) | (byteVal << 8) | byteVal;
-                    img.setRGB(m, n, rgbVal);
+                    img.setRGB(m, n, rgbVal);*/
+                    
+                    int[] a = new int [1];
+                    int wordVal = (int)val;
+                    wordVal &= 0xffff;
+                    a[0] = (int)(1.0 * wordVal / 16384.0 * 65536.0);
+                    img.getRaster().setPixel(m, n, a);
                 }
             }
         }

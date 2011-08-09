@@ -39,10 +39,13 @@ bool SlmCom::InitSlm()
 	//initialize that this program is not going to use continuous
 	//downloads. Instead it will sequence through a series of 
 	//pre-loaded images. 
-	bool ContinuousDownload = true;
+	bool ContinuousDownload = false;
+	// GH: What? 6/20/2011.  Set ContinuousDownload to False.
 	theBoard->SetDownloadMode(ContinuousDownload);
 
 	unsigned short FrameRate = 1000;
+//	unsigned short FrameRate = 1; // GH: 6/29/2011, changed to 1 (was 1000).
+
 	unsigned short LaserDuty = 50;
 	unsigned short TrueLaserGain = 255;
 	unsigned short InverseLaserGain = 255;
@@ -155,7 +158,7 @@ bool SlmCom::SendtoDlm(int frameNum)
 }
 
 void SlmCom::SelectFrame(int frameNum)
-{
+{	
 	theBoard->SelectImage(frameNum);
 }
 

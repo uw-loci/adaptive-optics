@@ -14,6 +14,7 @@ package loci.ao.slm.characterization.diffraction.main;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Dimension;
 
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -674,7 +675,7 @@ public class Main extends JFrame implements Observer, WindowListener {
 
                 ccdImagePanel.setRectangle(x1, y1, x2, y2);
                 ccdImagePanel.repaint();
-
+ 
                 int ccdX1=(int) (1.0 * x1 / ccdImagePanel.getWidth() * ccdCamera.MAX_WIDTH);
                 int ccdY1=(int) (1.0 * y1 / ccdImagePanel.getHeight() * ccdCamera.MAX_HEIGHT);
                 int ccdX2=(int) (1.0 * x2 / ccdImagePanel.getWidth() * ccdCamera.MAX_WIDTH);
@@ -722,11 +723,16 @@ public class Main extends JFrame implements Observer, WindowListener {
                 // Save the image in the CCD panel to file.
                 BufferedImage image = ccdImagePanel.getImage();
                 File outputFile = new File(saveCcdImageEdit.getText());
-                String formatName = "bmp";
+                String formatName = "png";
 
+                System.out.println("Writing to file: image: " + image);
                 try {
-                    ImageIO.write(image, formatName, outputFile);
+                    
+                    boolean retVal = ImageIO.write(image, formatName, outputFile);
+                    System.out.println("ImageIO.write: " + retVal);
                 } catch (IOException ex) {
+                 
+                    System.out.println("Error writing to file: " + ex);
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

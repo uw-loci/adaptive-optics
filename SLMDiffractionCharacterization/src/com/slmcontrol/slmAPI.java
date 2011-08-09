@@ -57,6 +57,7 @@ public class slmAPI {
         System.out.println("Send data duration: " + duration);
 
         if (frameNum != 64 && frameNum != 65) {
+            System.out.println("Selecting frame");
             durStart = System.currentTimeMillis();
             slmAPI.getInstance().selectFrame((char) frameNum);
             durEnd = System.currentTimeMillis();
